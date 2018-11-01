@@ -1,4 +1,4 @@
-from pome.query import mktsdb_adapter as module
+from backlight.query import mktsdb_adapter as module
 from unittest import mock
 import pandas as pd
 import os
@@ -12,7 +12,7 @@ def test_MarketstoreAdapter():
         columns=["ask", "bid"],
     )
 
-    with mock.patch("pome.query.mktsdb_adapter.MarketData") as mocked:
+    with mock.patch("backlight.query.mktsdb_adapter.MarketData") as mocked:
         mocked.query.return_value = {"ABC": df}
         m = module.MarketstoreAdapter(url=None, mktdt=mocked)
         res = m.query("ABC", "2018-06-06", "2018-06-10")

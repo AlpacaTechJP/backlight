@@ -1,4 +1,4 @@
-from pome.query import merge_adapter as module
+from backlight.query import merge_adapter as module
 from unittest import mock
 import pandas as pd
 
@@ -11,8 +11,8 @@ def test_MergeAdapter():
     )
 
     urls = ["file://hoge.csv", "s3://huga.csv"]
-    with mock.patch("pome.query.csv_adapter.CSVAdapter.query") as csv_query, mock.patch(
-        "pome.query.csv_adapter.S3CSVAdapter.query"
+    with mock.patch("backlight.query.csv_adapter.CSVAdapter.query") as csv_query, mock.patch(
+        "backlight.query.csv_adapter.S3CSVAdapter.query"
     ) as s3_query:
         csv_query.return_value = df
         s3_query.return_value = df

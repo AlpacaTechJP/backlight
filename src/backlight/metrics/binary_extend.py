@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from pome.simulator.common import Action
+from backlight.simulator.common import Action
 
 from .binary import BinaryMetrics
 from .common import metric_property, sync_index_and_get_list
@@ -24,7 +24,7 @@ class BinaryMetricsExtend:
         Args:
             y_true     (list): Actual labels
             y_pred     (list): Predicted labels
-            trades     (pome.trades.Trades): contains price and amount
+            trades     (backlight.trades.Trades): contains price and amount
         """
         self._base_metrics = BinaryMetrics(y_true, y_pred)
         self._trades = trades

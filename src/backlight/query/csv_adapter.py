@@ -21,7 +21,7 @@ class CSVAdapter(DataSourceAdapter):
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         """Query pandas dataframe.
 
-        See also :class:`pome.query.adapter`.
+        See also :class:`backlight.query.adapter`.
         """
         df = pd.read_csv(self._url.path, index_col=0, parse_dates=True)
         df = df[(start_dt <= df.index) & (df.index <= end_dt)].sort_index()
@@ -46,7 +46,7 @@ class S3CSVAdapter(DataSourceAdapter):
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         """Query pandas dataframe.
 
-        See also :class:`pome.query.adapter`.
+        See also :class:`backlight.query.adapter`.
         """
         bucket = self._url.netloc
         key = self._url.path[1:]  # delete first '/'

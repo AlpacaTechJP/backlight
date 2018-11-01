@@ -15,14 +15,14 @@ class MergeAdapter(DataSourceAdapter):
             urls    : Urls for multiple data sources. `urls` should
                       be castable into :class:`tuple`. Each element
                       should be implemented in
-                      :class:`~pome.query.common.adapter_factory`.
+                      :class:`~backlight.query.common.adapter_factory`.
         """
         self._urls = tuple(urls)
 
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         """Query pandas dataframe.
 
-        See also :class:`pome.query.adapter`.
+        See also :class:`backlight.query.adapter`.
         """
         adapters = [adapter_factory(url) for url in self._urls]
         dfs = [a.query(symbol, start_dt, end_dt) for a in adapters]

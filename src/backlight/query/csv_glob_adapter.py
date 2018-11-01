@@ -69,7 +69,7 @@ class S3CSVGlobAdapter(DataSourceAdapter):
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         """Query pandas dataframe.
 
-        See also :class:`pome.query.adapter`.
+        See also :class:`backlight.query.adapter`.
         """
         bucket = self._url.netloc
         key = self._url.path[1:]  # delete first '/'

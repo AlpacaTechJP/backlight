@@ -1,4 +1,4 @@
-from pome.simulator import tick_data as module
+from backlight.simulator import tick_data as module
 import pytest
 import itertools
 import numpy as np

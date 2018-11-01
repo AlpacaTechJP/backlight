@@ -3,8 +3,8 @@ import unittest
 import numpy as np
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from pome.metrics import binary_extend
-from pome.trades import Trades
+from backlight.metrics import binary_extend
+from backlight.trades import Trades
 
 
 class TestBinaryMetricsClass(unittest.TestCase):

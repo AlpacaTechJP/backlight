@@ -1,10 +1,10 @@
 import unittest
 
 import pandas as pd
-from pome.labelizer.common import LabelType
-from pome.labelizer.labelizer import Label
-from pome.metrics import common
-from pome.signal.signal import BinaryOneColumnLabelSignal
+from backlight.labelizer.common import LabelType
+from backlight.labelizer.labelizer import Label
+from backlight.metrics import common
+from backlight.signal.signal import BinaryOneColumnLabelSignal
 
 
 class TestCommonModule(unittest.TestCase):

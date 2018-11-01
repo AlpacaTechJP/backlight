@@ -1,4 +1,4 @@
-from pome.datasource.marketdata import MarketData
+from backlight.datasource.marketdata import MarketData
 
 from .labelizer import Labelizer
 from .ternary.fixed_neutral import FixedNeutralLabelizer  # noqa

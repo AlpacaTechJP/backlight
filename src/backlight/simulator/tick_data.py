@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Callable
 from collections import namedtuple
 from functools import lru_cache
-from pome.labelizer.common import TernaryDirection
+from backlight.labelizer.common import TernaryDirection
 
 
 class InvalidTrade(Exception):
