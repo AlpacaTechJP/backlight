@@ -11,7 +11,9 @@ def test_MergeAdapter():
     )
 
     urls = ["file://hoge.csv", "s3://huga.csv"]
-    with mock.patch("backlight.query.csv_adapter.CSVAdapter.query") as csv_query, mock.patch(
+    with mock.patch(
+        "backlight.query.csv_adapter.CSVAdapter.query"
+    ) as csv_query, mock.patch(
         "backlight.query.csv_adapter.S3CSVAdapter.query"
     ) as s3_query:
         csv_query.return_value = df
