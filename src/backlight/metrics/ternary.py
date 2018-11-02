@@ -92,8 +92,7 @@ class TernaryMetrics:
         ), y_pred
         assert len(y_true) == len(y_pred), (
             "Actual and predictred classes should have"
-            "the same number of elements: {} != {}".format(
-                len(y_true), len(y_pred))
+            "the same number of elements: {} != {}".format(len(y_true), len(y_pred))
         )
         self._y_true = np.array(y_true)
         self._y_pred = np.array(y_pred)
@@ -150,8 +149,19 @@ class TernaryMetrics:
         # self._b = fp
         # self._c = fn
         # self._d = tn
-        self._sumall = np.sum([self._a, self._b, self._c, self._d,
-                               self._e, self._f, self._g, self._h, self._i])
+        self._sumall = np.sum(
+            [
+                self._a,
+                self._b,
+                self._c,
+                self._d,
+                self._e,
+                self._f,
+                self._g,
+                self._h,
+                self._i,
+            ]
+        )
 
     def _get_flip_count(self, signal_arr):
         previous_s = 0
@@ -191,8 +201,9 @@ class TernaryMetrics:
 
     @metric_property
     def pred_ratio_ud(self):
-        return (self._a + self._b + self._c +
-                self._g + self._h + self._i) / self._sumall
+        return (
+            self._a + self._b + self._c + self._g + self._h + self._i
+        ) / self._sumall
 
     @metric_property
     def pred_count_u(self):
@@ -224,8 +235,9 @@ class TernaryMetrics:
 
     @metric_property
     def real_ratio_ud(self):
-        return (self._a + self._d + self._g +
-                self._c + self._f + self._i) / self._sumall
+        return (
+            self._a + self._d + self._g + self._c + self._f + self._i
+        ) / self._sumall
 
     @metric_property
     def precision_u(self):
@@ -241,8 +253,9 @@ class TernaryMetrics:
 
     @metric_property
     def precision_ud(self):
-        return (self._a + self._i) / (self._a + self._b + self._c +
-                                      self._g + self._h + self._i)
+        return (self._a + self._i) / (
+            self._a + self._b + self._c + self._g + self._h + self._i
+        )
 
     @metric_property
     def recall_u(self):
@@ -258,8 +271,9 @@ class TernaryMetrics:
 
     @metric_property
     def recall_ud(self):
-        return (self._a + self._i) / (self._a + self._d + self._g +
-                                      self._c + self._f + self._i)
+        return (self._a + self._i) / (
+            self._a + self._d + self._g + self._c + self._f + self._i
+        )
 
     @metric_property
     def hit_rate_u(self):
@@ -283,21 +297,20 @@ class TernaryMetrics:
 
     @metric_property
     def hedge_rate_ud(self):
-        return ((self._a + self._b + self._h + self._i) /
-                (self._a + self._b + self._c + self._g + self._h + self._i))
+        return (self._a + self._b + self._h + self._i) / (
+            self._a + self._b + self._c + self._g + self._h + self._i
+        )
 
     @metric_property
     def f1_u(self):
         return (
-            2 * (self.recall_u * self.precision_u) /
-            (self.recall_u + self.precision_u)
+            2 * (self.recall_u * self.precision_u) / (self.recall_u + self.precision_u)
         )
 
     @metric_property
     def f1_d(self):
         return (
-            2 * (self.recall_d * self.precision_d) /
-            (self.recall_d + self.precision_d)
+            2 * (self.recall_d * self.precision_d) / (self.recall_d + self.precision_d)
         )
 
     def get(self, metric_names: list = []) -> dict:

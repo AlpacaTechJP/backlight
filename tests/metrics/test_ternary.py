@@ -9,10 +9,36 @@ from pandas.util.testing import assert_frame_equal
 class TestBinaryMetricsClass(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
-        self.y_true = [-1.0, 1.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, 1.0, 0.0,
-                       -1.0, 1.0, 1.0]
-        self.y_pred = [-1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 0.0,
-                       0.0, -1.0, 1.0]
+        self.y_true = [
+            -1.0,
+            1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+        ]
+        self.y_pred = [
+            -1.0,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            -1.0,
+            1.0,
+        ]
         self.b_metrics = ternary.TernaryMetrics(self.y_true, self.y_pred)
         self.ans_dict = {
             "accuracy": (2 + 1 + 3) / 13.0,
