@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from backlight.simulator.common import Action
+from backlight.strategies.common import Action
 
 from .binary import BinaryMetrics
 from .common import metric_property, sync_index_and_get_list
