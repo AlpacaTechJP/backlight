@@ -59,6 +59,11 @@ dist: sphinx_build
 	python setup.py sdist
 
 sphinx_build:
+	sphinx-apidoc -F -f \
+		-o ./docs/source/ \
+		-V "$(shell python -c "from src.backlight import __version__; print(__version__)")" \
+		-A "$(shell python -c "from src.backlight import __author__; print(__author__)")" \
+		./src/
 	python setup.py build_sphinx
 
 sphinx_autobuild:

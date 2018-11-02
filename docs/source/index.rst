@@ -1,47 +1,16 @@
-.. backlight documentation master file, created by
-   sphinx-quickstart on Tue Jun 12 06:19:34 2018.
+.. src documentation master file, created by
+   sphinx-quickstart on Sat Nov  3 07:51:22 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Backlight - A metrics calculation library
-=========================================
-
-Backlight is an evaluation framework for the market prediction signals.
-
-* Backlight provides an abstraction interface to access to the market data sources
-* Backlight provides 
-
-Table of Contents
-=================
+Welcome to src's documentation!
+===============================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
-Public Functions
-================
-
-.. automodule:: backlight.datasource
-   :members:
-
-.. automodule:: backlight.labelizer
-   :members:
-
-.. automodule:: backlight.metrics
-   :members:
-
-.. automodule:: backlight.plot
-   :members:
-
-.. automodule:: backlight.signal
-   :members:
-
-.. automodule:: backlight.strategies
-   :members:
-
-
-.. autosummary::
-   :toctree: _autosummary
+   backlight
 
 
 Indices and tables
