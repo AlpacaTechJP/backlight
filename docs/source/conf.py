@@ -131,7 +131,9 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "backlight.tex", "backlight Documentation", "Alpaca", "manual")]
+latex_documents = [
+    (master_doc, "backlight.tex", "backlight Documentation", "Alpaca", "manual")
+]
 
 
 # -- Options for manual page output ---------------------------------------
