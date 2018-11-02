@@ -1,9 +1,9 @@
 import pandas as pd
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import BinaryOneColumnLabelSignal
-from backlight.simulator import amount_based
+from backlight.strategies import amount_based
 from backlight.labelizer.common import TernaryDirection
-from backlight.simulator.common import Action
+from backlight.strategies.common import Action
 from backlight.trades import Trades
 from pandas.util.testing import assert_frame_equal
 
