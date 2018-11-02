@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 import numpy as np
-from backlight.metrics import binary
+from backlight.metrics import ternary
 from pandas.util.testing import assert_frame_equal
 
 

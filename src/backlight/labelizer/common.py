@@ -10,6 +10,9 @@ class TernaryDirection(Enum):
     UP = 1
     NEUTRAL = 0
     DOWN = -1
+    U = 1
+    N = 0
+    D = -1
 
 
 def get_majority_label(orig_result):

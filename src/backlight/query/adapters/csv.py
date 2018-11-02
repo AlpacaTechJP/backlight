@@ -3,7 +3,7 @@ import io
 import pandas as pd
 from urllib.parse import urlparse
 
-from .adapter import DataSourceAdapter
+from backlight.query.adapter import DataSourceAdapter
 
 
 class CSVAdapter(DataSourceAdapter):

@@ -1,4 +1,4 @@
-from .positions import Positions
+from backlight.positions.positions import Positions
 
 
 def _mid_trader(trades, mkt):

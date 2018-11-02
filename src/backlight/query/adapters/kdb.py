@@ -1,4 +1,4 @@
-from .adapter import DataSourceAdapter
+from backlight.query.adapter import DataSourceAdapter
 
 
 class KDBAdapter(DataSourceAdapter):

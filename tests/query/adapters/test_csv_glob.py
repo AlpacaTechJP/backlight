@@ -1,4 +1,4 @@
-from backlight.query import csv_glob_adapter as module
+from backlight.query.adapters import csv_glob as module
 from unittest import mock
 import pandas as pd
 import pytest
@@ -58,9 +58,9 @@ def test_S3CSVGlobAdapter(df):
     target_key = keys[0]
 
     with mock.patch(
-        "backlight.query.csv_glob_adapter.S3CSVGlobAdapter._s3client"
+        "backlight.query.adapters.csv_glob.S3CSVGlobAdapter._s3client"
     ) as mocked_client, mock.patch(
-        "backlight.query.csv_glob_adapter._list_s3_keys"
+        "backlight.query.adapters.csv_glob._list_s3_keys"
     ) as mocked_keys, mock.patch(
         "pandas.read_csv"
     ) as mocked_read_csv, mock.patch(
@@ -82,7 +82,7 @@ def test_S3CSVGlobAdapter_when_empty(df):
     keys = []
 
     with mock.patch(
-        "backlight.query.csv_glob_adapter._list_s3_keys"
+        "backlight.query.adapters.csv_glob._list_s3_keys"
     ) as mocked_keys, mock.patch("pandas.read_csv") as mocked_read_csv, mock.patch(
         "io.BytesIO"
     ) as mocked_io:  # noqa

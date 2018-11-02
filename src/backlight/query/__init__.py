@@ -1,6 +1,4 @@
-import logging
-
-from .common import adapter_factory
+from backlight.query.common import adapter_factory
 
 
 def query(symbol, start_dt, end_dt, url, **kwargs):

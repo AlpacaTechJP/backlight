@@ -3,6 +3,7 @@ import pandas as pd
 
 
 class DataSourceAdapter(ABC):
+
     @abstractmethod
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         """Query pandas dataframe.

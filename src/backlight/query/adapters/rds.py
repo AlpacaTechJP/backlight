@@ -1,4 +1,4 @@
-from .adapter import DataSourceAdapter
+from backlight.query.adapter import DataSourceAdapter
 
 
 class RDSAdapter(DataSourceAdapter):
@@ -8,4 +8,4 @@ class RDSAdapter(DataSourceAdapter):
         self._url = url
 
     def query(self, symbol, start_dt, end_dt):
-        pass
+        raise NotImplementedError()

@@ -1,4 +1,4 @@
-from ..common import TernaryDirection, get_majority_label
+from backlight.labelizer.common import TernaryDirection, get_majority_label
 import numpy as np
 
 

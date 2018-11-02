@@ -1,7 +1,7 @@
 import logging
 from libalpaca.datasource.market import MarketData
 
-from .adapter import DataSourceAdapter
+from backlight.query.adapter import DataSourceAdapter
 
 logger = logging.getLogger(__name__)
 DEFAULT_RETRIES = 100

@@ -4,9 +4,9 @@ import pandas as pd
 class Positions(pd.DataFrame):
     """Dataframe for Positions.
 
-    The ``price`` should be the price to evaluate the positions, not the cost to acquire.
-    In some cases (e.g. ask/bid pricing), ``Trades``\ ' price and ``Positions``\ ' price
-    are different.
+    The ``price`` should be the price to evaluate the positions, not the cost to
+    acquire. In some cases (e.g. ask/bid pricing), ``Trades``\ ' price and
+    ``Positions``\ ' price are different.
     """
 
     def __init__(self, df, symbol, start_dt=None, end_dt=None):

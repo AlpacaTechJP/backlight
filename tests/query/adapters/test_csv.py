@@ -1,4 +1,4 @@
-from backlight.query import csv_adapter as module
+from backlight.query.adapters import csv as module
 from unittest import mock
 import pandas as pd
 import pytest
@@ -32,7 +32,7 @@ def test_S3CSVAdapter(df):
     url = "s3://" + bucket + "/" + path
 
     with mock.patch(
-        "backlight.query.csv_adapter.S3CSVAdapter._s3client"
+        "backlight.query.adapters.csv.S3CSVAdapter._s3client"
     ) as mocked_client, mock.patch("pandas.read_csv") as mocked_read_csv, mock.patch(
         "io.BytesIO"
     ) as mocked_io:  # noqa

@@ -2,6 +2,7 @@ import pandas as pd
 
 
 class Label(pd.DataFrame):
+
     def __init__(self, label_type, df):
 
         super(Label, self).__init__(df)
@@ -12,8 +13,12 @@ class Label(pd.DataFrame):
     def label_type(self):
         return self._label_type
 
+    def stats(self):
+        return self.label.describe()
+
 
 class Labelizer:
+
     def __init__(self, **kwargs):
         self._params = kwargs.copy()
         self.validate_params()

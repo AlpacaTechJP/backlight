@@ -2,7 +2,17 @@ import pandas as pd
 
 
 class MarketData(pd.DataFrame):
+    """MarketData container which inherits pd.DataFrame."""
+
     def __init__(self, df, symbol, start_dt=None, end_dt=None):
+        """Initialize the MarketData instance.
+
+        Args:
+            df (DataFrame): dataframe
+            symbol (str): symbol
+            start_dt (pd.Timestamp): starting point. defaults to df.index[0]
+            end_dt (pd.Timestamp): termination point. defaults to df.index[-1]
+        """
 
         super(MarketData, self).__init__(df)
 
@@ -12,10 +22,12 @@ class MarketData(pd.DataFrame):
 
     @property
     def symbol(self):
+        """str: symbol"""
         return self._symbol
 
     @property
     def mid(self):
+        """Series: mid price"""
         if "mid" in self.columns:
             return self["mid"]
         else:

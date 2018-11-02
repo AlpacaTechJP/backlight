@@ -1,10 +1,10 @@
 from backlight.query import common as module
 
-from backlight.query.csv_adapter import CSVAdapter, S3CSVAdapter
-from backlight.query.kdb_adapter import KDBAdapter
-from backlight.query.mktsdb_adapter import MarketstoreAdapter
-from backlight.query.merge_adapter import MergeAdapter
-from backlight.query.rds_adapter import RDSAdapter
+from backlight.query.adapters.csv import CSVAdapter, S3CSVAdapter
+from backlight.query.adapters.kdb import KDBAdapter
+from backlight.query.adapters.mktsdb import MarketstoreAdapter
+from backlight.query.adapters.merge import MergeAdapter
+from backlight.query.adapters.rds import RDSAdapter
 
 
 def test_adapter_factory():

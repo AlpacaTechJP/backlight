@@ -1,17 +1,23 @@
 import numpy as np
 import pandas as pd
-from ..labelizer.common import TernaryDirection
+
+from backlight.labelizer.common import TernaryDirection
 
 
 class Signal(pd.DataFrame):
+
     def __init__(self, df, symbol, start_dt=None, end_dt=None):
-        """Wraps a DataFrame with some preperties."""
+        """An abstraction interface for signals"""
 
         super(Signal, self).__init__(df)
 
         self._symbol = symbol
         self._start_dt = df.index[0] if start_dt is None else start_dt
         self._end_dt = df.index[-1] if end_dt is None else end_dt
+
+        for col in self.columns:
+            if col not in self._target_columns:
+                self.drop(col, inplace=True)
 
     @property
     def symbol(self):
@@ -31,38 +37,25 @@ class Signal(pd.DataFrame):
 
 
 class TernarySignal(Signal):
+
+    _target_columns = ["up", "neutral", "down"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pred
 
-    @property
-    def pred(self):
-        if "pred" not in self.columns:
-            self.loc[:, "argmax"] = np.argmax(
-                self[["up", "neutral", "down"]].values, axis=1
-            )
-            self.loc[self.argmax == 0, "pred"] = TernaryDirection.UP.value
-            self.loc[self.argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
-            self.loc[self.argmax == 2, "pred"] = TernaryDirection.DOWN.value
-        return self[["pred"]]
+        argmax = np.argmax(self[["up", "neutral", "down"]].values, axis=1)
+        self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
+        self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
+        self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
 
 
-class BinaryOneColumnLabelSignal(Signal):
+class BinarySignal(Signal):
+
+    _target_columns = ["up", "down"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pred
 
-    @property
-    def pred(self):
-        if "pred" not in self.columns:
-            self.loc[self.label == 1.0, "pred"] = TernaryDirection.UP.value
-            self.loc[self.label == -1.0, "pred"] = TernaryDirection.DOWN.value
-        return self[["pred"]]
-
-
-class BinaryOneColumnUPProbaSignal(Signal):
-    pass  # TODO
-
-
-class BinaryTwoColumnsSignal(Signal):
-    pass  # TODO
+        argmax = np.argmax(self[["up", "down"]].values, axis=1)
+        self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
+        self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value

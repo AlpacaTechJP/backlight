@@ -50,3 +50,16 @@ unittest: _mount_src
 		-it --volumes-from mysrc \
 		$(IMAGE_NAME) \
 		bash -c 'PYTHONIOENCODING=UTF-8 py.test $(UNIT_TEST_OPTS)'
+
+
+build:
+	python setup.py build
+
+dist: sphinx_build
+	python setup.py sdist
+
+sphinx_build:
+	python setup.py build_sphinx
+
+sphinx_autobuild:
+	sphinx-autobuild -b html docs/source build/sphinx/html

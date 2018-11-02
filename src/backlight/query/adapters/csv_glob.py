@@ -1,12 +1,12 @@
 from boto3 import Session
+from urllib.parse import urlparse
 import fnmatch
 import glob
 import io
 import pandas as pd
-from urllib.parse import urlparse
 import warnings
 
-from .adapter import DataSourceAdapter
+from backlight.query.adapter import DataSourceAdapter
 
 
 class CSVGlobAdapter(DataSourceAdapter):

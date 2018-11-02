@@ -3,6 +3,9 @@ import sys
 import os
 from glob import glob
 
+from sphinx.setup_command import BuildDoc
+cmdclass = {'build_sphinx': BuildDoc}
+
 # hack to extract metadata directly from the python package
 sys.path.append("src")  # noqa
 from backlight import __author__, __version__, __license__
@@ -18,11 +21,11 @@ setuptools.setup(
     name="backlight",
     version=__version__,
     description="Model evaluation framework for AlpacaForecast",
+    author=__author__,
+    author_email="info@alpaca.ai",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     license=__license__,
-    author=__author__,
-    author_email="tech-jp@alpacadb.com",
     url="https://github.com/AlpacaDB/backlight.git",
     keywords="",
     packages=setuptools.find_packages("src"),
@@ -33,8 +36,8 @@ setuptools.setup(
     install_requires=[
         "pandas==0.21.0",
         "numpy>=1.15.0",
-        "pyyaml>=3.12",
-        "matplotlib >= 2.2.2",
+        "matplotlib>=2.2.2",
+        "boto3>=1.9.36",
     ],
     tests_require=[
         "pytest-cov>=2.5.1",
@@ -45,4 +48,13 @@ setuptools.setup(
         "autopep8>=1.2.3",
         "flake8>=3.5.0",
     ],
+    cmdclass=cmdclass,
+    # these are optional and override conf.py settings
+    command_options={
+        'build_sphinx': {
+            'project': ('setup.py', "backlight"),
+            'version': ('setup.py', __version__),
+            'source_dir': ('setup.py', 'docs/source'),
+        }
+    },
 )

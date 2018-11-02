@@ -1,8 +1,8 @@
 import pandas as pd
 from typing import Iterable
 
-from .adapter import DataSourceAdapter
-from .common import adapter_factory
+from backlight.query.adapter import DataSourceAdapter
+from backlight.query.common import adapter_factory
 
 
 class MergeAdapter(DataSourceAdapter):
