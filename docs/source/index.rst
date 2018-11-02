@@ -1,34 +1,34 @@
-.. pome documentation master file, created by
+.. backlight documentation master file, created by
    sphinx-quickstart on Tue Jun 12 06:19:34 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pome's documentation!
+Welcome to backlight's documentation!
 ================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: pome
+.. automodule:: backlight
    :members:
 
-.. automodule:: pome.datasource
+.. automodule:: backlight.datasource
    :members:
 
-.. automodule:: pome.labelizer
+.. automodule:: backlight.labelizer
    :members:
 
-.. automodule:: pome.metrics
+.. automodule:: backlight.metrics
    :members:
 
-.. automodule:: pome.plot
+.. automodule:: backlight.plot
    :members:
 
-.. automodule:: pome.signal
+.. automodule:: backlight.signal
    :members:
 
-.. automodule:: pome.simulator
+.. automodule:: backlight.simulator
    :members:
 
 

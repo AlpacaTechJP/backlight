@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# pome documentation build configuration file, created by
+# backlight documentation build configuration file, created by
 # sphinx-quickstart on Tue Jun 12 06:19:34 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -54,7 +54,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "pome"
+project = "backlight"
 copyright = "2018, Alpaca"
 author = "Alpaca"
 
@@ -108,7 +108,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "pomedoc"
+htmlhelp_basename = "backlightdoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -131,14 +131,14 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "pome.tex", "pome Documentation", "Alpaca", "manual")]
+latex_documents = [(master_doc, "backlight.tex", "backlight Documentation", "Alpaca", "manual")]
 
 
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "pome", "pome Documentation", [author], 1)]
+man_pages = [(master_doc, "backlight", "backlight Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output -------------------------------------------
@@ -149,10 +149,10 @@ man_pages = [(master_doc, "pome", "pome Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "pome",
-        "pome Documentation",
+        "backlight",
+        "backlight Documentation",
         author,
-        "pome",
+        "backlight",
         "One line description of project.",
         "Miscellaneous",
     )

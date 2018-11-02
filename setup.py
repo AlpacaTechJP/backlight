@@ -5,7 +5,7 @@ from glob import glob
 
 # hack to extract metadata directly from the python package
 sys.path.append("src")  # noqa
-from pome import __author__, __version__, __license__
+from backlight import __author__, __version__, __license__
 
 
 def read(fname):
@@ -15,7 +15,7 @@ def read(fname):
 
 
 setuptools.setup(
-    name="pome",
+    name="backlight",
     version=__version__,
     description="Model evaluation framework for AlpacaForecast",
     long_description=read("README.md"),
@@ -23,7 +23,7 @@ setuptools.setup(
     license=__license__,
     author=__author__,
     author_email="tech-jp@alpacadb.com",
-    url="https://github.com/AlpacaDB/pome.git",
+    url="https://github.com/AlpacaDB/backlight.git",
     keywords="",
     packages=setuptools.find_packages("src"),
     package_dir={"": "src"},
