@@ -12,6 +12,10 @@ def calc_binary_trade_performance(sig, lbl, trades):
 
 
 def simple_binary_metrics_extend_factory(real_arr, pred_arr, trades):
+    """Simple Factory method: Initialize correct object to compute extra
+    metrics like PL according to the information inside trades. You can
+    customized your logic here.
+    """
     if "amount" in trades.keys():
         return AmountBasedPL(real_arr, pred_arr, trades)
     else:
@@ -47,8 +51,8 @@ class AmountBasedPL(BinaryMetricsExtend):
         so we use tomrrow - today as diff and compute the PL. However, in real
         senario, it is impossible to treat with today's price. In that case,
         you can shift the signal to become the yesterday's prediction and trade
-        on today's price. Actually, in some examples, all signal are yesterday's
-        prediction, so can directly use this function.
+        on today's price. Actually, in some examples, all signal are
+        yesterday's prediction, so can directly use this function.
 
         Here:
           today         tomrrow
@@ -78,7 +82,8 @@ class AmountBasedPL(BinaryMetricsExtend):
 
     @metric_property
     def accumulate_pl_percentage(self):
-        rates = (self._trades["amount"][:-1] * self._diff1[:-1]) / self._prices[:-1]
+        rates = (self._trades["amount"][:-1] *
+                 self._diff1[:-1]) / self._prices[:-1]
         s = 1
         for i in range(0, len(rates)):
             s = s * (1 + rates[i])
@@ -116,7 +121,8 @@ class AmountBasedPL(BinaryMetricsExtend):
         for i, v in enumerate(self._trades[:-1]["amount"].iteritems()):
             if v[1] != Action.Donothing.value:
                 action_counts += 1
-                action_pl += self._trades["amount"][:-1].values[i] * self._diff1[:-1][i]
+                action_pl += self._trades[
+                    "amount"][:-1].values[i] * self._diff1[:-1][i]
         return action_pl / action_counts
 
     def get(self, metric_names: list = []) -> dict:
