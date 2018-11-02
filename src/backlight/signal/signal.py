@@ -36,10 +36,12 @@ class TernarySignal(Signal):
         self.loc[:, "argmax"] = np.argmax(
             self[["up", "neutral", "down"]].values, axis=1
         )
-        self['pred'] = self['argmax'].replace(
-            0, TernaryDirection.UP.value).replace(
-            1, TernaryDirection.NEUTRAL.value).replace(
-            2, TernaryDirection.DOWN.value)
+        self["pred"] = (
+            self["argmax"]
+            .replace(0, TernaryDirection.UP.value)
+            .replace(1, TernaryDirection.NEUTRAL.value)
+            .replace(2, TernaryDirection.DOWN.value)
+        )
 
     @property
     def pred(self):
@@ -49,10 +51,12 @@ class TernarySignal(Signal):
 class TernaryOneColumnLabelSignal(Signal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self['pred'] = self['label'].replace(
-            0.0, TernaryDirection.UP.value).replace(
-            1.0, TernaryDirection.NEUTRAL.value).replace(
-            2.0, TernaryDirection.DOWN.value)
+        self["pred"] = (
+            self["label"]
+            .replace(0.0, TernaryDirection.UP.value)
+            .replace(1.0, TernaryDirection.NEUTRAL.value)
+            .replace(2.0, TernaryDirection.DOWN.value)
+        )
 
     @property
     def pred(self):
@@ -62,9 +66,11 @@ class TernaryOneColumnLabelSignal(Signal):
 class BinaryOneColumnLabelSignal(Signal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self['pred'] = self['label'].replace(
-            1.0, TernaryDirection.UP.value).replace(
-            -1.0, TernaryDirection.DOWN.value)
+        self["pred"] = (
+            self["label"]
+            .replace(1.0, TernaryDirection.UP.value)
+            .replace(-1.0, TernaryDirection.DOWN.value)
+        )
 
     @property
     def pred(self):
