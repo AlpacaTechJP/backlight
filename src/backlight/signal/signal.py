@@ -33,30 +33,41 @@ class Signal(pd.DataFrame):
 class TernarySignal(Signal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pred
+        self.loc[:, "argmax"] = np.argmax(
+            self[["up", "neutral", "down"]].values, axis=1
+        )
+        self['pred'] = self['argmax'].replace(
+            0, TernaryDirection.UP.value).replace(
+            1, TernaryDirection.NEUTRAL.value).replace(
+            2, TernaryDirection.DOWN.value)
 
     @property
     def pred(self):
-        if "pred" not in self.columns:
-            self.loc[:, "argmax"] = np.argmax(
-                self[["up", "neutral", "down"]].values, axis=1
-            )
-            self.loc[self.argmax == 0, "pred"] = TernaryDirection.UP.value
-            self.loc[self.argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
-            self.loc[self.argmax == 2, "pred"] = TernaryDirection.DOWN.value
+        return self[["pred"]]
+
+
+class TernaryOneColumnLabelSignal(Signal):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self['pred'] = self['label'].replace(
+            0.0, TernaryDirection.UP.value).replace(
+            1.0, TernaryDirection.NEUTRAL.value).replace(
+            2.0, TernaryDirection.DOWN.value)
+
+    @property
+    def pred(self):
         return self[["pred"]]
 
 
 class BinaryOneColumnLabelSignal(Signal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pred
+        self['pred'] = self['label'].replace(
+            1.0, TernaryDirection.UP.value).replace(
+            -1.0, TernaryDirection.DOWN.value)
 
     @property
     def pred(self):
-        if "pred" not in self.columns:
-            self.loc[self.label == 1.0, "pred"] = TernaryDirection.UP.value
-            self.loc[self.label == -1.0, "pred"] = TernaryDirection.DOWN.value
         return self[["pred"]]
 
 
