@@ -1,19 +1,26 @@
 from ..labelizer.common import LabelType
+from ..positions.positions import Positions
 from .binary import calc_binary_metrics
+from .ternary import calc_ternary_metrics
 from .binary_extend import calc_binary_trade_performance
 from .pl import PlMetrics
-from ..positions.positions import Positions
 
 
 def calc_metrics(sig, lbl, dropna=True):
+    """Dispatch the task to the correct function according to label type"""
     if lbl.label_type == LabelType.BINARY:
         return calc_binary_metrics(sig.dropna(), lbl.dropna())
+    if lbl.label_type == LabelType.TERNARY:
+        return calc_ternary_metrics(sig.dropna(), lbl.dropna())
     else:
         raise NotImplementedError
 
 
 def calc_trade_performance(sig, lbl, trades, dropna=True):
-    """Wrong interface? sig, lbl is needed?"""
+    """Dispatch the task to the correct function according to label type
+    The result of this function will includes everything in calc_metrics
+    plus addition information like PL(profit/loss)
+    """
     if lbl.label_type == LabelType.BINARY:
         return calc_binary_trade_performance(sig.dropna(), lbl.dropna(), trades)
     else:
