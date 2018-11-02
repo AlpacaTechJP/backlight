@@ -82,8 +82,7 @@ class AmountBasedPL(BinaryMetricsExtend):
 
     @metric_property
     def accumulate_pl_percentage(self):
-        rates = (self._trades["amount"][:-1] *
-                 self._diff1[:-1]) / self._prices[:-1]
+        rates = (self._trades["amount"][:-1] * self._diff1[:-1]) / self._prices[:-1]
         s = 1
         for i in range(0, len(rates)):
             s = s * (1 + rates[i])
@@ -121,8 +120,7 @@ class AmountBasedPL(BinaryMetricsExtend):
         for i, v in enumerate(self._trades[:-1]["amount"].iteritems()):
             if v[1] != Action.Donothing.value:
                 action_counts += 1
-                action_pl += self._trades[
-                    "amount"][:-1].values[i] * self._diff1[:-1][i]
+                action_pl += self._trades["amount"][:-1].values[i] * self._diff1[:-1][i]
         return action_pl / action_counts
 
     def get(self, metric_names: list = []) -> dict:
