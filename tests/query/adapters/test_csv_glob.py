@@ -27,7 +27,7 @@ def test_CSVGlobAdapter(df):
         mocked_glob.return_value = paths
         m = module.CSVGlobAdapter(url=url)
         res = m.query(symbol, "2018-06-06", "2018-06-10")
-        mocked_read_csv.assert_called_with(target_path, index_col=0, parse_dates=True)
+        mocked_read_csv.assert_called_with(target_path, parse_dates=True)
 
         assert df.equals(res)
 
