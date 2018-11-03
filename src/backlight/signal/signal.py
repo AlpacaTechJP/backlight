@@ -5,56 +5,51 @@ from backlight.labelizer.common import TernaryDirection
 
 
 class Signal(pd.DataFrame):
-    def __init__(self, df, symbol, start_dt=None, end_dt=None):
-        """An abstraction interface for signals"""
 
-        super(Signal, self).__init__(df)
+    _metadata = ["symbol", "_target_columns"]
 
-        self._symbol = symbol
-        self._start_dt = df.index[0] if start_dt is None else start_dt
-        self._end_dt = df.index[-1] if end_dt is None else end_dt
-
+    def reset_cols(self):
         for col in self.columns:
             if col not in self._target_columns:
-                self.drop(col, inplace=True)
+                self.drop(col, axis=1, inplace=True)
 
     @property
-    def symbol(self):
-        return self._symbol
+    def _constructor(self):
+        return Signal
 
     @property
     def start_dt(self):
-        return self._start_dt
+        return self.index[0]
 
     @property
     def end_dt(self):
-        return self._end_dt
-
-    @property
-    def pred(self):
-        return NotImplementedError
+        return self.index[-1]
 
 
 class TernarySignal(Signal):
 
     _target_columns = ["up", "neutral", "down"]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def reset_pred(self):
         argmax = np.argmax(self[["up", "neutral", "down"]].values, axis=1)
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
         self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
+
+    @property
+    def _constructor(self):
+        return TernarySignal
 
 
 class BinarySignal(Signal):
 
     _target_columns = ["up", "down"]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def reset_pred(self):
         argmax = np.argmax(self[["up", "down"]].values, axis=1)
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value
+
+    @property
+    def _constructor(self):
+        return BinarySignal

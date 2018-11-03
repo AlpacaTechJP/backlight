@@ -15,4 +15,6 @@ def load_marketdata(symbol, start_dt, end_dt, url):
         MarketData
     """
     df = query(symbol, start_dt, end_dt, url)
-    return MarketData(df, symbol, start_dt, end_dt)
+    mkt = MarketData(df)
+    mkt.symbol = symbol
+    return mkt

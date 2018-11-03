@@ -11,8 +11,7 @@ def test_MarketData():
         data=[[0, 2], [2, 4], [4, 6]],
         columns=["ask", "bid"],
     )
-    md = module.MarketData(df, "ABC", df.index[0], df.index[-1])
-    assert md.symbol == "ABC"
+    md = module.MarketData(df)
     assert all(md.mid.values == [1, 3, 5])
 
     df = pd.DataFrame(
@@ -20,5 +19,5 @@ def test_MarketData():
         data=[0, 2, 6],
         columns=["mid"],
     )
-    md = module.MarketData(df, "ABC", df.index[0], df.index[-1])
+    md = module.MarketData(df)
     assert all(md.mid.values == [0, 2, 6])

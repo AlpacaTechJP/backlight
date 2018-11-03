@@ -21,7 +21,7 @@ def test_CSVAdapter(df):
         mocked.return_value = df
         m = module.CSVAdapter(url=url)
         res = m.query("ABC", "2018-06-06", "2018-06-10")
-        mocked.assert_called_with(path, index_col=0, parse_dates=True)
+        mocked.assert_called_with(path, parse_dates=True)
 
         assert df.equals(res)
 

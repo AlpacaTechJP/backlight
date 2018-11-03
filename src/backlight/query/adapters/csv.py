@@ -23,9 +23,14 @@ class CSVAdapter(DataSourceAdapter):
 
         See also :class:`backlight.query.adapter`.
         """
-        df = pd.read_csv(self._url.path, index_col=0, parse_dates=True)
-        df = df[(start_dt <= df.index) & (df.index <= end_dt)].sort_index()
-        return df
+        df = pd.read_csv(self._url.path, parse_dates=True)
+        if "timestamp" in df:
+            df = df.set_index("timestamp")
+        elif df.columns[0] == 0:
+            df = df.set_index(df.columns[0])
+            del df.index.name
+        df.index = pd.to_datetime(df.index)
+        return df.sort_index()[start_dt:end_dt]
 
 
 class S3CSVAdapter(DataSourceAdapter):
@@ -53,10 +58,7 @@ class S3CSVAdapter(DataSourceAdapter):
 
         obj = S3CSVAdapter._s3client.get_object(Bucket=bucket, Key=key)
         df = pd.read_csv(
-            io.BytesIO(obj["Body"].read()),
-            compression="gzip",
-            index_col=0,
-            parse_dates=True,
+            io.BytesIO(obj["Body"].read()), compression="gzip", parse_dates=True
         )
         df = df[(start_dt <= df.index) & (df.index <= end_dt)].sort_index()
         return df

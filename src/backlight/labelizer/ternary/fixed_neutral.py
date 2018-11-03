@@ -26,4 +26,5 @@ class FixedNeutralLabelizer(Labelizer):
         df.loc[df.label_diff > 0, "label"] = TernaryDirection.UP.value
         df.loc[df.label_diff < 0, "label"] = TernaryDirection.DOWN.value
         df.loc[neutral_band, "label"] = TernaryDirection.NEUTRAL.value
-        return Label(LabelType.TERNARY, df[["label_diff", "label"]])
+        df.label_type = LabelType.TERNARY
+        return df

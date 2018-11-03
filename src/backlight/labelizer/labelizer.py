@@ -2,18 +2,15 @@ import pandas as pd
 
 
 class Label(pd.DataFrame):
-    def __init__(self, label_type, df):
 
-        super(Label, self).__init__(df)
-
-        self._label_type = label_type
-
-    @property
-    def label_type(self):
-        return self._label_type
+    _metadata = ["label_type"]
 
     def stats(self):
         return self.label.describe()
+
+    @property
+    def _constructor(self):
+        return Label
 
 
 class Labelizer:

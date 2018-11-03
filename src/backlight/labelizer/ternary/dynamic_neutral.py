@@ -28,7 +28,9 @@ class DynamicNeutralLabelizer(Labelizer):
         df.loc[df.label_diff > 0, "label"] = TernaryDirection.UP.value
         df.loc[df.label_diff < 0, "label"] = TernaryDirection.DOWN.value
         df.loc[diff_abs < neutral_range, "label"] = TernaryDirection.NEUTRAL.value
-        return Label(LabelType.TERNARY, df[["label_diff", "label", "neutral_range"]])
+        df = Label(df[["label_diff", "label", "neutral_range"]])
+        df.label_type = LabelType.TERNARY
+        return df
 
     @property
     def neutral_ratio(self):

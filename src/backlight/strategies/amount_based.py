@@ -18,11 +18,10 @@ def direction_based_trades(mkt, sig, target_column_name, direction_action_dict):
     # Order of concat is important, if mkt in front of trades, will have error
     # since it will use the type of mkt(MarketData) to concat, but trades is
     # normal DataFrame
-    return Trades(
-        target_column_name=target_column_name,
-        df=pd.concat([trades, mkt], axis=1, join="inner"),
-        symbol=sig.symbol,
-    )
+    t = Trades(pd.concat([trades, mkt], axis=1, join="inner"))
+    t.target_column_name = target_column_name
+    t.symbol = sig.symbol
+    return t
 
 
 def only_take_long(mkt, sig, target_column_name):
