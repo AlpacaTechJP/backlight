@@ -5,9 +5,13 @@ from backlight.labelizer.labelizer import Labelizer
 from backlight.labelizer.common import simple_label_factory
 
 
-def load_label(symbol, url, start_dt=None, end_dt=None, factory=simple_label_factory, mapping=None):
+def load_label(
+    symbol, url, start_dt=None, end_dt=None, factory=simple_label_factory, mapping=None
+):
     df = query(symbol, start_dt, end_dt, url)
-    return factory(df=df, symbol=symbol, start_dt=start_dt, end_dt=end_dt, mapping=mapping)
+    return factory(
+        df=df, symbol=symbol, start_dt=start_dt, end_dt=end_dt, mapping=mapping
+    )
 
 
 def generate_labels(mkt, labelizer):

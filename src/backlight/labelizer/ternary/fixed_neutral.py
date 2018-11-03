@@ -5,7 +5,6 @@ from backlight.labelizer.labelizer import Label, Labelizer
 
 
 class FixedNeutralLabelizer(Labelizer):
-
     def validate_params(self):
         assert "lookahead" in self._params
         assert "neutral_atol" in self._params

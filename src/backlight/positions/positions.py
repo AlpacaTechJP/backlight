@@ -8,7 +8,8 @@ class Positions(pd.DataFrame):
     acquire. In some cases (e.g. ask/bid pricing), ``Trades``\ ' price and
     ``Positions``\ ' price are different.
     """
-    _metadata = ['symbol', ]
+
+    _metadata = ["symbol"]
 
     @property
     def amount(self):

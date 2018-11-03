@@ -4,7 +4,7 @@ import pandas as pd
 class MarketData(pd.DataFrame):
     """MarketData container which inherits pd.DataFrame."""
 
-    _metadata = ['symbol', ]
+    _metadata = ["symbol"]
 
     @property
     def mid(self):

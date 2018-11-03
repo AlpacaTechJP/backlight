@@ -3,7 +3,7 @@ import pandas as pd
 
 class Label(pd.DataFrame):
 
-    _metadata = ['label_type', ]
+    _metadata = ["label_type"]
 
     def stats(self):
         return self.label.describe()
@@ -14,7 +14,6 @@ class Label(pd.DataFrame):
 
 
 class Labelizer:
-
     def __init__(self, **kwargs):
         self._params = kwargs.copy()
         self.validate_params()

@@ -6,7 +6,7 @@ from backlight.labelizer.common import TernaryDirection
 
 class Signal(pd.DataFrame):
 
-    _metadata = ['symbol', '_target_columns']
+    _metadata = ["symbol", "_target_columns"]
 
     def reset_cols(self):
         for col in self.columns:

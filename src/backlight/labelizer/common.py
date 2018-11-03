@@ -43,14 +43,11 @@ def simple_label_factory(**kwargs):
     df = kwargs["df"].copy()
 
     if "neutral_range" in df.columns:
-        df = df.rename(columns={
-            "label_up_neutral_down": "label",
-            "label_up_down": "label",
-        })
+        df = df.rename(
+            columns={"label_up_neutral_down": "label", "label_up_down": "label"}
+        )
         if "mapping" in kwargs:
-            df.loc[:, "label"] = df.label.apply(
-                lambda x: kwargs["mapping"][x]
-            )
+            df.loc[:, "label"] = df.label.apply(lambda x: kwargs["mapping"][x])
         lbl = Label(df[["label_diff", "label", "neutral_range"]])
         lbl.label_type = LabelType.TERNARY
         return lbl

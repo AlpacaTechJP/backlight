@@ -29,7 +29,7 @@ class CSVAdapter(DataSourceAdapter):
         else:
             df = df.set_index(df.columns[0])
         df.index = pd.to_datetime(df.index)
-        return df.sort_index()[start_dt: end_dt]
+        return df.sort_index()[start_dt:end_dt]
 
 
 class S3CSVAdapter(DataSourceAdapter):
@@ -57,9 +57,7 @@ class S3CSVAdapter(DataSourceAdapter):
 
         obj = S3CSVAdapter._s3client.get_object(Bucket=bucket, Key=key)
         df = pd.read_csv(
-            io.BytesIO(obj["Body"].read()),
-            compression="gzip",
-            parse_dates=True,
+            io.BytesIO(obj["Body"].read()), compression="gzip", parse_dates=True
         )
         df = df[(start_dt <= df.index) & (df.index <= end_dt)].sort_index()
         return df
