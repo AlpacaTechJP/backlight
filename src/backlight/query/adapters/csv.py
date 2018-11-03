@@ -26,8 +26,9 @@ class CSVAdapter(DataSourceAdapter):
         df = pd.read_csv(self._url.path, parse_dates=True)
         if "timestamp" in df:
             df = df.set_index("timestamp")
-        else:
+        elif df.columns[0] == 0:
             df = df.set_index(df.columns[0])
+            del df.index.name
         df.index = pd.to_datetime(df.index)
         return df.sort_index()[start_dt:end_dt]
 

@@ -25,7 +25,7 @@ class CSVGlobAdapter(DataSourceAdapter):
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         paths = glob.glob(self._url.path)
         dfs = [
-            pd.read_csv(path, index_col=0, parse_dates=True)
+            pd.read_csv(path, parse_dates=True)
             for path in paths
             if symbol in path
         ]
