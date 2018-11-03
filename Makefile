@@ -1,3 +1,5 @@
+.PHONY:	jupyter format_black sphinx_build
+
 IMAGE_NAME=alpacadb/alpaca-containers:forecast-exp-v0.0.2
 
 MAKEFILE_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -68,3 +70,6 @@ sphinx_build:
 
 sphinx_autobuild:
 	sphinx-autobuild -b html docs/source build/sphinx/html
+
+jupyter:
+	bash -c "PYTHONPATH=`pwd`/src:${PYTHONPATH} jupyter notebook"
