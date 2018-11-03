@@ -6,6 +6,17 @@ from urllib.parse import urlparse
 from backlight.query.adapter import DataSourceAdapter
 
 
+def read_csv_and_set_index(url):
+    df = pd.read_csv(url, parse_dates=True)
+    if "timestamp" in df:
+        df = df.set_index("timestamp")
+    elif df.columns[0] == "Unnamed: 0":
+        df = df.set_index(df.columns[0])
+        del df.index.name
+    df.index = pd.to_datetime(df.index)
+    return df.sort_index()
+
+
 class CSVAdapter(DataSourceAdapter):
     """Data source adapter for csv files"""
 
@@ -23,14 +34,7 @@ class CSVAdapter(DataSourceAdapter):
 
         See also :class:`backlight.query.adapter`.
         """
-        df = pd.read_csv(self._url.path, parse_dates=True)
-        if "timestamp" in df:
-            df = df.set_index("timestamp")
-        elif df.columns[0] == 0:
-            df = df.set_index(df.columns[0])
-            del df.index.name
-        df.index = pd.to_datetime(df.index)
-        return df.sort_index()[start_dt:end_dt]
+        return read_csv_and_set_index(self._url.path)[start_dt:end_dt]
 
 
 class S3CSVAdapter(DataSourceAdapter):

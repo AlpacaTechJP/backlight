@@ -7,6 +7,7 @@ import pandas as pd
 import warnings
 
 from backlight.query.adapter import DataSourceAdapter
+from backlight.query.adapters.csv import read_csv_and_set_index
 
 
 class CSVGlobAdapter(DataSourceAdapter):
@@ -24,7 +25,7 @@ class CSVGlobAdapter(DataSourceAdapter):
 
     def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
         paths = glob.glob(self._url.path)
-        dfs = [pd.read_csv(path, parse_dates=True) for path in paths if symbol in path]
+        dfs = [read_csv_and_set_index(path) for path in paths if symbol in path]
 
         if len(dfs) == 0:
             return pd.DataFrame()
@@ -81,13 +82,7 @@ class S3CSVGlobAdapter(DataSourceAdapter):
         ]
 
         dfs = [
-            pd.read_csv(
-                io.BytesIO(obj["Body"].read()),
-                compression="gzip",
-                index_col=0,
-                parse_dates=True,
-            )
-            for obj in objects
+            read_csv_and_set_index(io.BytesIO(obj["Body"].read())) for obj in objects
         ]
 
         if len(dfs) == 0:
