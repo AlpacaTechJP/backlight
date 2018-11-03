@@ -9,6 +9,9 @@ def _r(a, b):
 
 def calc_ternary_metrics(sig, lbl):
 
+    sig = sig.dropna()
+    lbl = lbl.dropna()
+
     uu = ((sig.pred == TD.U.value) & (lbl.label == TD.U.value)).sum()
     un = ((sig.pred == TD.N.value) & (lbl.label == TD.N.value)).sum()
     ud = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
@@ -25,8 +28,8 @@ def calc_ternary_metrics(sig, lbl):
     neutral_ratio = _r(nu + nn + nd, total)
     coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
 
-    avg_pl = lbl[lbl.label != TD.N.value].label_diff.mean()
-    total_pl = lbl[lbl.label != TD.N.value].label_diff.sum()
+    avg_pl = lbl[sig.pred != TD.N.value].label_diff.mean()
+    total_pl = lbl[sig.pred != TD.N.value].label_diff.sum()
 
     m = pd.DataFrame.from_records(
         [
@@ -52,4 +55,4 @@ def calc_ternary_metrics(sig, lbl):
     del m.index.name
     m.columns = ["metrics"]
 
-    return m
+    return m.T

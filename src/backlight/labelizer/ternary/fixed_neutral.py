@@ -5,6 +5,7 @@ from backlight.labelizer.labelizer import Label, Labelizer
 
 
 class FixedNeutralLabelizer(Labelizer):
+
     def validate_params(self):
         assert "lookahead" in self._params
         assert "neutral_atol" in self._params
@@ -26,4 +27,5 @@ class FixedNeutralLabelizer(Labelizer):
         df.loc[df.label_diff > 0, "label"] = TernaryDirection.UP.value
         df.loc[df.label_diff < 0, "label"] = TernaryDirection.DOWN.value
         df.loc[neutral_band, "label"] = TernaryDirection.NEUTRAL.value
-        return Label(LabelType.TERNARY, df[["label_diff", "label"]])
+        df.label_type = LabelType.TERNARY
+        return df
