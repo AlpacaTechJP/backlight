@@ -27,10 +27,12 @@ def from_dataframe(df, symbol, col_mapping=None):
 
     if ("up" in df.columns) and ("neutral" in df.columns) and ("down" in df.columns):
         from backlight.signal.signal import TernarySignal
+
         sig = TernarySignal(df)
 
     elif ("up" in df.columns) and ("down" in df.columns):
         from backlight.signal.signal import BinarySignal
+
         sig = BinarySignal(df)
 
     if sig is None:
