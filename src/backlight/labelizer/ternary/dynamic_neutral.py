@@ -3,6 +3,7 @@ from backlight.labelizer.labelizer import Label, Labelizer
 
 
 class DynamicNeutralLabelizer(Labelizer):
+
     def validate_params(self):
         assert "lookahead" in self._params
         assert "neutral_ratio" in self._params

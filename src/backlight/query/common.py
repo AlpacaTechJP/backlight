@@ -11,12 +11,14 @@ def adapter_factory(url, **kwargs):
     o = urlparse(url)
     if o.scheme in ("file",) and "*" in o.path:
         from backlight.query.adapters.csv_glob import CSVGlobAdapter
-
         cls = CSVGlobAdapter
     elif o.scheme in ("file",) and "*" not in o.path:
-        from backlight.query.adapters.csv import CSVAdapter
-
-        cls = CSVAdapter
+        if o.path.endswith(".h5"):
+            from backlight.query.adapters.h5 import H5Adapter
+            cls = H5Adapter
+        else:
+            from backlight.query.adapters.csv import CSVAdapter
+            cls = CSVAdapter
     elif o.scheme in ("s3",) and "*" in o.path:
         from backlight.query.adapters.csv_glob import S3CSVGlobAdapter
 
