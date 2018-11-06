@@ -28,6 +28,7 @@ def calc_ternary_metrics(sig, lbl):
     neutral_ratio = _r(nu + nn + nd, total)
     coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
 
+    lbl = lbl.reindex(sig.index)
     avg_pl = lbl[sig.pred != TD.N.value].label_diff.mean()
     total_pl = lbl[sig.pred != TD.N.value].label_diff.sum()
 
