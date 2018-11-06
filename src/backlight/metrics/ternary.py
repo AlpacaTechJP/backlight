@@ -13,24 +13,28 @@ def calc_ternary_metrics(sig, lbl):
     lbl = lbl.dropna()
 
     uu = ((sig.pred == TD.U.value) & (lbl.label == TD.U.value)).sum()
-    un = ((sig.pred == TD.N.value) & (lbl.label == TD.N.value)).sum()
-    ud = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
-    nu = ((sig.pred == TD.U.value) & (lbl.label == TD.U.value)).sum()
+    un = ((sig.pred == TD.U.value) & (lbl.label == TD.N.value)).sum()
+    ud = ((sig.pred == TD.U.value) & (lbl.label == TD.D.value)).sum()
+    nu = ((sig.pred == TD.N.value) & (lbl.label == TD.U.value)).sum()
     nn = ((sig.pred == TD.N.value) & (lbl.label == TD.N.value)).sum()
-    nd = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
-    du = ((sig.pred == TD.U.value) & (lbl.label == TD.U.value)).sum()
-    dn = ((sig.pred == TD.N.value) & (lbl.label == TD.N.value)).sum()
+    nd = ((sig.pred == TD.N.value) & (lbl.label == TD.D.value)).sum()
+    du = ((sig.pred == TD.D.value) & (lbl.label == TD.U.value)).sum()
+    dn = ((sig.pred == TD.D.value) & (lbl.label == TD.N.value)).sum()
     dd = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
     total = len(sig)
 
-    hit_ratio = _r(uu + dd, uu + un + ud + du + dn + dd)
+    hit_ratio = _r(uu + dd, uu + ud + du + dd)
     hedge_ratio = _r(uu + un + dn + dd, uu + un + ud + du + dn + dd)
     neutral_ratio = _r(nu + nn + nd, total)
     coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
 
     lbl = lbl.reindex(sig.index)
-    avg_pl = lbl[sig.pred != TD.N.value].label_diff.mean()
-    total_pl = lbl[sig.pred != TD.N.value].label_diff.sum()
+
+    pl = lbl[sig.pred != TD.N.value].label_diff
+    pl.loc[sig.pred == TD.D.value] *= -1
+
+    avg_pl = pl.mean()
+    total_pl = pl.sum()
 
     m = pd.DataFrame.from_records(
         [
