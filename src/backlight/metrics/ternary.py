@@ -23,7 +23,7 @@ def calc_ternary_metrics(sig, lbl):
     dd = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
     total = len(sig)
 
-    hit_ratio = _r(uu + dd, uu + un + ud + du + dn + dd)
+    hit_ratio = _r(uu + dd, uu + ud + du + dd)
     hedge_ratio = _r(uu + un + dn + dd, uu + un + ud + du + dn + dd)
     neutral_ratio = _r(nu + nn + nd, total)
     coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
