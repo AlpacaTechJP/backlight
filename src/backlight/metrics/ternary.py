@@ -29,8 +29,12 @@ def calc_ternary_metrics(sig, lbl):
     coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
 
     lbl = lbl.reindex(sig.index)
-    avg_pl = lbl[sig.pred != TD.N.value].label_diff.mean()
-    total_pl = lbl[sig.pred != TD.N.value].label_diff.sum()
+
+    pl = lbl[sig.pred != TD.N.value].label_diff
+    pl.loc[sig.pred == TD.D.value] *= -1
+
+    avg_pl = pl.mean()
+    total_pl = pl.sum()
 
     m = pd.DataFrame.from_records(
         [
