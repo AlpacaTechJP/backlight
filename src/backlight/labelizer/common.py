@@ -37,19 +37,3 @@ def get_majority_label(orig_result):
             majority_label = v
             majority_label_count = series_labels_counts[v]
     return majority_label
-
-
-def simple_label_factory(**kwargs):
-    df = kwargs["df"].copy()
-
-    if "neutral_range" in df.columns:
-        df = df.rename(
-            columns={"label_up_neutral_down": "label", "label_up_down": "label"}
-        )
-        if "mapping" in kwargs:
-            df.loc[:, "label"] = df.label.apply(lambda x: kwargs["mapping"][x])
-        lbl = Label(df[["label_diff", "label", "neutral_range"]])
-        lbl.label_type = LabelType.TERNARY
-        return lbl
-
-    raise ValueError("Unsupported label format")
