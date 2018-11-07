@@ -1,5 +1,7 @@
 import pandas as pd
 
+from backlight.datasource.marketdata import MarketData
+
 
 class Label(pd.DataFrame):
 
@@ -21,5 +23,5 @@ class Labelizer:
     def validate_params(self):
         pass
 
-    def generate(self, mkt):
+    def generate(self, mkt: MarketData):
         raise NotImplementedError

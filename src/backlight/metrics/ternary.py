@@ -1,13 +1,15 @@
 import pandas as pd
 
+from backlight.labelizer.common import Label
 from backlight.labelizer.common import TernaryDirection as TD
+from backlight.signal.signal import Signal
 
 
-def _r(a, b):
+def _r(a: int, b: int):
     return a / b if b != 0 else 0
 
 
-def calc_ternary_metrics(sig, lbl):
+def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
 
     sig = sig.dropna()
     lbl = lbl.dropna()

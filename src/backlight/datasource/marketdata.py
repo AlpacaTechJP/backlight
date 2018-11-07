@@ -7,7 +7,7 @@ class MarketData(pd.DataFrame):
     _metadata = ["symbol"]
 
     @property
-    def mid(self):
+    def mid(self) -> pd.Series:
         """Series: mid price"""
         if "mid" in self.columns:
             return self["mid"]

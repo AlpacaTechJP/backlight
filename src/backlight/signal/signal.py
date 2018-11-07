@@ -18,11 +18,11 @@ class Signal(pd.DataFrame):
         return Signal
 
     @property
-    def start_dt(self):
+    def start_dt(self) -> pd.Timestamp:
         return self.index[0]
 
     @property
-    def end_dt(self):
+    def end_dt(self) -> pd.Timestamp:
         return self.index[-1]
 
 
@@ -30,7 +30,7 @@ class TernarySignal(Signal):
 
     _target_columns = ["up", "neutral", "down"]
 
-    def reset_pred(self):
+    def reset_pred(self) -> None:
         argmax = np.argmax(self[["up", "neutral", "down"]].values, axis=1)
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
@@ -45,7 +45,7 @@ class BinarySignal(Signal):
 
     _target_columns = ["up", "down"]
 
-    def reset_pred(self):
+    def reset_pred(self) -> None:
         argmax = np.argmax(self[["up", "down"]].values, axis=1)
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value
