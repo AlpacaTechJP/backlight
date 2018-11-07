@@ -4,7 +4,7 @@ import pandas as pd
 
 class DataSourceAdapter(ABC):
     @abstractmethod
-    def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
+    def query(self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp) -> pd.DataFrame:
         """Query pandas dataframe.
 
         Args:

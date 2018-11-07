@@ -9,8 +9,8 @@ from backlight.query import query
 def load_label(
     symbol: str,
     url: str,
-    start_dt: str = None,
-    end_dt: str = None,
+    start_dt: pd.Timestamp = None,
+    end_dt: pd.Timestamp = None,
     mapping: dict = None,
 ) -> Label:
     df = query(symbol, start_dt, end_dt, url)

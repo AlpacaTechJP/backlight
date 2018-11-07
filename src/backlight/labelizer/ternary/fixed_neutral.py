@@ -1,16 +1,18 @@
+import pandas as pd
 import numpy as np
 
+from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import LabelType, TernaryDirection
-from backlight.labelizer.labelizer import Label, Labelizer
+from backlight.labelizer.labelizer import Labelizer
 
 
 class FixedNeutralLabelizer(Labelizer):
-    def validate_params(self):
+    def validate_params(self) -> None:
         assert "lookahead" in self._params
         assert "neutral_atol" in self._params
         assert "neutral_rtol" in self._params
 
-    def generate(self, mkt):
+    def generate(self, mkt: MarketData) -> pd.DataFrame:
         mid = mkt.mid.copy()
         future_price = mid.shift(freq="-{}".format(self._params["lookahead"]))
         diff = (future_price - mid).reindex(mid.index)

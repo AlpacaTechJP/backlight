@@ -35,7 +35,7 @@ class CSVGlobAdapter(DataSourceAdapter):
         return df
 
 
-def _list_s3_keys(s3client, bucket: str, prefix: str = ""):
+def _list_s3_keys(s3client, bucket: str, prefix: str = "") -> list:
     response = s3client.list_objects(Bucket=bucket, Prefix=prefix)
     if "Contents" not in response:
         warnings.warn(

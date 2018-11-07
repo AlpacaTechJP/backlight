@@ -7,7 +7,7 @@ class Label(pd.DataFrame):
 
     _metadata = ["label_type"]
 
-    def stats(self):
+    def stats(self) -> pd.DataFrame:
         return self.label.describe()
 
     @property
@@ -20,8 +20,8 @@ class Labelizer:
         self._params = kwargs.copy()
         self.validate_params()
 
-    def validate_params(self):
+    def validate_params(self) -> None:
         pass
 
-    def generate(self, mkt: MarketData):
+    def generate(self, mkt: MarketData) -> pd.DataFrame:
         raise NotImplementedError
