@@ -29,6 +29,19 @@ jobs:
           name: check format
           command: |
             make check_black
+   mypy:
+     docker:
+       - image: circleci/python:3.6
+     working_directory: ~/project
+     steps:
+       - checkout
+       - setup_remote_docker:
+          version: 18.05.0-ce
+          reusable: false
+       - run:
+           name: run mypy
+           command: |
+             make mypy
 
 workflows:
   version: 2
