@@ -6,5 +6,5 @@ class Action(Enum):
     Donothing = 0
     TakeLong = 1
 
-    def act_on_amount(self):
+    def act_on_amount(self) -> Action:
         return self.value

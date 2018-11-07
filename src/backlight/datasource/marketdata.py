@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Type
 
 
 class MarketData(pd.DataFrame):
@@ -15,5 +16,5 @@ class MarketData(pd.DataFrame):
             return (self.ask + self.bid) / 2
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[MarketData]:
         return MarketData

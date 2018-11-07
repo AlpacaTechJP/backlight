@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 from backlight.query.adapter import DataSourceAdapter
 
 
-def adapter_factory(url: str, **kwargs) -> DataSourceAdapter:
+def adapter_factory(url: str, **kwargs: str) -> DataSourceAdapter:
 
     if hasattr(url, "__iter__") and not isinstance(url, str):  # check if iterable
         from backlight.query.adapters.merge import MergeAdapter

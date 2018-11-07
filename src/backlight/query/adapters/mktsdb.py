@@ -11,7 +11,9 @@ DEFAULT_RETRIES = 100
 class MarketstoreAdapter(DataSourceAdapter):
     """Data source adapter for Marketstore"""
 
-    def __init__(self, url: str, mktdt=MarketData(timeframe="1Min", source="tick_mktsdb")):
+    def __init__(
+        self, url: str, mktdt=MarketData(timeframe="1Min", source="tick_mktsdb")
+    ):
         self._url = url
         self._mktdt = mktdt
 

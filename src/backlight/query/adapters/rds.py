@@ -8,5 +8,7 @@ class RDSAdapter(DataSourceAdapter):
     def __init__(self, url: str):
         self._url = url
 
-    def query(self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp) -> pd.DataFrame:
+    def query(
+        self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp
+    ) -> pd.DataFrame:
         raise NotImplementedError()

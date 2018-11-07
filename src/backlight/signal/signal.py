@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from typing import Type
 
 from backlight.labelizer.common import TernaryDirection
 
@@ -8,13 +9,13 @@ class Signal(pd.DataFrame):
 
     _metadata = ["symbol", "_target_columns"]
 
-    def reset_cols(self):
+    def reset_cols(self) -> None:
         for col in self.columns:
             if col not in self._target_columns:
                 self.drop(col, axis=1, inplace=True)
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[Signal]:
         return Signal
 
     @property
@@ -37,7 +38,7 @@ class TernarySignal(Signal):
         self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[TernarySignal]:
         return TernarySignal
 
 
@@ -51,5 +52,5 @@ class BinarySignal(Signal):
         self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[BinarySignal]:
         return BinarySignal

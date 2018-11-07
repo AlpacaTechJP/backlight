@@ -36,7 +36,7 @@ class DynamicNeutralLabelizer(Labelizer):
         return df
 
     @property
-    def neutral_ratio(self) -> float:
+    def neutral_ratio(self) -> str:
         return self._params["neutral_ratio"]
 
     @property
@@ -44,5 +44,5 @@ class DynamicNeutralLabelizer(Labelizer):
         return self._params["neutral_window"]
 
     @property
-    def neutral_hard_limit(self) -> float:
+    def neutral_hard_limit(self) -> str:
         return self._params["neutral_hard_limit"]

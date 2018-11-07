@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Type
 
 
 class Trades(pd.DataFrame):
@@ -12,5 +13,5 @@ class Trades(pd.DataFrame):
         raise NotImplementedError
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[Trades]:
         return Trades

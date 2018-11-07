@@ -28,7 +28,7 @@ mypy: _mount_src
 	docker run -it -w /project --volumes-from mysrc \
 		--entrypoint mypy \
 		lloydmeta/mypy:python-3.5_latest \
-		--ignore-missing-imports --check-untyped-defs /project/src
+		--ignore-missing-imports --strict-optional --disallow-untyped-defs --disallow-untyped-calls /project/src
 
 check_black: _mount_src
 	docker pull unibeautify/black

@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Type
 
 
 class Positions(pd.DataFrame):
@@ -24,5 +25,5 @@ class Positions(pd.DataFrame):
         raise NotImplementedError
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type[Positions]:
         return Positions

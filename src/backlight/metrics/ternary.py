@@ -5,7 +5,7 @@ from backlight.labelizer.common import TernaryDirection as TD
 from backlight.signal.signal import Signal
 
 
-def _r(a: int, b: int):
+def _r(a: int, b: int) -> float:
     return a / b if b != 0 else 0
 
 
