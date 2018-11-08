@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Optional
 
 from backlight.datasource.marketdata import MarketData
 from backlight.query import query
@@ -23,7 +24,7 @@ def load_marketdata(
 
 
 def from_dataframe(
-    df: pd.DataFrame, symbol: str, col_mapping: dict = None
+    df: pd.DataFrame, symbol: str, col_mapping: Optional[dict] = None
 ) -> MarketData:
     """Create a MarketData instance out of a DataFrame object
 

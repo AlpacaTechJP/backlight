@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Optional
 
 from backlight.query import query
 from backlight.signal.signal import Signal
@@ -11,7 +12,9 @@ def load_signal(
     return from_dataframe(df, symbol, col_mapping=None)
 
 
-def from_dataframe(df: pd.DataFrame, symbol: str, col_mapping: dict = None) -> Signal:
+def from_dataframe(
+    df: pd.DataFrame, symbol: str, col_mapping: Optional[dict] = None
+) -> Signal:
     """Create a MarketData instance out of a DataFrame object
 
     Args:

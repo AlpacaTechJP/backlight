@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Optional
 
 from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import LabelType
@@ -9,16 +10,18 @@ from backlight.query import query
 def load_label(
     symbol: str,
     url: str,
-    start_dt: pd.Timestamp = None,
-    end_dt: pd.Timestamp = None,
-    mapping: dict = None,
+    start_dt: Optional[pd.Timestamp] = None,
+    end_dt: Optional[pd.Timestamp] = None,
+    mapping: Optional[dict] = None,
 ) -> Label:
     df = query(symbol, start_dt, end_dt, url)
     return from_dataframe(df=df, lbl_mapping=mapping)
 
 
 def from_dataframe(
-    df: pd.DataFrame, col_mapping: dict = None, lbl_mapping: dict = None
+    df: pd.DataFrame,
+    col_mapping: Optional[dict] = None,
+    lbl_mapping: Optional[dict] = None,
 ) -> Label:
     """Create a Label instance out of a DataFrame object
 
