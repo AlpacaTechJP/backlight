@@ -49,3 +49,4 @@ workflows:
     jobs:
       - black
       - test
+      - mypy
