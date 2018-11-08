@@ -15,7 +15,7 @@ class Signal(pd.DataFrame):
                 self.drop(col, axis=1, inplace=True)
 
     @property
-    def _constructor(self) -> Type[Signal]:
+    def _constructor(self) -> Type["Signal"]:
         return Signal
 
     @property
@@ -38,7 +38,7 @@ class TernarySignal(Signal):
         self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
 
     @property
-    def _constructor(self) -> Type[TernarySignal]:
+    def _constructor(self) -> Type["TernarySignal"]:
         return TernarySignal
 
 
@@ -52,5 +52,5 @@ class BinarySignal(Signal):
         self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value
 
     @property
-    def _constructor(self) -> Type[BinarySignal]:
+    def _constructor(self) -> Type["BinarySignal"]:
         return BinarySignal

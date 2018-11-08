@@ -25,5 +25,5 @@ class Positions(pd.DataFrame):
         raise NotImplementedError
 
     @property
-    def _constructor(self) -> Type[Positions]:
+    def _constructor(self) -> Type["Positions"]:
         return Positions

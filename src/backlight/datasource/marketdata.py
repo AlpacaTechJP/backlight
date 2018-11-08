@@ -16,5 +16,5 @@ class MarketData(pd.DataFrame):
             return (self.ask + self.bid) / 2
 
     @property
-    def _constructor(self) -> Type[MarketData]:
+    def _constructor(self) -> Type["MarketData"]:
         return MarketData

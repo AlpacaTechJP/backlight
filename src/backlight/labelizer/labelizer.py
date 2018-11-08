@@ -12,7 +12,7 @@ class Label(pd.DataFrame):
         return self.label.describe()
 
     @property
-    def _constructor(self) -> Type[Label]:
+    def _constructor(self) -> Type["Label"]:
         return Label
 
 
