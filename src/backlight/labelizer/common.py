@@ -1,3 +1,4 @@
+import pandas as pd
 from enum import Enum
 
 from backlight.labelizer.labelizer import Label
@@ -17,12 +18,12 @@ class TernaryDirection(Enum):
     D = -1
 
 
-def get_majority_label(orig_result):
+def get_majority_label(orig_result: pd.Series) -> TernaryDirection:
     """Count the number of values in each class for classification problem and
     return the class whose count is highest.
 
     Args:
-        orig_result(pandas.Series): labels Series
+        orig_result : labels Series
 
     Return:
         a value from orig_result and this value have the most count among all

@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import Type
 
 
 class Positions(pd.DataFrame):
@@ -12,17 +13,17 @@ class Positions(pd.DataFrame):
     _metadata = ["symbol"]
 
     @property
-    def amount(self):
+    def amount(self) -> pd.Series:
         if "amount" in self.columns:
             return self["amount"]
-        return NotImplementedError
+        raise NotImplementedError
 
     @property
-    def price(self):
+    def price(self) -> pd.Series:
         if "price" in self.columns:
             return self["price"]
-        return NotImplementedError
+        raise NotImplementedError
 
     @property
-    def _constructor(self):
+    def _constructor(self) -> Type["Positions"]:
         return Positions

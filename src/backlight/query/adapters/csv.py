@@ -1,12 +1,12 @@
-from boto3 import Session
 import io
 import pandas as pd
+from boto3 import Session
 from urllib.parse import urlparse
 
 from backlight.query.adapter import DataSourceAdapter
 
 
-def read_csv_and_set_index(url):
+def read_csv_and_set_index(url: str):
     df = pd.read_csv(url, parse_dates=True)
     if "timestamp" in df:
         df = df.set_index("timestamp")
@@ -43,7 +43,7 @@ class S3CSVAdapter(DataSourceAdapter):
 
     _s3client = Session().client("s3")
 
-    def __init__(self, url):
+    def __init__(self, url: str):
         """Initializer.
 
         Args:

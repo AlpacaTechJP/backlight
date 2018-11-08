@@ -1,12 +1,16 @@
 import pandas as pd
 import numpy as np
 
+from backlight.datasource.marketdata import MarketData
+from backlight.signal.signal import Signal
 from backlight.trades import Trades
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
 
-def direction_based_trades(mkt, sig, target_column_name, direction_action_dict):
+def direction_based_trades(
+    mkt: MarketData, sig: Signal, target_column_name: str, direction_action_dict: dict
+) -> Trades:
     """
 
     Args:
@@ -24,7 +28,7 @@ def direction_based_trades(mkt, sig, target_column_name, direction_action_dict):
     return t
 
 
-def only_take_long(mkt, sig, target_column_name):
+def only_take_long(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -33,7 +37,7 @@ def only_take_long(mkt, sig, target_column_name):
     return direction_based_trades(mkt, sig, target_column_name, direction_action_dict)
 
 
-def only_take_short(mkt, sig, target_column_name):
+def only_take_short(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.Donothing,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -42,7 +46,7 @@ def only_take_short(mkt, sig, target_column_name):
     return direction_based_trades(mkt, sig, target_column_name, direction_action_dict)
 
 
-def simple_buy_sell(mkt, sig, target_column_name):
+def simple_buy_sell(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,

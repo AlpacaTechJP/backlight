@@ -1,15 +1,20 @@
-from backlight.query import query
+import pandas as pd
+from typing import Optional
+
 from backlight.datasource.marketdata import MarketData
+from backlight.query import query
 
 
-def load_marketdata(symbol, start_dt, end_dt, url):
+def load_marketdata(
+    symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp, url: str
+) -> MarketData:
     """An abstraction interface for loading the market data.
 
     Args:
-        symbol (str): symbol to query
-        start_dt (pd.Timestamp):  query from
-        end_dt (pd.Timestamp):  query to
-        url (str):  an url to the data source
+        symbol :  symbol to query
+        start_dt :  query from
+        end_dt :  query to
+        url :  an url to the data source
 
     Returns:
         MarketData
@@ -18,13 +23,15 @@ def load_marketdata(symbol, start_dt, end_dt, url):
     return from_dataframe(symbol, df)
 
 
-def from_dataframe(df, symbol, col_mapping=None):
+def from_dataframe(
+    df: pd.DataFrame, symbol: str, col_mapping: Optional[dict] = None
+) -> MarketData:
     """Create a MarketData instance out of a DataFrame object
 
     Args:
-        df (pd.DataFrame):  DataFrame
-        symbol (str): symbol to query
-        col_mapping (dict): A dict to map columns
+        df :  DataFrame
+        symbol :  symbol to query
+        col_mapping :  A dict to map columns
 
     Returns:
         MarketData

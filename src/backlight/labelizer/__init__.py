@@ -1,22 +1,34 @@
-from backlight.datasource.marketdata import MarketData
+import pandas as pd
+from typing import Optional
 
-from backlight.query import query
+from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import LabelType
 from backlight.labelizer.labelizer import Labelizer, Label
+from backlight.query import query
 
 
-def load_label(symbol, url, start_dt=None, end_dt=None, mapping=None):
+def load_label(
+    symbol: str,
+    url: str,
+    start_dt: Optional[pd.Timestamp] = None,
+    end_dt: Optional[pd.Timestamp] = None,
+    mapping: Optional[dict] = None,
+) -> Label:
     df = query(symbol, start_dt, end_dt, url)
     return from_dataframe(df=df, lbl_mapping=mapping)
 
 
-def from_dataframe(df, col_mapping=None, lbl_mapping=None):
+def from_dataframe(
+    df: pd.DataFrame,
+    col_mapping: Optional[dict] = None,
+    lbl_mapping: Optional[dict] = None,
+) -> Label:
     """Create a Label instance out of a DataFrame object
 
     Args:
-        df (pd.DataFrame):  DataFrame
-        col_mapping (dict):  A dictionary to map columns.
-        lbl_mapping (dict):  A dictionary to map labels.
+        df :  DataFrame
+        col_mapping :  A dictionary to map columns.
+        lbl_mapping :  A dictionary to map labels.
 
         for Ternary classification:
             - "label_diff", "label", "neutral_range"
@@ -29,8 +41,8 @@ def from_dataframe(df, col_mapping=None, lbl_mapping=None):
         df = df.rename(
             columns={"label_up_neutral_down": "label", "label_up_down": "label"}
         )
-        if mapping is not None:
-            df.loc[:, "label"] = df.label.apply(lambda x: mapping[x])
+        if lbl_mapping is not None:
+            df.loc[:, "label"] = df.label.apply(lambda x: lbl_mapping[x])
         lbl = Label(df[["label_diff", "label", "neutral_range"]])
         lbl.label_type = LabelType.TERNARY
         return lbl
@@ -38,16 +50,13 @@ def from_dataframe(df, col_mapping=None, lbl_mapping=None):
     raise ValueError("Unsupported label format")
 
 
-def generate_labels(mkt, labelizer):
+def generate_labels(mkt: MarketData, labelizer: Labelizer) -> Label:
     """Generate label with specified marketdata and labelizer
 
     Args:
-        mkt (MarketData): market data to be used
-        labelizer (Labelizer): labelzier instance
+        mkt : market data to be used
+        labelizer : labelzier instance
     """
-    assert isinstance(mkt, MarketData)
-    assert issubclass(labelizer.__class__, Labelizer)
-
     lbl = labelizer.generate(mkt)
 
     return lbl

@@ -1,8 +1,10 @@
-from backlight.labelizer.common import TernaryDirection, get_majority_label
 import numpy as np
+import pandas as pd
+
+from backlight.labelizer.common import TernaryDirection, get_majority_label
 
 
-def fill_binary_label_toward_zero(df):
+def fill_binary_label_toward_zero(df: pd.DataFrame) -> pd.DataFrame:
     in_df = df.copy()
     in_df.loc[in_df.label_diff > 0, "label"] = TernaryDirection.UP.value
     in_df.loc[in_df.label_diff < 0, "label"] = TernaryDirection.DOWN.value
