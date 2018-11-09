@@ -3,10 +3,6 @@ import sys
 import os
 from glob import glob
 
-from sphinx.setup_command import BuildDoc
-
-cmdclass = {"build_sphinx": BuildDoc}
-
 # hack to extract metadata directly from the python package
 sys.path.append("src")  # noqa
 from backlight import __author__, __version__, __license__
@@ -49,13 +45,4 @@ setuptools.setup(
         "autopep8>=1.2.3",
         "flake8>=3.5.0",
     ],
-    cmdclass=cmdclass,
-    # these are optional and override conf.py settings
-    command_options={
-        "build_sphinx": {
-            "project": ("setup.py", "backlight"),
-            "version": ("setup.py", __version__),
-            "source_dir": ("setup.py", "docs/source"),
-        }
-    },
 )

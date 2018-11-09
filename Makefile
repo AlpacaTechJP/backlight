@@ -66,10 +66,10 @@ sphinx_build:
 		-V "$(shell python -c "from src.backlight import __version__; print(__version__)")" \
 		-A "$(shell python -c "from src.backlight import __author__; print(__author__)")" \
 		./src/
-	python setup.py build_sphinx
+	sphinx-build -b html docs/source docs/build/sphinx/html
 
 sphinx_autobuild:
-	sphinx-autobuild -b html docs/source build/sphinx/html
+	sphinx-autobuild -b html docs/source docs/build/sphinx/html
 
 jupyter:
 	bash -c "PYTHONPATH=`pwd`/src:${PYTHONPATH} jupyter notebook"
