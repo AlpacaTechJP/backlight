@@ -20,7 +20,7 @@ def load_marketdata(
         MarketData
     """
     df = query(symbol, start_dt, end_dt, url)
-    return from_dataframe(symbol, df)
+    return from_dataframe(df, symbol, col_mapping=None)
 
 
 def from_dataframe(
