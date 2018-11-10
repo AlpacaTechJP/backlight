@@ -5,7 +5,7 @@ from backlight.query.adapter import DataSourceAdapter
 class RDSAdapter(DataSourceAdapter):
     """Data source adapter for RDS"""
 
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         self._url = url
 
     def query(

@@ -3,8 +3,8 @@ import pandas as pd
 from backlight.query.adapter import DataSourceAdapter
 
 
-class KDBAdapter(DataSourceAdapter):
-    """Data source adapter for KDB"""
+class H5Adapter(DataSourceAdapter):
+    """Data source adapter for H5 file"""
 
     def __init__(self, url: str) -> None:
         self._url = url

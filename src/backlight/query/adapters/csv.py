@@ -1,12 +1,13 @@
 import io
 import pandas as pd
 from boto3 import Session
+from typing import BinaryIO, Union
 from urllib.parse import urlparse
 
 from backlight.query.adapter import DataSourceAdapter
 
 
-def read_csv_and_set_index(url: str):
+def read_csv_and_set_index(url: Union[str, BinaryIO]) -> pd.DataFrame:
     df = pd.read_csv(url, parse_dates=True)
     if "timestamp" in df:
         df = df.set_index("timestamp")
@@ -20,7 +21,7 @@ def read_csv_and_set_index(url: str):
 class CSVAdapter(DataSourceAdapter):
     """Data source adapter for csv files"""
 
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         """Initializer.
 
         Args:
@@ -29,7 +30,9 @@ class CSVAdapter(DataSourceAdapter):
         self._url = urlparse(url)
         assert self._url.scheme in ("file",)
 
-    def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
+    def query(
+        self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp
+    ) -> pd.DataFrame:
         """Query pandas dataframe.
 
         See also :class:`backlight.query.adapter`.
@@ -43,7 +46,7 @@ class S3CSVAdapter(DataSourceAdapter):
 
     _s3client = Session().client("s3")
 
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         """Initializer.
 
         Args:
@@ -52,7 +55,9 @@ class S3CSVAdapter(DataSourceAdapter):
         self._url = urlparse(url)
         assert self._url.scheme in ("s3",)
 
-    def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
+    def query(
+        self, symbol: pd.Timestamp, start_dt: pd.Timestamp, end_dt: str
+    ) -> pd.DataFrame:
         """Query pandas dataframe.
 
         See also :class:`backlight.query.adapter`.
