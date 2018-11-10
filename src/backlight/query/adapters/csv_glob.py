@@ -23,7 +23,9 @@ class CSVGlobAdapter(DataSourceAdapter):
         self._url = urlparse(url)
         assert self._url.scheme in ("file",)
 
-    def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
+    def query(
+        self, symbol: pd.Timestamp, start_dt: pd.Timestamp, end_dt: str
+    ) -> pd.DataFrame:
         paths = glob.glob(self._url.path)
         dfs = [read_csv_and_set_index(path) for path in paths if symbol in path]
 
@@ -35,7 +37,7 @@ class CSVGlobAdapter(DataSourceAdapter):
         return df
 
 
-def _list_s3_keys(s3client, bucket: str, prefix: str = "") -> list:
+def _list_s3_keys(s3client: Session.client, bucket: str, prefix: str = "") -> list:
     response = s3client.list_objects(Bucket=bucket, Prefix=prefix)
     if "Contents" not in response:
         warnings.warn(
@@ -63,7 +65,9 @@ class S3CSVGlobAdapter(DataSourceAdapter):
         self._url = urlparse(url)
         assert self._url.scheme in ("s3",)
 
-    def query(self, symbol: str, start_dt: str, end_dt: str) -> pd.DataFrame:
+    def query(
+        self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp
+    ) -> pd.DataFrame:
         """Query pandas dataframe.
 
         See also :class:`backlight.query.adapter`.
