@@ -36,6 +36,11 @@ def from_dataframe(
     Returns:
         MarketData
     """
+    df = df.copy()
+
+    if col_mapping is not None:
+        df = df.rename(columns=col_mapping)
+
     mkt = MarketData(df)
     mkt.symbol = symbol
     return mkt
