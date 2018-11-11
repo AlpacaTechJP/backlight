@@ -18,3 +18,11 @@ class MarketData(pd.DataFrame):
     @property
     def _constructor(self) -> Type["MarketData"]:
         return MarketData
+
+    @property
+    def start_dt(self) -> pd.Timestamp:
+        return self.index[0]
+
+    @property
+    def end_dt(self) -> pd.Timestamp:
+        return self.index[-1]

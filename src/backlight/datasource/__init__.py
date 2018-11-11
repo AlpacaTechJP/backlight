@@ -20,7 +20,7 @@ def load_marketdata(
         MarketData
     """
     df = query(symbol, start_dt, end_dt, url)
-    return from_dataframe(symbol, df)
+    return from_dataframe(df, symbol, col_mapping=None)
 
 
 def from_dataframe(
@@ -36,6 +36,11 @@ def from_dataframe(
     Returns:
         MarketData
     """
+    df = df.copy()
+
+    if col_mapping is not None:
+        df = df.rename(columns=col_mapping)
+
     mkt = MarketData(df)
     mkt.symbol = symbol
     return mkt
