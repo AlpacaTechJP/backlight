@@ -24,10 +24,10 @@ _mount_src:
 	docker cp $(PROJECT_ROOT)/. mysrc:/project/
 
 mypy: _mount_src
-	docker pull lloydmeta/mypy:python-3.5_latest
+	docker pull alpacadb/alpaca-containers:mypy-v0.0.1
 	docker run -it -w /project --volumes-from mysrc \
 		--entrypoint mypy \
-		lloydmeta/mypy:python-3.5_latest \
+		alpacadb/alpaca-containers:mypy-v0.0.1 \
 		--ignore-missing-imports --strict-optional --disallow-untyped-defs --disallow-untyped-calls /project/src
 
 check_black: _mount_src
