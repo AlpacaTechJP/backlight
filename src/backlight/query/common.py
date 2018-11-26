@@ -40,7 +40,7 @@ def adapter_factory(url: str, **kwargs: str) -> DataSourceAdapter:
     elif o.scheme in ("mktsdb",):
         from backlight.query.adapters.mktsdb import MarketstoreAdapter
 
-        return MarketstoreAdapter(url, **kwargs)
+        return MarketstoreAdapter(url)
     elif o.scheme in ("rds",):
         from backlight.query.adapters.rds import RDSAdapter
 
