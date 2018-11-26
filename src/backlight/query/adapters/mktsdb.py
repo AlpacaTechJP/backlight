@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
-from libalpaca.datasource.market import MarketData
+import urllib.parse
+from libalpaca.marketstore import client
 
 from backlight.query.adapter import DataSourceAdapter
 
@@ -14,13 +15,15 @@ class MarketstoreAdapter(DataSourceAdapter):
     def __init__(
         self,
         url: str,
-        mktdt: MarketData = MarketData(timeframe="1Min", source="tick_mktsdb"),
     ) -> None:
-        self._url = url
-        self._mktdt = mktdt
+        o = urllib.parse.urlparse(url)
+        assert o.scheme == "mktsdb"
+        self._cli = client.Client(host=o.hostname, port=o.port)
 
     def query(
-        self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp
-    ) -> pd.DataFrame:
-        ret = self._mktdt.query([symbol], start_dt=start_dt, end_dt=end_dt)[symbol]
+            self, symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp,
+            timeframe: str = "1Min") -> pd.DataFrame:
+
+        ret = self._cli.query(
+            symbol=symbol, timeframe=timeframe, start_dt=start_dt, end_dt=end_dt)
         return ret.sort_index()
