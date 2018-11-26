@@ -12,11 +12,12 @@ def test_MarketstoreAdapter():
         columns=["ask", "bid"],
     )
 
-    with mock.patch("backlight.query.adapters.mktsdb.MarketData") as mocked:
-        mocked.query.return_value = {"ABC": df}
-        m = module.MarketstoreAdapter(url=None, mktdt=mocked)
+    with mock.patch("backlight.query.adapters.mktsdb.client") as mocked:
+        cli = mocked.Client()
+        cli.query.return_value = df
+        m = module.MarketstoreAdapter(url=None)
         res = m.query("ABC", "2018-06-06", "2018-06-10")
-        mocked.query.assert_called_with(
-            ["ABC"], end_dt="2018-06-10", start_dt="2018-06-06"
+        cli.query.assert_called_with(
+            symbol="ABC", timeframe="1Min", end_dt="2018-06-10", start_dt="2018-06-06"
         )
         assert df.equals(res)

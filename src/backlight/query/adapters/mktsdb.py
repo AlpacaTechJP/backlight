@@ -1,6 +1,8 @@
 import logging
+import os
 import pandas as pd
 import urllib.parse
+
 from libalpaca.marketstore import client
 
 from backlight.query.adapter import DataSourceAdapter
@@ -13,9 +15,15 @@ class MarketstoreAdapter(DataSourceAdapter):
     """Data source adapter for Marketstore"""
 
     def __init__(self, url: str) -> None:
-        o = urllib.parse.urlparse(url)
-        assert o.scheme == "mktsdb"
-        self._cli = client.Client(host=o.hostname, port=o.port)
+        if url is None:
+            hostname = os.environ.get("MARKETSTORE_HOST")
+            port = os.environ.get("MARKETSTORE_PORT")
+        else:
+            o = urllib.parse.urlparse(url)
+            assert o.scheme == "mktsdb"
+            hostname = o.hostname
+            port = o.port
+        self._cli = client.Client(host=hostname, port=port)
 
     def query(
         self,
