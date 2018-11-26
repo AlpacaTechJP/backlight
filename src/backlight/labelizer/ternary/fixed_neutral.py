@@ -3,7 +3,7 @@ import numpy as np
 
 from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import LabelType, TernaryDirection
-from backlight.labelizer.labelizer import Labelizer
+from backlight.labelizer.labelizer import Labelizer, Label
 
 
 class FixedNeutralLabelizer(Labelizer):
@@ -28,5 +28,6 @@ class FixedNeutralLabelizer(Labelizer):
         df.loc[df.label_diff > 0, "label"] = TernaryDirection.UP.value
         df.loc[df.label_diff < 0, "label"] = TernaryDirection.DOWN.value
         df.loc[neutral_band, "label"] = TernaryDirection.NEUTRAL.value
-        df.label_type = LabelType.TERNARY
-        return df
+        lbl = Label(df)
+        lbl.label_type = LabelType.TERNARY
+        return lbl
