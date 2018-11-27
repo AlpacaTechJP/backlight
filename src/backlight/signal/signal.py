@@ -5,6 +5,18 @@ from typing import Type
 from backlight.labelizer.common import TernaryDirection
 
 
+def _argmax(a: np.ndarray, axis: int) -> np.ndarray:
+    """
+    Returns the indices of the maximum values along an axis.
+    If multiple maximum values exist, return -1.
+    """
+    rows = np.where(a == a.max(axis=1)[:, None])[0]
+    rows_multiple_max = rows[:-1][rows[:-1] == rows[1:]]
+    argmax = a.argmax(axis)
+    argmax[rows_multiple_max] = -1
+    return argmax
+
+
 class Signal(pd.DataFrame):
 
     _metadata = ["symbol", "_target_columns"]
@@ -32,7 +44,8 @@ class TernarySignal(Signal):
     _target_columns = ["up", "neutral", "down"]
 
     def reset_pred(self) -> None:
-        argmax = np.argmax(self[["up", "neutral", "down"]].values, axis=1)
+        argmax = _argmax(self[["up", "neutral", "down"]].values, axis=1)
+        self.loc[argmax == -1, "pred"] = TernaryDirection.NEUTRAL.value
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
         self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
