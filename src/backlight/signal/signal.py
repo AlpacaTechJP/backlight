@@ -5,10 +5,14 @@ from typing import Type
 from backlight.labelizer.common import TernaryDirection
 
 
-def _argmax(a: np.ndarray) -> np.ndarray:
+def _argmax(a: np.ndarray, axis: int) -> np.ndarray:
+    """
+    Returns the indices of the maximum values along an axis.
+    If multiple maximum values exist, return -1.
+    """
     rows = np.where(a == a.max(axis=1)[:, None])[0]
     rows_multiple_max = rows[:-1][rows[:-1] == rows[1:]]
-    argmax = a.argmax(axis=1)
+    argmax = a.argmax(axis)
     argmax[rows_multiple_max] = -1
     return argmax
 
