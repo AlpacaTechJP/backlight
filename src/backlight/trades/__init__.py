@@ -13,5 +13,5 @@ class Trades(pd.DataFrame):
         raise NotImplementedError
 
     @property
-    def _constructor(self) -> Type[Trades]:
+    def _constructor(self) -> Type["Trades"]:
         return Trades
