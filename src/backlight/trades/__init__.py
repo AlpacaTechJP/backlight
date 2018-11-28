@@ -4,7 +4,7 @@ from typing import Type
 
 class Trades(pd.DataFrame):
 
-    _metadata = ["symbol", "target_column_name"]
+    _metadata = ["symbol"]
 
     @property
     def amount(self) -> pd.Series:
