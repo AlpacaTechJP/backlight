@@ -1,7 +1,11 @@
 import pandas as pd
 from typing import Optional
 
-from backlight.datasource.marketdata import MarketData
+from backlight.datasource.marketdata import (  # noqa
+    MarketData,
+    MidMarketData,
+    AskBidMarketData,
+)
 from backlight.query import query
 
 
@@ -41,6 +45,17 @@ def from_dataframe(
     if col_mapping is not None:
         df = df.rename(columns=col_mapping)
 
-    mkt = MarketData(df)
+    mkt = None
+
+    if ("ask" in df.columns) and ("bid" in df.columns):
+        mkt = AskBidMarketData(df)
+    elif "mid" in df.columns:
+        mkt = MidMarketData(df)
+
+    if mkt is None:
+        raise ValueError("Unsupported marketdata")
+
     mkt.symbol = symbol
+    mkt.reset_cols()
+
     return mkt
