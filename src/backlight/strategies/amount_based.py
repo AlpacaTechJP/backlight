@@ -9,7 +9,7 @@ from backlight.strategies.common import Action
 
 
 def direction_based_trades(
-    mkt: MarketData, sig: Signal, target_column_name: str, direction_action_dict: dict
+    mkt: MarketData, sig: Signal, direction_action_dict: dict
 ) -> Trades:
     """
 
@@ -23,33 +23,32 @@ def direction_based_trades(
     # since it will use the type of mkt(MarketData) to concat, but trades is
     # normal DataFrame
     t = Trades(pd.concat([trades, mkt], axis=1, join="inner"))
-    t.target_column_name = target_column_name
     t.symbol = sig.symbol
     return t
 
 
-def only_take_long(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
+def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.Donothing,
     }
-    return direction_based_trades(mkt, sig, target_column_name, direction_action_dict)
+    return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def only_take_short(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
+def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.Donothing,
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return direction_based_trades(mkt, sig, target_column_name, direction_action_dict)
+    return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def simple_buy_sell(mkt: MarketData, sig: Signal, target_column_name: str) -> Trades:
+def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return direction_based_trades(mkt, sig, target_column_name, direction_action_dict)
+    return direction_based_trades(mkt, sig, direction_action_dict)
