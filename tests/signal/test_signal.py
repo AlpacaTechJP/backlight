@@ -5,7 +5,7 @@ import numpy as np
 from backlight.labelizer.common import TernaryDirection
 
 
-def test_ternary_signal():
+def test_TernarySignal():
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", periods=7),
         data=[
