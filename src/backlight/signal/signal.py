@@ -49,6 +49,7 @@ class TernarySignal(Signal):
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
         self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
+        self.loc[:, "pred"] = self["pred"].astype("int32")
 
     @property
     def _constructor(self) -> Type["TernarySignal"]:
@@ -63,6 +64,7 @@ class BinarySignal(Signal):
         argmax = np.argmax(self[["up", "down"]].values, axis=1)
         self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
         self.loc[argmax == 1, "pred"] = TernaryDirection.DOWN.value
+        self.loc[:, "pred"] = self["pred"].astype("int32")
 
     @property
     def _constructor(self) -> Type["BinarySignal"]:

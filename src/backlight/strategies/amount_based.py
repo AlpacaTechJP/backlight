@@ -8,6 +8,23 @@ from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
 
+def _make_trades(trades: pd.DataFrame, mkt: MarketData, symbol: str) -> Trades:
+    """
+    Order of concat is important, if mkt in front of trades,
+    it will have error since it will use the type of mkt(MarketData)
+    to concat, but trades is normal DataFrame.
+    """
+    t = Trades(pd.concat([trades, mkt], axis=1, join="inner"))
+    t.symbol = symbol
+    return t
+
+
+def _check_inputs(mkt: MarketData, sig: Signal) -> None:
+    assert mkt.symbol == sig.symbol
+    # Assume sig is less frequent than mkt.
+    assert all([idx in mkt.index for idx in sig.index])
+
+
 def direction_based_trades(
     mkt: MarketData, sig: Signal, direction_action_dict: dict
 ) -> Trades:
@@ -16,18 +33,15 @@ def direction_based_trades(
     Args:
         ternary_action_dict(dict<TernaryDirection,Action>)
     """
+    _check_inputs(mkt, sig)
     trades = pd.DataFrame(index=sig.index, columns=["amount"]).astype(np.float64)
     for direction, action in direction_action_dict.items():
         trades.loc[sig["pred"] == direction.value, "amount"] = action.act_on_amount()
-    # Order of concat is important, if mkt in front of trades, will have error
-    # since it will use the type of mkt(MarketData) to concat, but trades is
-    # normal DataFrame
-    t = Trades(pd.concat([trades, mkt], axis=1, join="inner"))
-    t.symbol = sig.symbol
+    t = _make_trades(trades, mkt, sig.symbol)
     return t
 
 
-def _no_condition(df: pd.DataFrame):
+def _no_condition(df: pd.DataFrame) -> pd.Series:
     return pd.Series(index=df.index, data=False)
 
 
@@ -40,12 +54,13 @@ def entry_exit_trades(
 ) -> Trades:
     """
     """
+    _check_inputs(mkt, sig)
     df = pd.concat([mkt, sig], axis=1, join="inner")
-    df.loc[:, "amount"] = 0.0
+    trades = pd.DataFrame(index=df.index, data=0, columns=["amount"]).astype(np.float64)
     for idx, row in df.iterrows():
-        action = direction_action_dict[row["pred"]]
-        amount = action.act_on_amount
-        df[idx, "amount"] += amount
+        action = direction_action_dict[TernaryDirection(row["pred"])]
+        amount = action.act_on_amount()
+        trades.loc[idx, "amount"] += amount
 
         df_to_max_holding_time = df[
             (idx <= df.index) & (df.index <= idx + max_holding_time)
@@ -53,17 +68,13 @@ def entry_exit_trades(
         exit_indices = df_to_max_holding_time[
             exit_condition(df_to_max_holding_time)
         ].index
-        if exit_indices.empty():
+        if exit_indices.empty:
             exit_index = df_to_max_holding_time.index[-1]
         else:
             exit_index = exit_indices[0]
-        df[exit_index, "amount"] -= amount
+        trades.loc[exit_index, "amount"] -= amount
 
-    # Order of concat is important, if mkt in front of trades, will have error
-    # since it will use the type of mkt(MarketData) to concat, but trades is
-    # normal DataFrame
-    t = Trades(df)
-    t.symbol = sig.symbol
+    t = _make_trades(trades, mkt, sig.symbol)
     return t
 
 
