@@ -1,11 +1,8 @@
 import pandas as pd
 
-from typing import Optional
-
 from backlight.labelizer.common import LabelType, Label
 from backlight.metrics.ternary import calc_ternary_metrics
 from backlight.signal.signal import Signal
-from backlight.trades import Trades
 
 
 def calc_metrics(sig: Signal, lbl: Label, dropna: bool = True) -> pd.DataFrame:
