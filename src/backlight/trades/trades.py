@@ -6,25 +6,22 @@ from typing import List, Type  # noqa
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 
-class Trade:
-    def __init__(self, transactions: List[Transaction], symbol: str) -> None:
-        self._symbol = symbol
-        index = [t.timestamp for t in transactions]
-        amount = [t.amount for t in transactions]
-        self._amount = (
-            pd.Series(index=index, data=amount, name="amount")
-            .groupby(index)
-            .sum()
-            .sort_index()
-        )
+class Trade(pd.Series):
+    def add(self, t: Transaction) -> "Trade":
+        if t.timestamp in self.index:
+            self.loc[t.timestamp] += t.amount
+            return self
+
+        self.loc[t.timestamp] = t.amount
+        return self
 
     @property
     def amount(self) -> pd.Series:
-        return self._amount
+        return self.rename("amount").sort_index()
 
     @property
-    def symbol(self) -> str:
-        return self._symbol
+    def _constructor(self) -> Type["Trade"]:
+        return Trade
 
 
 class Trades(pd.DataFrame):
@@ -32,11 +29,6 @@ class Trades(pd.DataFrame):
     _metadata = ["_trades", "symbol"]
 
     def reset(self) -> None:
-        # check symbols
-        symbol = self.trades[0].symbol
-        assert all([t.symbol == symbol for t in self.trades])
-        self.symbol = symbol
-
         # compute amount
         amounts = [t.amount for t in self.trades]
         amount = pd.Series()

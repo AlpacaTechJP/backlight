@@ -30,15 +30,14 @@ def direction_based_trades(
         Trades
     """
     df = _concat(mkt, sig)
-    symbol = sig.symbol
     trades = pd.DataFrame(index=df.index, columns=["amount"]).astype(np.float64)
     trades = []
     for direction, action in direction_action_dict.items():
-        transactions = []
+        trade = Trade()
         index = df[df.pred == direction.value].index
         for idx in index:
-            transactions.append(Transaction(timestamp=idx, amount=action.act_on_amount))
-            trades.append(Trade(transactions, symbol))
+            trade.add(Transaction(timestamp=idx, amount=action.act_on_amount))
+            trades.append(trade)
     t = make_trades(trades, mkt)
     return t
 
@@ -73,14 +72,13 @@ def entry_exit_trades(
         Trades
     """
     df = _concat(mkt, sig)
-    symbol = sig.symbol
 
     trades = []
     for idx, row in df.iterrows():
-        transactions = []
+        trade = Trade()
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        transactions.append(Transaction(timestamp=idx, amount=amount))
+        trade.add(Transaction(timestamp=idx, amount=amount))
         df_to_max_holding_time = df[
             (idx <= df.index) & (df.index <= idx + max_holding_time)
         ]
@@ -91,8 +89,8 @@ def entry_exit_trades(
             exit_index = df_to_max_holding_time.index[-1]
         else:
             exit_index = exit_indices[0]
-        transactions.append(Transaction(timestamp=exit_index, amount=-amount))
-        trades.append(Trade(transactions, symbol))
+        trade.add(Transaction(timestamp=exit_index, amount=-amount))
+        trades.append(trade)
 
     t = make_trades(trades, mkt)
     return t

@@ -13,10 +13,8 @@ def _sum(a: list) -> int:
 def make_trades(trades: List[Trade], mkt: MarketData) -> Trades:
     t = Trades(mkt)
     t._trades = trades
+    t.symbol = mkt.symbol
     t.reset()
-
-    assert t.symbol == mkt.symbol
-
     return t
 
 

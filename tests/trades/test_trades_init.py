@@ -21,16 +21,23 @@ def test__pl():
         pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
     )
 
-    trade = tr.Trade([t00, t11], symbol)
+    trade = tr.Trade()
+    trade.add(t00)
+    trade.add(t11)
     assert module._pl(trade, mkt) == 1.0
 
-    trade = tr.Trade([t00, t01], symbol)
+    trade = tr.Trade()
+    trade.add(t00)
+    trade.add(t01)
     assert module._pl(trade, mkt) == 0.0
 
-    trade = tr.Trade([t11, t20], symbol)
+    trade = tr.Trade()
+    trade.add(t11)
+    trade.add(t20)
     assert module._pl(trade, mkt) == -1.0
 
-    trade = tr.Trade([t00, t10, t20], symbol)
+    trade = tr.Trade()
+    trade.add(t00).add(t10).add(t20)
     assert module._pl(trade, mkt) == 3.0
 
 
@@ -44,9 +51,9 @@ def test_make_trades():
     t11 = tr.Transaction(timestamp=dates[1], amount=amounts[1])
     t01 = tr.Transaction(timestamp=dates[0], amount=amounts[1])
     t20 = tr.Transaction(timestamp=dates[2], amount=amounts[0])
-    trade1 = tr.Trade([t00, t11], symbol)
-    trade2 = tr.Trade([t00, t01], symbol)
-    trade3 = tr.Trade([t11, t20], symbol)
+    trade1 = tr.Trade().add(t00).add(t11)
+    trade2 = tr.Trade().add(t00).add(t01)
+    trade3 = tr.Trade().add(t11).add(t20)
 
     mkt = ds.from_dataframe(
         pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
