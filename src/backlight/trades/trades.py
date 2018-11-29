@@ -41,7 +41,7 @@ class Trades(pd.DataFrame):
 
     @property
     def symbol(self) -> str:
-        symbol = self.trades.symbol
+        symbol = self.trades[0].symbol
         assert all([t.symbol == symbol for t in self.trades])
         return symbol
 

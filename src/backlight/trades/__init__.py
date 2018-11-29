@@ -11,4 +11,5 @@ def make_trades(trades: List[Trade], mkt: MarketData) -> Trades:
     """
     t = Trades(mkt)
     t.trades = trades
+    assert t.symbol == mkt.symbol
     return t
