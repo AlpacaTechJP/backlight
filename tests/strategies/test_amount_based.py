@@ -67,7 +67,6 @@ def test_entry_exit_trades(market, signal):
     trades = module.entry_exit_trades(
         market, signal, direction_action_dict, max_holding_time
     )
-    print(trades)
     expected = pd.Series(
         index=market.index,
         data=[
@@ -92,7 +91,109 @@ def test_entry_exit_trades(market, signal):
             1.0,  # U + N
             1.0,  # U + N
             1.0,  # U + N
-            -3.0,  # U + 4*N because of market close
+            -3.0,  # U + 4N because of market close
+        ],
+        name="amount",
+    )
+    assert (trades.amount == expected).all()
+
+
+def test_simple_entry(market, signal):
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.simple_entry(market, signal, max_holding_time)
+    expected = pd.Series(
+        index=market.index,
+        data=[
+            1.0,  # U
+            -1.0,  # D
+            0.0,  # N
+            0.0,  # U + D
+            2.0,  # U + U
+            -1.0,  # D + N
+            -2.0,  # D + D
+            -1.0,  # N + D
+            1.0,  # N + U
+            2.0,  # U + U
+            1.0,  # U + N
+            1.0,  # U + N
+            -2.0,  # D + D
+            -2.0,  # D + D
+            -2.0,  # D + D
+            1.0,  # N + U
+            1.0,  # N + U
+            1.0,  # N + U
+            1.0,  # U + N
+            1.0,  # U + N
+            1.0,  # U + N
+            -3.0,  # U + 4D because of market close
+        ],
+        name="amount",
+    )
+    assert (trades.amount == expected).all()
+
+
+def test_only_entry_short(market, signal):
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.only_entry_short(market, signal, max_holding_time)
+    expected = pd.Series(
+        index=market.index,
+        data=[
+            0.0,  # N
+            -1.0,  # D
+            0.0,  # N
+            0.0,  # N + N
+            1.0,  # N + U
+            -1.0,  # D + N
+            -1.0,  # D + N
+            0.0,  # N + N
+            1.0,  # N + U
+            1.0,  # N + U
+            0.0,  # N + N
+            0.0,  # N + N
+            -1.0,  # D + N
+            -1.0,  # D + N
+            -1.0,  # D + N
+            1.0,  # N + U
+            1.0,  # N + U
+            1.0,  # N + U
+            0.0,  # N + N
+            0.0,  # N + N
+            0.0,  # N + N
+            0.0,  # N + 4N because of market close
+        ],
+        name="amount",
+    )
+    assert (trades.amount == expected).all()
+
+
+def test_only_entry_long(market, signal):
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.only_entry_long(market, signal, max_holding_time)
+    expected = pd.Series(
+        index=market.index,
+        data=[
+            1.0,  # U
+            0.0,  # N
+            0.0,  # N
+            0.0,  # U + D
+            1.0,  # U + N
+            0.0,  # N + N
+            -1.0,  # N + D
+            -1.0,  # N + D
+            0.0,  # N + N
+            1.0,  # U + N
+            1.0,  # U + N
+            1.0,  # U + N
+            -1.0,  # N + D
+            -1.0,  # N + D
+            -1.0,  # N + D
+            0.0,  # N + N
+            0.0,  # N + N
+            0.0,  # N + N
+            1.0,  # U + N
+            1.0,  # U + N
+            1.0,  # U + N
+            -3.0,  # U + 4D because of market close
         ],
         name="amount",
     )

@@ -103,3 +103,36 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
         TernaryDirection.DOWN: Action.TakeShort,
     }
     return direction_based_trades(mkt, sig, direction_action_dict)
+
+
+def only_entry_long(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.Donothing,
+    }
+    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+
+
+def only_entry_short(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    direction_action_dict = {
+        TernaryDirection.UP: Action.Donothing,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+
+
+def simple_entry(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
