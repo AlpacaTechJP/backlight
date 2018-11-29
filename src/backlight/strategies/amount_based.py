@@ -5,20 +5,9 @@ from typing import Callable
 
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
-from backlight.trades import Trades
+from backlight.trades import Trade, Trades, Transaction, make_trades
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
-
-
-def _make_trades(trades: pd.DataFrame, mkt: MarketData, symbol: str) -> Trades:
-    """
-    Order of concat is important, if mkt in front of trades,
-    it will have error since it will use the type of mkt(MarketData)
-    to concat, but trades is normal DataFrame.
-    """
-    t = Trades(pd.concat([trades, mkt], axis=1, join="inner"))
-    t.symbol = symbol
-    return t
 
 
 def _concat(mkt: MarketData, sig: Signal) -> pd.DataFrame:
@@ -42,9 +31,13 @@ def direction_based_trades(
     """
     df = _concat(mkt, sig)
     trades = pd.DataFrame(index=df.index, columns=["amount"]).astype(np.float64)
+    trades = []
     for direction, action in direction_action_dict.items():
-        trades.loc[df["pred"] == direction.value, "amount"] = action.act_on_amount()
-    t = _make_trades(trades, mkt, sig.symbol)
+        index = df[df.pred == direction.value].index
+        for idx in index:
+            trade = Trade().add(Transaction(timestamp=idx, amount=action.act_on_amount))
+            trades.append(trade)
+    t = make_trades(trades, mkt)
     return t
 
 
@@ -78,12 +71,12 @@ def entry_exit_trades(
         Trades
     """
     df = _concat(mkt, sig)
-    trades = pd.DataFrame(index=df.index, data=0, columns=["amount"]).astype(np.float64)
+
+    trades = []
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        trades.loc[idx, "amount"] += amount
-
+        trade = Trade().add(Transaction(timestamp=idx, amount=amount))
         df_to_max_holding_time = df[
             (idx <= df.index) & (df.index <= idx + max_holding_time)
         ]
@@ -94,9 +87,10 @@ def entry_exit_trades(
             exit_index = df_to_max_holding_time.index[-1]
         else:
             exit_index = exit_indices[0]
-        trades.loc[exit_index, "amount"] -= amount
+        trade.add(Transaction(timestamp=exit_index, amount=-amount))
+        trades.append(trade)
 
-    t = _make_trades(trades, mkt, sig.symbol)
+    t = make_trades(trades, mkt)
     return t
 
 
