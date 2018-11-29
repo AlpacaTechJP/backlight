@@ -27,4 +27,13 @@ def test_Trades():
         index=dates, data=[amounts[0] * 2 + amounts[1], amounts[1]], name="amount"
     )
     assert trades.symbol == symbol
+    assert trades.trades == [trade1, trade2]
     assert (trades.amount == expected).all()
+
+    expected = pd.Series(
+        index=[dates[1]], data=[amounts[1]], name="amount"
+    )
+    masked = trades[trades.index == dates[1]]
+    assert masked.symbol == symbol
+    assert masked.trades == []
+    assert (masked.amount == expected).all()

@@ -29,7 +29,7 @@ class Trade:
 
 class Trades(pd.DataFrame):
 
-    _metadata = ["trades", "symbol"]
+    _metadata = ["_trades", "symbol"]
 
     def reset(self) -> None:
         # check symbols
@@ -46,6 +46,16 @@ class Trades(pd.DataFrame):
         assert all(amount.index.isin(self.index))
 
         self.loc[:, "amount"] = amount
+
+    @property
+    def trades(self):
+        start = self.index[0]
+        end = self.index[-1]
+        return [
+            t
+            for t in self._trades
+            if start <= t.amount.index[0] and t.amount.index[0] <= end
+        ]
 
     @property
     def _constructor(self) -> Type["Trades"]:
