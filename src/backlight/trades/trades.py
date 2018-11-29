@@ -54,7 +54,7 @@ class Trades(pd.DataFrame):
         return [
             t
             for t in self._trades
-            if start <= t.amount.index[0] and t.amount.index[0] <= end
+            if start <= t.amount.index[0] and t.amount.index[-1] <= end
         ]
 
     @property
