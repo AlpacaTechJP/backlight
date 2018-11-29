@@ -29,21 +29,21 @@ class Trade:
 
 class Trades(pd.DataFrame):
 
-    _metadata = ["trades"]
+    _metadata = ["trades", "symbol"]
 
-    @property
-    def amount(self) -> pd.Series:
+    def reset(self) -> None:
+        # check symbols
+        symbol = self.trades[0].symbol
+        assert all([t.symbol == symbol for t in self.trades])
+        self.symbol = symbol
+
+        # compute amount
         amounts = [t.amount for t in self.trades]
         amount = pd.Series()
         for a in amounts:
             amount = amount.add(a, fill_value=0.0)
-        return amount
-
-    @property
-    def symbol(self) -> str:
-        symbol = self.trades[0].symbol
-        assert all([t.symbol == symbol for t in self.trades])
-        return symbol
+        assert all(amount.index.isin(self.index))
+        self.loc[:, "amount"] = amount
 
     @property
     def _constructor(self) -> Type["Trades"]:
