@@ -42,7 +42,9 @@ class Trades(pd.DataFrame):
         amount = pd.Series()
         for a in amounts:
             amount = amount.add(a, fill_value=0.0)
+
         assert all(amount.index.isin(self.index))
+
         self.loc[:, "amount"] = amount
 
     @property
