@@ -41,8 +41,14 @@ def direction_based_trades(
     return t
 
 
-def _no_condition(df: pd.DataFrame) -> pd.Series:
+def _no_exit(df: pd.DataFrame) -> pd.Series:
     return pd.Series(index=df.index, data=False)
+
+
+def _exit_opposite_signals(df: pd.DataFrame, opposite_signals_dict: dict) -> pd.Series:
+    current_signal = TernaryDirection(df["pred"][0])
+    opposite_signals = opposite_signals_dict[current_signal]
+    return df["pred"].isin(opposite_signals)
 
 
 def entry_exit_trades(
@@ -50,7 +56,7 @@ def entry_exit_trades(
     sig: Signal,
     direction_action_dict: dict,
     max_holding_time: pd.Timedelta,
-    exit_condition=_no_condition,
+    exit_condition=_no_exit,
 ) -> Trades:
     """
     """
@@ -136,3 +142,55 @@ def simple_entry(
         TernaryDirection.DOWN: Action.TakeShort,
     }
     return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+
+
+def exit_on_oppsite_signals(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+
+    opposite_signals_dict = {
+        TernaryDirection.UP: [TernaryDirection.DOWN.value],
+        TernaryDirection.NEUTRAL: [],
+        TernaryDirection.DOWN: [TernaryDirection.UP.value],
+    }
+
+    def _exit_condition(mkt: MarketData) -> pd.Series:
+        return _exit_opposite_signals(mkt, opposite_signals_dict)
+
+    return entry_exit_trades(
+        mkt, sig, direction_action_dict, max_holding_time, _exit_condition
+    )
+
+
+def exit_on_other_signals(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+
+    opposite_signals_dict = {
+        TernaryDirection.UP: [
+            TernaryDirection.DOWN.value,
+            TernaryDirection.NEUTRAL.value,
+        ],
+        TernaryDirection.NEUTRAL: [],
+        TernaryDirection.DOWN: [
+            TernaryDirection.UP.value,
+            TernaryDirection.NEUTRAL.value,
+        ],
+    }
+
+    def _exit_condition(mkt: MarketData) -> pd.Series:
+        return _exit_opposite_signals(mkt, opposite_signals_dict)
+
+    return entry_exit_trades(
+        mkt, sig, direction_action_dict, max_holding_time, _exit_condition
+    )

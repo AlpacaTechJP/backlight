@@ -198,3 +198,71 @@ def test_only_entry_long(market, signal):
         name="amount",
     )
     assert (trades.amount == expected).all()
+
+
+def test_exit_opposite_signal(market, signal):
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.exit_on_oppsite_signals(market, signal, max_holding_time)
+    expected = pd.Series(
+        index=market.index,
+        data=[
+            1.0,  # U
+            -2.0,  # D + D
+            0.0,  # N
+            2.0,  # U + U
+            1.0,  # U
+            -3.0,  # D + 2D
+            -1.0,  # D
+            0.0,  # N
+            1.0,  # N + U
+            2.0,  # U + U
+            1.0,  # U
+            1.0,  # U
+            -4.0,  # D + 3D
+            -1.0,  # D
+            -1.0,  # D
+            1.0,  # N + U
+            1.0,  # N + U
+            1.0,  # N + U
+            1.0,  # U
+            1.0,  # U
+            1.0,  # U
+            -3.0,  # U + 4D because of market close
+        ],
+        name="amount",
+    )
+    assert (trades.amount == expected).all()
+
+
+def test_exit_other_signal(market, signal):
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.exit_on_other_signals(market, signal, max_holding_time)
+    expected = pd.Series(
+        index=market.index,
+        data=[
+            1.0,  # U
+            -2.0,  # D + D
+            1.0,  # N + U
+            1.0,  # U
+            1.0,  # U
+            -3.0,  # D + 2D
+            -1.0,  # D
+            2.0,  # N + 2U
+            0.0,  # N
+            1.0,  # U
+            1.0,  # U
+            1.0,  # U
+            -4.0,  # D + 3D
+            -1.0,  # D
+            -1.0,  # D
+            3.0,  # N + 3U
+            0.0,  # N
+            0.0,  # N
+            1.0,  # U
+            1.0,  # U
+            1.0,  # U
+            -3.0,  # U + 4D because of market close
+        ],
+        name="amount",
+    )
+    assert (trades.amount == expected).all()
