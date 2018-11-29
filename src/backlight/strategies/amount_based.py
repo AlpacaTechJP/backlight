@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 
-from typing import Callable
+from typing import Callable, List
 
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
-from backlight.trades import Trade, Trades, Transaction, make_trades
+from backlight.trades import Trade, Transaction, make_trade
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
@@ -14,12 +14,14 @@ def _concat(mkt: MarketData, sig: Signal) -> pd.DataFrame:
     assert mkt.symbol == sig.symbol
     # Assume sig is less frequent than mkt.
     assert all([idx in mkt.index for idx in sig.index])
-    return pd.concat([mkt, sig], axis=1, join="inner")
+    df = pd.concat([mkt, sig], axis=1, join="inner")
+    df.symbol = mkt.symbol
+    return df
 
 
 def direction_based_trades(
     mkt: MarketData, sig: Signal, direction_action_dict: dict
-) -> Trades:
+) -> List[Trade]:
     """Just take trades without closing them.
 
     Args:
@@ -35,10 +37,11 @@ def direction_based_trades(
     for direction, action in direction_action_dict.items():
         index = df[df.pred == direction.value].index
         for idx in index:
-            trade = Trade().add(Transaction(timestamp=idx, amount=action.act_on_amount))
+            trade = make_trade(df.symbol).add(
+                Transaction(timestamp=idx, amount=action.act_on_amount)
+            )
             trades.append(trade)
-    t = make_trades(trades, mkt)
-    return t
+    return trades
 
 
 def _no_exit(df: pd.DataFrame) -> pd.Series:
@@ -57,7 +60,7 @@ def entry_exit_trades(
     direction_action_dict: dict,
     max_holding_time: pd.Timedelta,
     exit_condition: Callable[[pd.DataFrame], pd.Series] = _no_exit,
-) -> Trades:
+) -> List[Trade]:
     """Take positions and close them within maximum holding time.
 
     Args:
@@ -76,7 +79,8 @@ def entry_exit_trades(
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        trade = Trade().add(Transaction(timestamp=idx, amount=amount))
+        trade = make_trade(df.symbol)
+        trade.add(Transaction(timestamp=idx, amount=amount))
         df_to_max_holding_time = df[
             (idx <= df.index) & (df.index <= idx + max_holding_time)
         ]
@@ -89,12 +93,10 @@ def entry_exit_trades(
             exit_index = exit_indices[0]
         trade.add(Transaction(timestamp=exit_index, amount=-amount))
         trades.append(trade)
-
-    t = make_trades(trades, mkt)
-    return t
+    return trades
 
 
-def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
+def only_take_long(mkt: MarketData, sig: Signal) -> List[Trade]:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -103,7 +105,7 @@ def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
     return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
+def only_take_short(mkt: MarketData, sig: Signal) -> List[Trade]:
     direction_action_dict = {
         TernaryDirection.UP: Action.Donothing,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -112,7 +114,7 @@ def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
     return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
+def simple_buy_sell(mkt: MarketData, sig: Signal) -> List[Trade]:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -123,7 +125,7 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
 
 def only_entry_long(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> Trades:
+) -> List[Trade]:
     """Take only long positions and close them within maximum holding time.
     """
     direction_action_dict = {
@@ -136,7 +138,7 @@ def only_entry_long(
 
 def only_entry_short(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> Trades:
+) -> List[Trade]:
     """Take only short positions and close them within maximum holding time.
     """
     direction_action_dict = {
@@ -149,7 +151,7 @@ def only_entry_short(
 
 def simple_entry(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> Trades:
+) -> List[Trade]:
     """Take both positions and close them within maximum holding time. """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
@@ -161,7 +163,7 @@ def simple_entry(
 
 def exit_on_oppsite_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> Trades:
+) -> List[Trade]:
     """
     Take both positions and close them within maximum holding time.
     If opposite signals appear, also close positions.
@@ -188,7 +190,7 @@ def exit_on_oppsite_signals(
 
 def exit_on_other_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> Trades:
+) -> List[Trade]:
     """
     Take both positions and close them within maximum holding time.
     If other signals appear, also close positions.

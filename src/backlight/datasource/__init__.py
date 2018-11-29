@@ -1,11 +1,7 @@
 import pandas as pd
 from typing import Optional
 
-from backlight.datasource.marketdata import (  # noqa
-    MarketData,
-    MidMarketData,
-    AskBidMarketData,
-)
+from backlight.datasource.marketdata import MarketData
 from backlight.query import query
 
 
@@ -48,8 +44,12 @@ def from_dataframe(
     mkt = None
 
     if ("ask" in df.columns) and ("bid" in df.columns):
+        from backlight.datasource.marketdata import AskBidMarketData
+
         mkt = AskBidMarketData(df)
     elif "mid" in df.columns:
+        from backlight.datasource.marketdata import MidMarketData
+
         mkt = MidMarketData(df)
 
     if mkt is None:
