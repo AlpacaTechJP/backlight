@@ -6,7 +6,7 @@ from backlight.datasource.marketdata import MarketData
 from backlight.trades.trades import Trade, Trades, Transaction  # noqa
 
 
-def _sum(a: list):
+def _sum(a: list) -> int:
     return sum(a) if len(a) != 0 else 0
 
 
@@ -20,7 +20,7 @@ def make_trades(trades: List[Trade], mkt: MarketData) -> Trades:
     return t
 
 
-def _pl(trade: Trade, mkt: MarketData):
+def _pl(trade: Trade, mkt: MarketData) -> float:
     amount = trade.amount.cumsum()
     mkt, amount = mkt.align(amount, axis=0, join="inner")
     # TODO: ask bid pricing

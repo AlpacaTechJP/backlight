@@ -48,7 +48,7 @@ class Trades(pd.DataFrame):
         self.loc[:, "amount"] = amount
 
     @property
-    def trades(self):
+    def trades(self) -> List[Trade]:
         start = self.index[0]
         end = self.index[-1]
         return [

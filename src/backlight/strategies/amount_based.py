@@ -38,7 +38,7 @@ def direction_based_trades(
         index = df[df.pred == direction.value].index
         for idx in index:
             transactions.append(Transaction(timestamp=idx, amount=action.act_on_amount))
-            trades.append(Trade(transactions), symbol)
+            trades.append(Trade(transactions, symbol))
     t = make_trades(trades, mkt)
     return t
 
