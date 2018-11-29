@@ -76,7 +76,7 @@ def entry_exit_trades(
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        trade = = Trade().add(Transaction(timestamp=idx, amount=amount))
+        trade = Trade().add(Transaction(timestamp=idx, amount=amount))
         df_to_max_holding_time = df[
             (idx <= df.index) & (df.index <= idx + max_holding_time)
         ]
