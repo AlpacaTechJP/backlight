@@ -21,24 +21,29 @@ def _make_trades(trades: pd.DataFrame, mkt: MarketData, symbol: str) -> Trades:
     return t
 
 
-def _check_inputs(mkt: MarketData, sig: Signal) -> None:
+def _concat(mkt: MarketData, sig: Signal) -> pd.DataFrame:
     assert mkt.symbol == sig.symbol
     # Assume sig is less frequent than mkt.
     assert all([idx in mkt.index for idx in sig.index])
+    return pd.concat([mkt, sig], axis=1, join="inner")
 
 
 def direction_based_trades(
     mkt: MarketData, sig: Signal, direction_action_dict: dict
 ) -> Trades:
-    """
+    """Just take trades without closing them.
 
     Args:
-        ternary_action_dict(dict<TernaryDirection,Action>)
+        mkt: Market data
+        sig: Signal data
+        direction_action_dict: Dictionary from signals to actions
+    Result:
+        Trades
     """
-    _check_inputs(mkt, sig)
-    trades = pd.DataFrame(index=sig.index, columns=["amount"]).astype(np.float64)
+    df = _concat(mkt, sig)
+    trades = pd.DataFrame(index=df.index, columns=["amount"]).astype(np.float64)
     for direction, action in direction_action_dict.items():
-        trades.loc[sig["pred"] == direction.value, "amount"] = action.act_on_amount()
+        trades.loc[df["pred"] == direction.value, "amount"] = action.act_on_amount()
     t = _make_trades(trades, mkt, sig.symbol)
     return t
 
@@ -60,10 +65,19 @@ def entry_exit_trades(
     max_holding_time: pd.Timedelta,
     exit_condition: Callable[[pd.DataFrame], pd.Series] = _no_exit,
 ) -> Trades:
+    """Take positions and close them within maximum holding time.
+
+    Args:
+        mkt: Market data
+        sig: Signal data
+        direction_action_dict: Dictionary from signals to actions
+        max_holding_time: maximum holding time
+        exit_condition: The entry is closed most closest time which 
+                        condition is `True`.
+    Result:
+        Trades
     """
-    """
-    _check_inputs(mkt, sig)
-    df = pd.concat([mkt, sig], axis=1, join="inner")
+    df = _concat(mkt, sig)
     trades = pd.DataFrame(index=df.index, data=0, columns=["amount"]).astype(np.float64)
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
@@ -116,6 +130,8 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
 def only_entry_long(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
+    """Take only long positions and close them within maximum holding time.
+    """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -127,6 +143,8 @@ def only_entry_long(
 def only_entry_short(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
+    """Take only short positions and close them within maximum holding time.
+    """
     direction_action_dict = {
         TernaryDirection.UP: Action.Donothing,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -138,6 +156,7 @@ def only_entry_short(
 def simple_entry(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
+    """Take both positions and close them within maximum holding time. """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -149,6 +168,10 @@ def simple_entry(
 def exit_on_oppsite_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
+    """
+    Take both positions and close them within maximum holding time.
+    If opposite signals appear, also close positions.
+    """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -172,6 +195,10 @@ def exit_on_oppsite_signals(
 def exit_on_other_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
+    """
+    Take both positions and close them within maximum holding time.
+    If other signals appear, also close positions.
+    """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
