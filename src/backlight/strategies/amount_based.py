@@ -58,7 +58,7 @@ def entry_exit_trades(
     sig: Signal,
     direction_action_dict: dict,
     max_holding_time: pd.Timedelta,
-    exit_condition: Callable[[pd.DataFrame], pd.Series] =_no_exit,
+    exit_condition: Callable[[pd.DataFrame], pd.Series] = _no_exit,
 ) -> Trades:
     """
     """
