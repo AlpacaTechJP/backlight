@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from typing import Callable
+
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import Trades
@@ -56,7 +58,7 @@ def entry_exit_trades(
     sig: Signal,
     direction_action_dict: dict,
     max_holding_time: pd.Timedelta,
-    exit_condition=_no_exit,
+    exit_condition: Callable[[pd.DataFrame], pd.Series] =_no_exit,
 ) -> Trades:
     """
     """
