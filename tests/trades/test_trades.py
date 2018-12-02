@@ -7,10 +7,9 @@ import backlight.datasource
 
 
 def _make_trade(transactions, symbol="hoge"):
-    trade = module.Trade()
+    trade = module.Trade(symbol)
     for t in transactions:
         trade.add(t)
-    trade.symbol = symbol
     return trade
 
 
@@ -25,10 +24,10 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = module.Trade(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        trade = module._make_trade(
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
+            symbol,
         )
-        trade.symbol = symbol
         trades.append(trade)
     return trades
 
@@ -106,7 +105,7 @@ def test_flatten(symbol, trades):
         pd.Series(index=index, data=data, name="amount"), symbol
     )
     trade = module.flatten(trades)
-    assert (trade == expected).all()
+    assert trade == expected
 
 
 def test_count(trades, market):

@@ -4,7 +4,7 @@ import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.trades.trades import Trade
+from backlight.trades.trades import _make_trade
 
 
 @pytest.fixture
@@ -30,10 +30,10 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = Trade(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        trade = _make_trade(
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
+            symbol,
         )
-        trade.symbol = symbol
         trades.append(trade)
     return trades
 
