@@ -45,7 +45,6 @@ def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
 def calc_positions(
     trades: List[Trade],
     mkt: MarketData,
-    initial_amount: float = 0.0,
     trader: Callable[[Trade, MarketData], Positions] = _mid_trader,
 ) -> Positions:
     trade = flatten(trades)

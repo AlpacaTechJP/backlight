@@ -4,7 +4,6 @@ import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.positions.positions import Positions
 from backlight.trades.trades import Trade
 
 
@@ -38,16 +37,16 @@ def market(symbol):
 @pytest.fixture
 def trades(symbol):
     data = [
-        [1.0],
-        [-2.0],
-        [1.0],
-        [2.0],
-        [-4.0],
-        [2.0],
-        [1.0],
-        [0.0],
-        [1.0],
-        [0.0],
+        1.0,
+        -2.0,
+        1.0,
+        2.0,
+        -4.0,
+        2.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0,
     ]
     df = pd.Series(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
@@ -55,6 +54,7 @@ def trades(symbol):
         name="amount"
     )
     trade = Trade(df)
+    trade.symbol = symbol
     return [trade]
 
 
