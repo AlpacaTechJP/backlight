@@ -14,18 +14,7 @@ def symbol():
 
 @pytest.fixture
 def market(symbol):
-    data = [
-        [1.0],
-        [2.0],
-        [3.0],
-        [4.0],
-        [5.0],
-        [6.0],
-        [7.0],
-        [8.0],
-        [9.0],
-        [9.0],
-    ]
+    data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
@@ -36,22 +25,11 @@ def market(symbol):
 
 @pytest.fixture
 def trades(symbol):
-    data = [
-        1.0,
-        -2.0,
-        1.0,
-        2.0,
-        -4.0,
-        2.0,
-        1.0,
-        0.0,
-        1.0,
-        0.0,
-    ]
+    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     df = pd.Series(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
-        name="amount"
+        name="amount",
     )
     trade = Trade(df)
     trade.symbol = symbol
