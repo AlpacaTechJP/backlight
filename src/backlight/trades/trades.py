@@ -11,13 +11,12 @@ class Trade(pd.Series):
 
     _metadata = ["symbol"]
 
-    def add(self, t: Transaction) -> "Trade":
+    def add(self, t: Transaction) -> None:
         if t.timestamp in self.index:
             self.loc[t.timestamp] += t.amount
-            return self
+            return
 
         self.loc[t.timestamp] = t.amount
-        return self
 
     @property
     def amount(self) -> pd.Series:

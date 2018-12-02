@@ -90,7 +90,8 @@ def entry_exit_trades(
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        trade = make_trade(df.symbol).add(Transaction(timestamp=idx, amount=amount))
+        trade = make_trade(df.symbol)
+        trade.add(Transaction(timestamp=idx, amount=amount))
 
         if amount == 0.0:
             trades.append(trade)
