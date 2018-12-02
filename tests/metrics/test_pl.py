@@ -26,12 +26,8 @@ def market(symbol):
 @pytest.fixture
 def trades(symbol):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
-    df = pd.Series(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
-        data=data,
-        name="amount",
-    )
-    trade = Trade(df)
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    trade = Trade(pd.Series(index=index, data=data, name="amount"))
     trade.symbol = symbol
     return [trade]
 
@@ -76,6 +72,22 @@ def test_calc_position_performance(positions):
     expected_trade_amount = 13.0
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "total_pl"] == expected_total_pl
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
+    assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
+    assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
+    assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
+
+
+def test_calc_trade_performance(trades, market):
+    metrics = module.calc_trade_performance(trades, market)
+    # expected_cnt_trade = 5
+    expected_total_pl = 2.0
+    expected_win_pl = 5.0
+    expected_lose_pl = -3.0
+    expected_trade_amount = 13.0
+    expected_avg_pl = expected_total_pl / expected_trade_amount
+    # assert metrics.loc["metrics", "cnt_trade"] == expected_cnt_trade
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
     assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
     assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
     assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount

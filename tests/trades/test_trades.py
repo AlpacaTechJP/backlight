@@ -1,7 +1,24 @@
 from backlight.trades import trades as module
 
+import pytest
+
 import pandas as pd
 import backlight.datasource
+
+
+@pytest.fixture
+def trades():
+    symbol = "usdjpy"
+    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    trades = []
+    for i in range(0, len(data), 2):
+        trade = module.Trade(
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        )
+        trade.symbol = symbol
+        trades.append(trade)
+    return trades
 
 
 def test_Trade():
@@ -57,3 +74,14 @@ def test__evaluate_pl():
 
     trade = module.make_trade(symbol).add(t00).add(t10).add(t20)
     assert module._evaluate_pl(trade, mkt) == 3.0
+
+
+def test_flatten(trades):
+    symbol = "usdjpy"
+    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = module._make_trade(
+        pd.Series(index=index, data=data, name="amount"), symbol
+    )
+    trade = module.flatten(trades)
+    assert (trade == expected).all()

@@ -34,7 +34,7 @@ class Positions(pd.DataFrame):
 
 
 def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
-    positions = mkt.copy()
+    positions = pd.DataFrame(index=mkt.index)
     positions.loc[:, "amount"] = trade.amount.cumsum()
     positions.loc[:, "price"] = mkt.mid
     pos = Positions(positions)

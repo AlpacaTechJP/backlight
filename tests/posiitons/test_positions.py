@@ -55,4 +55,4 @@ def test_calc_positions(trades, market):
     )
     expected = module.Positions(df)
     positions = module.calc_positions(trades, market)
-    assert (positions == expected).all()
+    pd.testing.assert_frame_equal(positions, expected)

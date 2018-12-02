@@ -25,31 +25,6 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
     return _sum(amount_diff.abs())
 
 
-def calc_trade_peformance(trades: List[Trade], mkt: MarketData) -> pd.DataFrame:
-    total_count, win_count, lose_count = count(trades, mkt)
-
-    m = pd.DataFrame.from_records(
-        [
-            ("cnt_trade", total_count),
-            ("cnt_win", win_count),
-            ("cnt_lose", lose_count),
-            ("win_ratio", win_count / total_count),
-            ("lose_ratio", lose_count / total_count),
-        ]
-    ).set_index(0)
-    del m.index.name
-    m.columns = ["metrics"]
-
-    positions = calc_positions(trades, mkt)
-    m = pd.concat([m, calc_position_performance(positions)], axis=1)
-
-    m.loc[:, "avg_win_pl"] = m["total_win_pl"] / m["cnt_win"]
-    m.loc[:, "avg_lose_pl"] = m["total_lose_pl"] / m["cnt_lose"]
-    m.loc[:, "avg_pl_per_trade"] = m["total_pl"] / m["cnt_trade"]
-
-    return m.T
-
-
 def calc_position_performance(positions: Positions) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions"""
     pl = _pl(positions)
@@ -74,3 +49,28 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     m.columns = ["metrics"]
 
     return m.T
+
+
+def calc_trade_performance(trades: List[Trade], mkt: MarketData) -> pd.DataFrame:
+    total_count, win_count, lose_count = count(trades, mkt)
+
+    m = pd.DataFrame.from_records(
+        [
+            ("cnt_trade", total_count),
+            ("cnt_win", win_count),
+            ("cnt_lose", lose_count),
+            ("win_ratio", win_count / total_count),
+            ("lose_ratio", lose_count / total_count),
+        ]
+    ).set_index(0)
+    del m.index.name
+    m.columns = ["metrics"]
+
+    positions = calc_positions(trades, mkt)
+    m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
+
+    m.loc[:, "avg_win_pl"] = m["total_win_pl"] / m["cnt_win"]
+    m.loc[:, "avg_lose_pl"] = m["total_lose_pl"] / m["cnt_lose"]
+    m.loc[:, "avg_pl_per_trade"] = m["total_pl"] / m["cnt_trade"]
+
+    return m

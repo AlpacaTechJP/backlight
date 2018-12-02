@@ -72,4 +72,4 @@ def flatten(trades: List[Trade]) -> Trade:
     for a in amounts:
         amount = amount.add(a, fill_value=0.0)
 
-    return _make_trade(amount, symbol)
+    return _make_trade(amount.sort_index(), symbol)
