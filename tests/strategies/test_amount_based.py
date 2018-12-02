@@ -95,7 +95,8 @@ def test_entry_exit_trades(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
 
 
 def test_simple_entry(market, signal):
@@ -129,7 +130,8 @@ def test_simple_entry(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
 
 
 def test_only_entry_short(market, signal):
@@ -163,7 +165,8 @@ def test_only_entry_short(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
 
 
 def test_only_entry_long(market, signal):
@@ -197,7 +200,8 @@ def test_only_entry_long(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
 
 
 def test_exit_opposite_signal(market, signal):
@@ -231,7 +235,8 @@ def test_exit_opposite_signal(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
 
 
 def test_exit_other_signal(market, signal):
@@ -265,4 +270,5 @@ def test_exit_other_signal(market, signal):
         ],
         name="amount",
     )
-    assert (trades.amount == expected).all()
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected).all()
