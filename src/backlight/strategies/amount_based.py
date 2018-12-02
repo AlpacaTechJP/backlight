@@ -38,9 +38,8 @@ def direction_based_trades(
     for direction, action in direction_action_dict.items():
         index = df[df.pred == direction.value].index
         for idx in index:
-            trade = make_trade(df.symbol).add(
-                Transaction(timestamp=idx, amount=action.act_on_amount)
-            )
+            trade = make_trade(df.symbol)
+            trade.add(Transaction(timestamp=idx, amount=action.act_on_amount()))
             trades.append(trade)
     return trades
 
