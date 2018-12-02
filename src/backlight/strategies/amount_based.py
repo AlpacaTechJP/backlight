@@ -54,6 +54,17 @@ def _exit_opposite_signals(df: pd.DataFrame, opposite_signals_dict: dict) -> pd.
     return df["pred"].isin(opposite_signals)
 
 
+def _exit_transaction(
+    df: pd.DataFrame, amount: float, exit_condition: Callable[[pd.DataFrame], pd.Series]
+) -> Transaction:
+    exit_indices = df[exit_condition(df)].index
+    if exit_indices.empty:
+        exit_index = df.index[-1]
+    else:
+        exit_index = exit_indices[0]
+    return Transaction(timestamp=exit_index, amount=-amount)
+
+
 def entry_exit_trades(
     mkt: MarketData,
     sig: Signal,
@@ -79,19 +90,15 @@ def entry_exit_trades(
     for idx, row in df.iterrows():
         action = direction_action_dict[TernaryDirection(row["pred"])]
         amount = action.act_on_amount()
-        trade = make_trade(df.symbol)
-        trade.add(Transaction(timestamp=idx, amount=amount))
-        df_to_max_holding_time = df[
-            (idx <= df.index) & (df.index <= idx + max_holding_time)
-        ]
-        exit_indices = df_to_max_holding_time[
-            exit_condition(df_to_max_holding_time)
-        ].index
-        if exit_indices.empty:
-            exit_index = df_to_max_holding_time.index[-1]
-        else:
-            exit_index = exit_indices[0]
-        trade.add(Transaction(timestamp=exit_index, amount=-amount))
+        trade = make_trade(df.symbol).add(Transaction(timestamp=idx, amount=amount))
+
+        if amount == 0.0:
+            trades.append(trade)
+            continue
+
+        df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+        transaction = _exit_transaction(df_exit, amount, exit_condition)
+        trade.add(transaction)
         trades.append(trade)
     return trades
 
