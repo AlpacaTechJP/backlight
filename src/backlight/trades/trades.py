@@ -9,7 +9,7 @@ Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 class Trade(pd.Series):
 
-    _metadata = ["_trades", "symbol"]
+    _metadata = ["symbol"]
 
     def add(self, t: Transaction) -> "Trade":
         if t.timestamp in self.index:
@@ -26,9 +26,6 @@ class Trade(pd.Series):
     @property
     def _constructor(self) -> Type["Trade"]:
         return Trade
-
-
-from backlight.trades.trades import Trade, Transaction
 
 
 def _sum(a: list) -> int:
