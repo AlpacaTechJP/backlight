@@ -1,5 +1,9 @@
 import pandas as pd
-from typing import Type
+from typing import Type, Callable, List
+
+from backlight.datasource.marketdata import MarketData
+from backlight.trades import flatten
+from backlight.trades.trades import Trade
 
 
 class Positions(pd.DataFrame):
@@ -27,3 +31,23 @@ class Positions(pd.DataFrame):
     @property
     def _constructor(self) -> Type["Positions"]:
         return Positions
+
+
+def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
+    positions = mkt.copy()
+    positions.loc[:, "amount"] = trade.amount.cumsum()
+    positions.loc[:, "price"] = mkt.mid
+    pos = Positions(positions)
+    pos.symbol = trade.symbol
+    return pos
+
+
+def calc_positions(
+    trades: List[Trade],
+    mkt: MarketData,
+    trader: Callable[[Trade, MarketData], Positions] = _mid_trader,
+) -> Positions:
+    trade = flatten(trades)
+    assert trade.symbol == mkt.symbol
+    positions = trader(trade, mkt)
+    return positions

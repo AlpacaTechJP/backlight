@@ -5,7 +5,8 @@ from typing import Callable, List
 
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
-from backlight.trades import Trade, Transaction, make_trade
+from backlight.trades import make_trade
+from backlight.trades.trades import Trade, Transaction
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 

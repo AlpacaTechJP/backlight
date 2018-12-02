@@ -47,8 +47,12 @@ def test__trade_amount(positions):
 def test_calc_position_performance(positions):
     metrics = module.calc_position_performance(positions)
     expected_total_pl = 2.0
+    expected_win_pl = 5.0
+    expected_lose_pl = -3.0
     expected_trade_amount = 13.0
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "total_pl"] == expected_total_pl
-    assert metrics.loc["metrics", "trade_amount"] == expected_trade_amount
-    assert metrics.loc["metrics", "avg_pl"] == expected_avg_pl
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
+    assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
+    assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
+    assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
