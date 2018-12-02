@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 
 import backlight.datasource
+import backlight.positions
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trade
 
@@ -37,16 +38,16 @@ def market(symbol):
 @pytest.fixture
 def trades(symbol):
     data = [
-        [1.0],  # pl = None
-        [-1.0],  # pl = 1.0 * (2.0 - 1.0) = 1.0
-        [0.0],  # pl = -1.0 * (3.0 - 2.0) = -1.0
-        [2.0],  # pl = 0.0 * (4.0 - 3.0) = 0.0
-        [-2.0],  # pl = 2.0 * (5.0 - 4.0) = 2.0
-        [0.0],  # pl = -2.0 * (6.0 - 5.0) = -2.0
-        [1.0],  # pl = 0.0 * (7.0 - 6.0) = 0.0
-        [1.0],  # pl = 1.0 * (8.0 - 7.0) = 1.0
-        [2.0],  # pl = 1.0 * (9.0 - 8.0) = 1.0
-        [2.0],  # pl = 2.0 * (9.0 - 9.0) = 0.0
+        [1.0],
+        [-2.0],
+        [1.0],
+        [2.0],
+        [-4.0],
+        [2.0],
+        [1.0],
+        [0.0],
+        [1.0],
+        [0.0],
     ]
     df = pd.Series(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
@@ -58,28 +59,21 @@ def trades(symbol):
 
 
 @pytest.fixture
-def positions():
-    symbol = "usdjpy"
-    data = [
-        [1.0, 1.0],  # pl = None
-        [-1.0, 2.0],  # pl = 1.0 * (2.0 - 1.0) = 1.0
-        [0.0, 3.0],  # pl = -1.0 * (3.0 - 2.0) = -1.0
-        [2.0, 4.0],  # pl = 0.0 * (4.0 - 3.0) = 0.0
-        [-2.0, 5.0],  # pl = 2.0 * (5.0 - 4.0) = 2.0
-        [0.0, 6.0],  # pl = -2.0 * (6.0 - 5.0) = -2.0
-        [1.0, 7.0],  # pl = 0.0 * (7.0 - 6.0) = 0.0
-        [1.0, 8.0],  # pl = 1.0 * (8.0 - 7.0) = 1.0
-        [2.0, 9.0],  # pl = 1.0 * (9.0 - 8.0) = 1.0
-        [2.0, 9.0],  # pl = 2.0 * (9.0 - 9.0) = 0.0
-    ]
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
-        data=data,
-        columns=["amount", "price"],
-    )
-    positions = Positions(df)
-    positions.symbol = symbol
-    return positions
+def positions(trades, market):
+    # positions should be
+    # data = [
+    #     [1.0, 1.0],  # pl = None
+    #     [-1.0, 2.0],  # pl = 1.0 * (2.0 - 1.0) = 1.0
+    #     [0.0, 3.0],  # pl = -1.0 * (3.0 - 2.0) = -1.0
+    #     [2.0, 4.0],  # pl = 0.0 * (4.0 - 3.0) = 0.0
+    #     [-2.0, 5.0],  # pl = 2.0 * (5.0 - 4.0) = 2.0
+    #     [0.0, 6.0],  # pl = -2.0 * (6.0 - 5.0) = -2.0
+    #     [1.0, 7.0],  # pl = 0.0 * (7.0 - 6.0) = 0.0
+    #     [1.0, 8.0],  # pl = 1.0 * (8.0 - 7.0) = 1.0
+    #     [2.0, 9.0],  # pl = 1.0 * (9.0 - 8.0) = 1.0
+    #     [2.0, 9.0],  # pl = 2.0 * (9.0 - 9.0) = 0.0
+    # ]
+    return backlight.positions.calc_positions(trades, market)
 
 
 def test__pl(positions):
