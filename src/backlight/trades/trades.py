@@ -55,8 +55,8 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
 
 
 def count(trades: List[Trade], mkt: MarketData) -> Tuple[int, int, int]:
-    pls = [_evaluate_pl(t, mkt) for t in trades]
-    total = len(pls)
+    pls = [_evaluate_pl(t, mkt) for t in trades if len(t.index) > 1]
+    total = len(trades)
     win = _sum([pl > 0.0 for pl in pls])
     lose = _sum([pl < 0.0 for pl in pls])
     return total, win, lose
