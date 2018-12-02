@@ -7,8 +7,12 @@ import backlight.datasource
 
 
 @pytest.fixture
-def trades():
-    symbol = "usdjpy"
+def symbol():
+    return "usdjpy"
+
+
+@pytest.fixture
+def trades(symbol):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
@@ -19,6 +23,17 @@ def trades():
         trade.symbol = symbol
         trades.append(trade)
     return trades
+
+
+@pytest.fixture
+def market(symbol):
+    data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
+        data=data,
+        columns=["mid"],
+    )
+    return backlight.datasource.from_dataframe(df, symbol)
 
 
 def test_Trade():
@@ -76,8 +91,7 @@ def test__evaluate_pl():
     assert module._evaluate_pl(trade, mkt) == 3.0
 
 
-def test_flatten(trades):
-    symbol = "usdjpy"
+def test_flatten(symbol, trades):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     expected = module._make_trade(
@@ -85,3 +99,7 @@ def test_flatten(trades):
     )
     trade = module.flatten(trades)
     assert (trade == expected).all()
+
+
+def test_count(trades, market):
+    assert (5, 3, 1) == module.count(trades, market)
