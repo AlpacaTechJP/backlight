@@ -48,8 +48,8 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
     amount = trade.amount.cumsum()
     mkt, amount = mkt.align(amount, axis=0, join="inner")
     # TODO: ask bid pricing
-    next_price = mkt["mid"].shift(periods=-1)
-    price_diff = next_price - mkt["mid"]
+    next_price = mkt.mid.shift(periods=-1)
+    price_diff = next_price - mkt.mid
     pl = (price_diff * amount).shift(periods=1)[1:]  # drop first nan
     return _sum(pl)
 
