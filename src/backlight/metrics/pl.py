@@ -23,6 +23,10 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
     return _sum(amount_diff.abs())
 
 
+def _divide(a: float, b: float) -> float:
+    return a / b if b != 0.0 else 0.0
+
+
 def calc_position_performance(positions: Positions) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions"""
     pl = _pl(positions)
@@ -31,7 +35,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     total_pl = _sum(pl)
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
-    average_pl = total_pl / trade_amount
+    average_pl = _divide(total_pl, trade_amount)
 
     m = pd.DataFrame.from_records(
         [
@@ -57,8 +61,8 @@ def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
             ("cnt_trade", total_count),
             ("cnt_win", win_count),
             ("cnt_lose", lose_count),
-            ("win_ratio", win_count / total_count),
-            ("lose_ratio", lose_count / total_count),
+            ("win_ratio", _divide(win_count, total_count)),
+            ("lose_ratio", _divide(lose_count, total_count)),
         ]
     ).set_index(0)
     del m.index.name
@@ -67,8 +71,14 @@ def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
     positions = calc_positions(trades, mkt)
     m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
 
-    m.loc[:, "avg_win_pl"] = m["total_win_pl"] / m["cnt_win"]
-    m.loc[:, "avg_lose_pl"] = m["total_lose_pl"] / m["cnt_lose"]
-    m.loc[:, "avg_pl_per_trade"] = m["total_pl"] / m["cnt_trade"]
+    m.loc[:, "avg_win_pl"] = _divide(
+        m.loc["metrics", "total_win_pl"], m.loc["metrics", "cnt_win"]
+    )
+    m.loc[:, "avg_lose_pl"] = _divide(
+        m.loc["metrics", "total_lose_pl"], m.loc["metrics", "cnt_lose"]
+    )
+    m.loc[:, "avg_pl_per_trade"] = _divide(
+        m.loc["metrics", "total_pl"], m.loc["metrics", "cnt_trade"]
+    )
 
     return m
