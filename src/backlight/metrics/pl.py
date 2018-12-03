@@ -71,8 +71,8 @@ def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
     positions = calc_positions(trades, mkt)
     m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
 
-    m.loc[:, "avg_win_pl"] = _divide(m["total_win_pl"], m["cnt_win"])
-    m.loc[:, "avg_lose_pl"] = _divide(m["total_lose_pl"], m["cnt_lose"])
-    m.loc[:, "avg_pl_per_trade"] = _divide(m["total_pl"], m["cnt_trade"])
+    m.loc[:, "avg_win_pl"] = _divide(m.loc["metrics", "total_win_pl"], m.loc["metrics", "cnt_win"])
+    m.loc[:, "avg_lose_pl"] = _divide(m.loc["metrics", "total_lose_pl"], m.loc["metrics", "cnt_lose"])
+    m.loc[:, "avg_pl_per_trade"] = _divide(m.loc["metrics", "total_pl"], m.loc["metrics", "cnt_trade"])
 
     return m
