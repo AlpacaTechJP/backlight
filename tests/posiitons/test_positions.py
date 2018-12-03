@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 import backlight.datasource
-from backlight.trades.trades import Trade
+from backlight.trades.trades import _make_trade
 
 
 @pytest.fixture
@@ -25,13 +25,12 @@ def market(symbol):
 @pytest.fixture
 def trades(symbol):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
-    df = pd.Series(
+    sr = pd.Series(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
         name="amount",
     )
-    trade = Trade(df)
-    trade.symbol = symbol
+    trade = _make_trade(sr, symbol)
     return [trade]
 
 

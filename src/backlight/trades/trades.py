@@ -1,31 +1,36 @@
 import pandas as pd
 from collections import namedtuple
-from typing import List, Type, Tuple  # noqa
+from typing import Any, List, Type, Tuple  # noqa
 
 from backlight.datasource.marketdata import MarketData
 
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 
-class Trade(pd.Series):
+class Trade:
+    def __init__(self, symbol: str) -> None:
+        self.symbol = symbol
+        self._index = []  # type: list
+        self._amount = []  # type: list
 
-    _metadata = ["symbol"]
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Trade):
+            return False
 
-    def add(self, t: Transaction) -> "Trade":
-        if t.timestamp in self.index:
-            self.loc[t.timestamp] += t.amount
-            return self
+        return self._index == other._index and self._amount == other._amount
 
-        self.loc[t.timestamp] = t.amount
-        return self
+    def add(self, t: Transaction) -> None:
+        self._index.append(t.timestamp)
+        self._amount.append(t.amount)
 
     @property
     def amount(self) -> pd.Series:
-        return self.rename("amount").sort_index()
+        amount = pd.Series(data=self._amount, index=self._index)
+        return amount.groupby(amount.index).sum().sort_index()
 
     @property
-    def _constructor(self) -> Type["Trade"]:
-        return Trade
+    def size(self) -> int:
+        return len(self._index)
 
 
 def _sum(a: list) -> int:
@@ -33,14 +38,14 @@ def _sum(a: list) -> int:
 
 
 def _make_trade(sr: pd.Series, symbol: str) -> Trade:
-    t = Trade(sr)
-    t.symbol = symbol
+    t = Trade(symbol)
+    t._index = [i for i in sr.index]
+    t._amount = sr.values.tolist()
     return t
 
 
 def make_trade(symbol: str) -> Trade:
-    t = Trade()
-    t.symbol = symbol
+    t = Trade(symbol)
     return t
 
 
@@ -55,7 +60,7 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
 
 
 def count(trades: List[Trade], mkt: MarketData) -> Tuple[int, int, int]:
-    pls = [_evaluate_pl(t, mkt) for t in trades if len(t.index) > 1]
+    pls = [_evaluate_pl(t, mkt) for t in trades if t.size > 1]
     total = len(trades)
     win = _sum([pl > 0.0 for pl in pls])
     lose = _sum([pl < 0.0 for pl in pls])

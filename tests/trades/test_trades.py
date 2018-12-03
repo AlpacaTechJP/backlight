@@ -6,6 +6,13 @@ import pandas as pd
 import backlight.datasource
 
 
+def _make_trade(transactions, symbol="hoge"):
+    trade = module.Trade(symbol)
+    for t in transactions:
+        trade.add(t)
+    return trade
+
+
 @pytest.fixture
 def symbol():
     return "usdjpy"
@@ -17,10 +24,10 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = module.Trade(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        trade = module._make_trade(
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
+            symbol,
         )
-        trade.symbol = symbol
         trades.append(trade)
     return trades
 
@@ -45,17 +52,17 @@ def test_Trade():
     t11 = module.Transaction(timestamp=dates[1], amount=amounts[1])
     t01 = module.Transaction(timestamp=dates[0], amount=amounts[1])
 
-    trade = module.Trade().add(t00).add(t11)
+    trade = _make_trade([t00, t11])
     expected = pd.Series(index=dates, data=amounts[:2], name="amount")
     assert (trade.amount == expected).all()
 
-    trade = module.Trade().add(t00).add(t01)
+    trade = _make_trade([t00, t01])
     expected = pd.Series(
         index=[dates[0]], data=[amounts[0] + amounts[1]], name="amount"
     )
     assert (trade.amount == expected).all()
 
-    trade = module.Trade().add(t11).add(t01).add(t00)
+    trade = _make_trade([t11, t01, t00])
     expected = pd.Series(
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
@@ -78,16 +85,16 @@ def test__evaluate_pl():
         pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
     )
 
-    trade = module.make_trade(symbol).add(t00).add(t11)
+    trade = _make_trade([t00, t11], symbol)
     assert module._evaluate_pl(trade, mkt) == 1.0
 
-    trade = module.make_trade(symbol).add(t00).add(t01)
+    trade = _make_trade([t00, t01], symbol)
     assert module._evaluate_pl(trade, mkt) == 0.0
 
-    trade = module.make_trade(symbol).add(t11).add(t20)
+    trade = _make_trade([t11, t20], symbol)
     assert module._evaluate_pl(trade, mkt) == -1.0
 
-    trade = module.make_trade(symbol).add(t00).add(t10).add(t20)
+    trade = _make_trade([t00, t10, t20], symbol)
     assert module._evaluate_pl(trade, mkt) == 3.0
 
 
@@ -98,7 +105,7 @@ def test_flatten(symbol, trades):
         pd.Series(index=index, data=data, name="amount"), symbol
     )
     trade = module.flatten(trades)
-    assert (trade == expected).all()
+    assert trade == expected
 
 
 def test_count(trades, market):
