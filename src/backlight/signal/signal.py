@@ -43,12 +43,15 @@ class TernarySignal(Signal):
 
     _target_columns = ["up", "neutral", "down"]
 
-    def reset_pred(self) -> None:
+    def reset_pred(self, threshold: float = 0.0) -> None:
         argmax = _argmax(self[["up", "neutral", "down"]].values, axis=1)
-        self.loc[argmax == -1, "pred"] = TernaryDirection.NEUTRAL.value
-        self.loc[argmax == 0, "pred"] = TernaryDirection.UP.value
-        self.loc[argmax == 1, "pred"] = TernaryDirection.NEUTRAL.value
-        self.loc[argmax == 2, "pred"] = TernaryDirection.DOWN.value
+
+        up_index = (argmax == 0) & (self.up >= threshold)
+        down_index = (argmax == 2) & (self.down >= threshold)
+
+        self.loc[up_index, "pred"] = TernaryDirection.UP.value
+        self.loc[down_index, "pred"] = TernaryDirection.DOWN.value
+        self.loc[~up_index & ~down_index, "pred"] = TernaryDirection.NEUTRAL.value
 
     @property
     def _constructor(self) -> Type["TernarySignal"]:
