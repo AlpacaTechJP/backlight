@@ -6,7 +6,7 @@ from typing import Callable, List
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Trade, Transaction
+from backlight.trades.trades import Trades, Transaction
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
@@ -22,7 +22,7 @@ def _concat(mkt: MarketData, sig: Signal) -> pd.DataFrame:
 
 def direction_based_trades(
     mkt: MarketData, sig: Signal, direction_action_dict: dict
-) -> List[Trade]:
+) -> Trades:
     """Just take trades without closing them.
 
     Args:
@@ -41,7 +41,7 @@ def direction_based_trades(
             trade = make_trade(df.symbol)
             trade.add(Transaction(timestamp=idx, amount=action.act_on_amount()))
             trades.append(trade)
-    return trades
+    return tuple(trades)
 
 
 def _no_exit(df: pd.DataFrame) -> pd.Series:
@@ -71,7 +71,7 @@ def entry_exit_trades(
     direction_action_dict: dict,
     max_holding_time: pd.Timedelta,
     exit_condition: Callable[[pd.DataFrame], pd.Series] = _no_exit,
-) -> List[Trade]:
+) -> Trades:
     """Take positions and close them within maximum holding time.
 
     Args:
@@ -101,10 +101,10 @@ def entry_exit_trades(
         transaction = _exit_transaction(df_exit, amount, exit_condition)
         trade.add(transaction)
         trades.append(trade)
-    return trades
+    return tuple(trades)
 
 
-def only_take_long(mkt: MarketData, sig: Signal) -> List[Trade]:
+def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -113,7 +113,7 @@ def only_take_long(mkt: MarketData, sig: Signal) -> List[Trade]:
     return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def only_take_short(mkt: MarketData, sig: Signal) -> List[Trade]:
+def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.Donothing,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -122,7 +122,7 @@ def only_take_short(mkt: MarketData, sig: Signal) -> List[Trade]:
     return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def simple_buy_sell(mkt: MarketData, sig: Signal) -> List[Trade]:
+def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
@@ -133,7 +133,7 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> List[Trade]:
 
 def only_entry_long(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> List[Trade]:
+) -> Trades:
     """Take only long positions and close them within maximum holding time.
     """
     direction_action_dict = {
@@ -146,7 +146,7 @@ def only_entry_long(
 
 def only_entry_short(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> List[Trade]:
+) -> Trades:
     """Take only short positions and close them within maximum holding time.
     """
     direction_action_dict = {
@@ -159,7 +159,7 @@ def only_entry_short(
 
 def simple_entry(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> List[Trade]:
+) -> Trades:
     """Take both positions and close them within maximum holding time. """
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
@@ -171,7 +171,7 @@ def simple_entry(
 
 def exit_on_oppsite_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> List[Trade]:
+) -> Trades:
     """
     Take both positions and close them within maximum holding time.
     If opposite signals appear, also close positions.
@@ -198,7 +198,7 @@ def exit_on_oppsite_signals(
 
 def exit_on_other_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
-) -> List[Trade]:
+) -> Trades:
     """
     Take both positions and close them within maximum holding time.
     If other signals appear, also close positions.
