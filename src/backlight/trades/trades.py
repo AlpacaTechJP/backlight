@@ -30,8 +30,8 @@ class Trade:
         return amount.groupby(amount.index).sum().sort_index()
 
     @property
-    def size(self) -> int:
-        return len(self._index)
+    def index(self) -> pd.Index:
+        return pd.Index(self._index).drop_duplicates().sort_values()
 
 
 Trades = Tuple[Trade, ...]
@@ -64,7 +64,7 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
 
 
 def count(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
-    pls = [_evaluate_pl(t, mkt) for t in trades if t.size > 1]
+    pls = [_evaluate_pl(t, mkt) for t in trades if len(t.index) > 1]
     total = len(trades)
     win = _sum([pl > 0.0 for pl in pls])
     lose = _sum([pl < 0.0 for pl in pls])
