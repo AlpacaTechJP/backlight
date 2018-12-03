@@ -1,6 +1,7 @@
 import pandas as pd
 from collections import namedtuple
-from typing import Any, List, Type, Tuple  # noqa
+from functools import lru_cache
+from typing import Any, Type, Tuple  # noqa
 
 from backlight.datasource.marketdata import MarketData
 
@@ -10,18 +11,18 @@ Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 class Trade:
     def __init__(self, symbol: str) -> None:
         self.symbol = symbol
-        self._index = []  # type: list
-        self._amount = []  # type: list
+        self._index = ()  # type: tuple
+        self._amount = ()  # type: tuple
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, Trade):
-            return False
+        return self.__class__ == other.__class__ and self.__hash__() == other.__hash__()
 
-        return self._index == other._index and self._amount == other._amount
+    def __hash__(self) -> int:
+        return hash((self._index, self._amount, self.symbol))
 
     def add(self, t: Transaction) -> None:
-        self._index.append(t.timestamp)
-        self._amount.append(t.amount)
+        self._index += (t.timestamp,)
+        self._amount += (t.amount,)
 
     @property
     def amount(self) -> pd.Series:
@@ -33,14 +34,17 @@ class Trade:
         return len(self._index)
 
 
+Trades = Tuple[Trade, ...]
+
+
 def _sum(a: list) -> int:
     return sum(a) if len(a) != 0 else 0
 
 
 def _make_trade(sr: pd.Series, symbol: str) -> Trade:
     t = Trade(symbol)
-    t._index = [i for i in sr.index]
-    t._amount = sr.values.tolist()
+    t._index = tuple([i for i in sr.index])
+    t._amount = tuple(sr.values.tolist())
     return t
 
 
@@ -59,7 +63,7 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
     return _sum(pl)
 
 
-def count(trades: List[Trade], mkt: MarketData) -> Tuple[int, int, int]:
+def count(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
     pls = [_evaluate_pl(t, mkt) for t in trades if t.size > 1]
     total = len(trades)
     win = _sum([pl > 0.0 for pl in pls])
@@ -67,7 +71,8 @@ def count(trades: List[Trade], mkt: MarketData) -> Tuple[int, int, int]:
     return total, win, lose
 
 
-def flatten(trades: List[Trade]) -> Trade:
+@lru_cache()
+def flatten(trades: Trades) -> Trade:
     symbol = trades[0].symbol
     assert all([t.symbol == symbol for t in trades])
 

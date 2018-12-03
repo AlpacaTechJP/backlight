@@ -1,9 +1,9 @@
 import pandas as pd
-from typing import Type, Callable, List
+from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData
 from backlight.trades import flatten
-from backlight.trades.trades import Trade
+from backlight.trades.trades import Trade, Trades
 
 
 class Positions(pd.DataFrame):
@@ -43,7 +43,7 @@ def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
 
 
 def calc_positions(
-    trades: List[Trade],
+    trades: Trades,
     mkt: MarketData,
     trader: Callable[[Trade, MarketData], Positions] = _mid_trader,
 ) -> Positions:

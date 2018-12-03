@@ -1,11 +1,9 @@
 import pandas as pd
 
-from typing import List
-
 from backlight.datasource.marketdata import MarketData
 from backlight.positions import calc_positions
 from backlight.positions.positions import Positions
-from backlight.trades.trades import Trade, count
+from backlight.trades.trades import Trade, Trades, count
 
 
 def _sum(a: pd.Series) -> float:
@@ -51,7 +49,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     return m.T
 
 
-def calc_trade_performance(trades: List[Trade], mkt: MarketData) -> pd.DataFrame:
+def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
     total_count, win_count, lose_count = count(trades, mkt)
 
     m = pd.DataFrame.from_records(

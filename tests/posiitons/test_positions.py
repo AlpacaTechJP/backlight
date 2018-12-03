@@ -31,7 +31,7 @@ def trades(symbol):
         name="amount",
     )
     trade = _make_trade(sr, symbol)
-    return [trade]
+    return (trade,)
 
 
 def test_calc_positions(trades, market):
