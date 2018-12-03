@@ -11,18 +11,18 @@ Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 class Trade:
     def __init__(self, symbol: str) -> None:
         self.symbol = symbol
-        self._index = []  # type: list
-        self._amount = []  # type: list
+        self._index = ()  # type: tuple
+        self._amount = ()  # type: tuple
 
     def __eq__(self, other: Any) -> bool:
         return self.__class__ == other.__class__ and self.__hash__() == other.__hash__()
 
     def __hash__(self) -> int:
-        return hash((tuple(self._index), tuple(self._amount), self.symbol))
+        return hash((self._index, self._amount, self.symbol))
 
     def add(self, t: Transaction) -> None:
-        self._index.append(t.timestamp)
-        self._amount.append(t.amount)
+        self._index += (t.timestamp,)
+        self._amount += (t.amount,)
 
     @property
     def amount(self) -> pd.Series:
@@ -43,8 +43,8 @@ def _sum(a: list) -> int:
 
 def _make_trade(sr: pd.Series, symbol: str) -> Trade:
     t = Trade(symbol)
-    t._index = [i for i in sr.index]
-    t._amount = sr.values.tolist()
+    t._index = tuple([i for i in sr.index])
+    t._amount = tuple(sr.values.tolist())
     return t
 
 
