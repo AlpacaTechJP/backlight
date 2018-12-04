@@ -9,9 +9,7 @@ def plot_pl(
     freq: pd.Timedelta = pd.Timedelta("1D"),
 ) -> None:
     pl = calc_pl(positions)
-    pl.rolling(window).sum().resample(
-        freq=freq, label="left", closed="right"
-    ).last().plot()
+    pl.rolling(window).sum().resample(freq).first().plot()
 
 
 def plot_cumulative_pl(positions: Positions) -> None:

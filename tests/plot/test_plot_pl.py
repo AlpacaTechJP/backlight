@@ -1,6 +1,7 @@
 from backlight.plot import plot_positions as module
 
 import pandas as pd
+import matplotlib
 import pytest
 
 import backlight.datasource
@@ -35,4 +36,10 @@ def positions():
 
 
 def test_plot_pl(positions):
+    matplotlib.use("agg")
     module.plot_pl(positions)
+
+
+def test_plot_cumulative_pl(positions):
+    matplotlib.use("agg")
+    module.plot_cumulative_pl(positions)
