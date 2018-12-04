@@ -51,3 +51,10 @@ def calc_positions(
     assert trade.symbol == mkt.symbol
     positions = trader(trade, mkt)
     return positions
+
+
+def calc_pl(positions: Positions) -> pd.Series:
+    next_price = positions.price.shift(periods=-1)
+    price_diff = next_price - positions.price
+    pl = (price_diff * positions.amount).shift(periods=1)[1:]  # drop first nan
+    return pl.rename("pl")

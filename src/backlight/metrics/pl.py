@@ -2,19 +2,12 @@ import pandas as pd
 
 from backlight.datasource.marketdata import MarketData
 from backlight.positions import calc_positions
-from backlight.positions.positions import Positions
+from backlight.positions.positions import Positions, calc_pl
 from backlight.trades.trades import Trade, Trades, count
 
 
 def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0.0
-
-
-def _pl(positions: Positions) -> pd.Series:
-    next_price = positions.price.shift(periods=-1)
-    price_diff = next_price - positions.price
-    pl = (price_diff * positions.amount).shift(periods=1)[1:]  # drop first nan
-    return pl.rename("pl")
 
 
 def _trade_amount(amount: pd.Series) -> pd.Series:
@@ -29,7 +22,7 @@ def _divide(a: float, b: float) -> float:
 
 def calc_position_performance(positions: Positions) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions"""
-    pl = _pl(positions)
+    pl = calc_pl(positions)
     trade_amount = _trade_amount(positions.amount)
 
     total_pl = _sum(pl)
