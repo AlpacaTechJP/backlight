@@ -56,15 +56,6 @@ def positions(trades, market):
     return backlight.positions.calc_positions(trades, market)
 
 
-def test__pl(positions):
-    expected = pd.Series(
-        data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
-        index=positions.index[1:],
-        name="pl",
-    )
-    assert (module._pl(positions) == expected).all()
-
-
 def test__trade_amount(positions):
     expected = 13.0
     assert module._trade_amount(positions.amount) == expected
