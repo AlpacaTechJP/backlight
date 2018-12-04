@@ -76,7 +76,7 @@ def test_calc_positions(trades, market):
     pd.testing.assert_frame_equal(positions, expected)
 
 
-def test__pl(positions):
+def test_calc_pl(positions):
     expected = pd.Series(
         data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
         index=positions.index[1:],
