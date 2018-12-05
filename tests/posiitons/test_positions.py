@@ -76,6 +76,38 @@ def test_calc_positions(trades, market):
     pd.testing.assert_frame_equal(positions, expected)
 
 
+def test_calc_positions_bfill(trades, market):
+    data = [
+        [1.0, 1.0],
+        [1.0, 1.0],
+        [-1.0, 2.0],
+        [-1.0, 2.0],
+        [0.0, 3.0],
+        [0.0, 3.0],
+        [2.0, 4.0],
+        [2.0, 4.0],
+        [-2.0, 5.0],
+        [-2.0, 5.0],
+        [0.0, 6.0],
+        [0.0, 6.0],
+        [1.0, 7.0],
+        [1.0, 7.0],
+        [1.0, 8.0],
+        [1.0, 8.0],
+        [2.0, 9.0],
+        [2.0, 9.0],
+        [2.0, 9.0],
+    ]
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="30s", periods=len(data)),
+        data=data,
+        columns=["amount", "price"],
+    )
+    expected = module.Positions(df)
+    positions = module.calc_positions(trades, market.resample("30s").ffill())
+    pd.testing.assert_frame_equal(positions, expected)
+
+
 def test_calc_pl(positions):
     expected = pd.Series(
         data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
