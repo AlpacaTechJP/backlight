@@ -5,12 +5,13 @@ from typing import Any, Type, Tuple  # noqa
 
 from backlight.datasource.marketdata import MarketData
 
+
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 
 class Trade:
     def __init__(self, symbol: str) -> None:
-        self.symbol = symbol
+        self._symbol = symbol
         self._index = ()  # type: tuple
         self._amount = ()  # type: tuple
 
@@ -33,6 +34,10 @@ class Trade:
     def index(self) -> pd.Index:
         return pd.Index(self._index).drop_duplicates().sort_values()
 
+    @property
+    def symbol(self) -> str:
+        return self._symbol
+
 
 Trades = Tuple[Trade, ...]
 
@@ -41,7 +46,7 @@ def _sum(a: list) -> int:
     return sum(a) if len(a) != 0 else 0
 
 
-def _make_trade(sr: pd.Series, symbol: str) -> Trade:
+def from_series(sr: pd.Series, symbol: str) -> Trade:
     t = Trade(symbol)
     t._index = tuple([i for i in sr.index])
     t._amount = tuple(sr.values.tolist())
@@ -82,4 +87,4 @@ def flatten(trades: Trades) -> Trade:
     for a in amounts:
         amount = amount.add(a, fill_value=0.0)
 
-    return _make_trade(amount.sort_index(), symbol)
+    return from_series(amount.sort_index(), symbol)
