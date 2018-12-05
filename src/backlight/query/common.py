@@ -1,3 +1,5 @@
+import pandas as pd
+
 from urllib.parse import urlparse
 from typing import Type
 
@@ -47,3 +49,10 @@ def adapter_factory(url: str, **kwargs: str) -> DataSourceAdapter:
         return RDSAdapter(url)
     else:
         raise NotImplementedError("Unsupported url: {}".format(url))
+
+
+def query(
+    symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp, url: str, **kwargs: str
+) -> pd.DataFrame:
+    adapter = adapter_factory(url, **kwargs)
+    return adapter.query(symbol, start_dt, end_dt)
