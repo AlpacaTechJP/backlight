@@ -6,7 +6,7 @@ import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.trades.trades import _make_trade
+from backlight.trades.trades import from_series
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def positions():
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = _make_trade(
+        trade = from_series(
             pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
             symbol,
         )

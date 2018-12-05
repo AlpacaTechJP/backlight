@@ -24,7 +24,7 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = module._make_trade(
+        trade = module.from_series(
             pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
             symbol,
         )
@@ -101,7 +101,7 @@ def test__evaluate_pl():
 def test_flatten(symbol, trades):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    expected = module._make_trade(
+    expected = module.from_series(
         pd.Series(index=index, data=data, name="amount"), symbol
     )
     trade = module.flatten(trades)

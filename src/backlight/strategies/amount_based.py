@@ -6,7 +6,7 @@ from typing import Callable, List
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Trades, Transaction
+from backlight.trades.trades import Trades, Transaction, from_series
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
@@ -33,15 +33,11 @@ def direction_based_trades(
         Trades
     """
     df = _concat(mkt, sig)
-    trades = pd.DataFrame(index=df.index, columns=["amount"]).astype(np.float64)
-    trades = []
+    amount = pd.Series(index=df.index, name="amount").astype(np.float64)
     for direction, action in direction_action_dict.items():
-        index = df[df.pred == direction.value].index
-        for idx in index:
-            trade = make_trade(df.symbol)
-            trade.add(Transaction(timestamp=idx, amount=action.act_on_amount()))
-            trades.append(trade)
-    return tuple(trades)
+        amount.loc[df["pred"] == direction.value] = action.act_on_amount()
+    trade = from_series(amount, df.symbol)
+    return (trade,)
 
 
 def _no_exit(df: pd.DataFrame) -> pd.Series:
