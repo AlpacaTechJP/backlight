@@ -92,7 +92,6 @@ def test_direction_based_trades(market, signal):
         ],
         name="amount",
     )
-    print(trades)
     trade = backlight.trades.flatten(trades)
     assert (trade.amount == expected).all()
 
@@ -107,208 +106,208 @@ def test_entry_exit_trades(market, signal):
     trades = module.entry_exit_trades(
         market, signal, direction_action_dict, max_holding_time
     )
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            1.0,  # U
-            -1.0,  # D
-            0.0,  # N
-            0.0,  # U + D
-            2.0,  # U + U
-            -1.0,  # D + N
-            -2.0,  # D + D
-            -1.0,  # N + D
-            1.0,  # N + U
-            2.0,  # U + U
-            1.0,  # U + N
-            1.0,  # U + N
-            -2.0,  # D + D
-            -2.0,  # D + D
-            -2.0,  # D + D
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # U + N
-            1.0,  # U + N
-            1.0,  # U + N
-            -3.0,  # U + 4N because of market close
+            [True, 1.0],  # U
+            [True, -1.0],  # D
+            [False, 0.0],  # N
+            [True, 0.0],  # U + D
+            [True, 2.0],  # U + U
+            [True, -1.0],  # D + N
+            [True, -2.0],  # D + D
+            [True, -1.0],  # N + D
+            [True, 1.0],  # N + U
+            [True, 2.0],  # U + U
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -2.0],  # D + D
+            [True, -2.0],  # D + D
+            [True, -2.0],  # D + D
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -3.0],  # U + 4D because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
 
 
 def test_simple_entry(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = module.simple_entry(market, signal, max_holding_time)
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            1.0,  # U
-            -1.0,  # D
-            0.0,  # N
-            0.0,  # U + D
-            2.0,  # U + U
-            -1.0,  # D + N
-            -2.0,  # D + D
-            -1.0,  # N + D
-            1.0,  # N + U
-            2.0,  # U + U
-            1.0,  # U + N
-            1.0,  # U + N
-            -2.0,  # D + D
-            -2.0,  # D + D
-            -2.0,  # D + D
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # U + N
-            1.0,  # U + N
-            1.0,  # U + N
-            -3.0,  # U + 4D because of market close
+            [True, 1.0],  # U
+            [True, -1.0],  # D
+            [False, 0.0],  # N
+            [True, 0.0],  # U + D
+            [True, 2.0],  # U + U
+            [True, -1.0],  # D + N
+            [True, -2.0],  # D + D
+            [True, -1.0],  # N + D
+            [True, 1.0],  # N + U
+            [True, 2.0],  # U + U
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -2.0],  # D + D
+            [True, -2.0],  # D + D
+            [True, -2.0],  # D + D
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -3.0],  # U + 4D because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
 
 
 def test_only_entry_short(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = module.only_entry_short(market, signal, max_holding_time)
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            0.0,  # N
-            -1.0,  # D
-            0.0,  # N
-            0.0,  # N + N
-            1.0,  # N + U
-            -1.0,  # D + N
-            -1.0,  # D + N
-            0.0,  # N + N
-            1.0,  # N + U
-            1.0,  # N + U
-            0.0,  # N + N
-            0.0,  # N + N
-            -1.0,  # D + N
-            -1.0,  # D + N
-            -1.0,  # D + N
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # N + U
-            0.0,  # N + N
-            0.0,  # N + N
-            0.0,  # N + N
-            0.0,  # N + 4N because of market close
+            [False, 0.0],  # N
+            [True, -1.0],  # D
+            [False, 0.0],  # N
+            [False, 0.0],  # N + N
+            [True, 1.0],  # N + U
+            [True, -1.0],  # D + N
+            [True, -1.0],  # D + N
+            [False, 0.0],  # N + N
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + N
+            [True, -1.0],  # D + N
+            [True, -1.0],  # D + N
+            [True, -1.0],  # D + N
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + 4N because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
 
 
 def test_only_entry_long(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = module.only_entry_long(market, signal, max_holding_time)
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            1.0,  # U
-            0.0,  # N
-            0.0,  # N
-            0.0,  # U + D
-            1.0,  # U + N
-            0.0,  # N + N
-            -1.0,  # N + D
-            -1.0,  # N + D
-            0.0,  # N + N
-            1.0,  # U + N
-            1.0,  # U + N
-            1.0,  # U + N
-            -1.0,  # N + D
-            -1.0,  # N + D
-            -1.0,  # N + D
-            0.0,  # N + N
-            0.0,  # N + N
-            0.0,  # N + N
-            1.0,  # U + N
-            1.0,  # U + N
-            1.0,  # U + N
-            -3.0,  # U + 4D because of market close
+            [True, 1.0],  # U
+            [False, 0.0],  # N
+            [False, 0.0],  # N
+            [True, 0.0],  # U + D
+            [True, 1.0],  # U + N
+            [False, 0.0],  # N + N
+            [True, -1.0],  # N + D
+            [True, -1.0],  # N + D
+            [False, 0.0],  # N + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -1.0],  # N + D
+            [True, -1.0],  # N + D
+            [True, -1.0],  # N + D
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + N
+            [False, 0.0],  # N + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, 1.0],  # U + N
+            [True, -3.0],  # U + 4D because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
 
 
 def test_exit_opposite_signal(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = module.exit_on_oppsite_signals(market, signal, max_holding_time)
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            1.0,  # U
-            -2.0,  # D + D
-            0.0,  # N
-            2.0,  # U + U
-            1.0,  # U
-            -3.0,  # D + 2D
-            -1.0,  # D
-            0.0,  # N
-            1.0,  # N + U
-            2.0,  # U + U
-            1.0,  # U
-            1.0,  # U
-            -4.0,  # D + 3D
-            -1.0,  # D
-            -1.0,  # D
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # N + U
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-            -3.0,  # U + 4D because of market close
+            [True, 1.0],  # U
+            [True, -2.0],  # D + D
+            [False, 0.0],  # N
+            [True, 2.0],  # U + U
+            [True, 1.0],  # U
+            [True, -3.0],  # D + 2D
+            [True, -1.0],  # D
+            [False, 0.0],  # N
+            [True, 1.0],  # N + U
+            [True, 2.0],  # U + U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, -4.0],  # D + 3D
+            [True, -1.0],  # D
+            [True, -1.0],  # D
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # N + U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, -3.0],  # U + 4D because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
 
 
 def test_exit_other_signal(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = module.exit_on_other_signals(market, signal, max_holding_time)
-    expected = pd.Series(
+    expected = pd.DataFrame(
         index=market.index,
         data=[
-            1.0,  # U
-            -2.0,  # D + D
-            1.0,  # N + U
-            1.0,  # U
-            1.0,  # U
-            -3.0,  # D + 2D
-            -1.0,  # D
-            2.0,  # N + 2U
-            0.0,  # N
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-            -4.0,  # D + 3D
-            -1.0,  # D
-            -1.0,  # D
-            3.0,  # N + 3U
-            0.0,  # N
-            0.0,  # N
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-            -3.0,  # U + 4D because of market close
+            [True, 1.0],  # U
+            [True, -2.0],  # D + D
+            [True, 1.0],  # N + U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, -3.0],  # D + 2D
+            [True, -1.0],  # D
+            [True, 2.0],  # N + 2U
+            [False, 0.0],  # N
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, -4.0],  # D + 3D
+            [True, -1.0],  # D
+            [True, -1.0],  # D
+            [True, 3.0],  # N + 3U
+            [False, 0.0],  # N
+            [False, 0.0],  # N
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, 1.0],  # U
+            [True, -3.0],  # U + 4D because of market close
         ],
-        name="amount",
+        columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade.amount == expected.amount[expected.exist]).all()
