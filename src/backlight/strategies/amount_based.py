@@ -6,7 +6,7 @@ from typing import Callable, List
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Trades, Transaction, from_series
+from backlight.trades.trades import Trade, Trades, Transaction, from_series
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 
@@ -61,6 +61,21 @@ def _exit_transaction(
     return Transaction(timestamp=exit_index, amount=-amount)
 
 
+def _entry_exit_trade(
+    amount: float,
+    idx: pd.Timestamp,
+    df: pd.DataFrame,
+    max_holding_time: pd.Timedelta,
+    exit_condition: Callable[[pd.DataFrame], pd.Series],
+) -> Trade:
+    trade = make_trade(df.symbol)
+    trade.add(Transaction(timestamp=idx, amount=amount))
+    df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+    transaction = _exit_transaction(df_exit, amount, exit_condition)
+    trade.add(transaction)
+    return trade
+
+
 def entry_exit_trades(
     mkt: MarketData,
     sig: Signal,
@@ -82,22 +97,19 @@ def entry_exit_trades(
     """
     df = _concat(mkt, sig)
 
-    trades = []
-    for idx, row in df.iterrows():
-        action = direction_action_dict[TernaryDirection(row["pred"])]
-        amount = action.act_on_amount()
+    trades = ()  # type: Trades
+    for direction, action in direction_action_dict.items():
 
+        amount = action.act_on_amount()
         if amount == 0.0:
             continue
 
-        trade = make_trade(df.symbol)
-        trade.add(Transaction(timestamp=idx, amount=amount))
-
-        df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
-        transaction = _exit_transaction(df_exit, amount, exit_condition)
-        trade.add(transaction)
-        trades.append(trade)
-    return tuple(trades)
+        target_index = df[df["pred"] == direction.value].index
+        trades += tuple(
+            _entry_exit_trade(amount, idx, df, max_holding_time, exit_condition)
+            for idx in target_index
+        )
+    return trades
 
 
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
