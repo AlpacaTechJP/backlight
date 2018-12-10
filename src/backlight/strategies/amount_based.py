@@ -50,6 +50,15 @@ def _exit_opposite_signals(df: pd.DataFrame, opposite_signals_dict: dict) -> pd.
     return df["pred"].isin(opposite_signals)
 
 
+def _exit_by_expectation(df: pd.DataFrame) -> pd.Series:
+    current_signal = TernaryDirection(df["pred"][0])
+    v = np.array([1.0, 0.0, -1.0])
+    expectation = np.dot(df[["up", "neutral", "down"]].values, v)
+    expectation = current_signal.value * expectation
+    sign = expectation < 0.0
+    return pd.Series(index=df.index, data=sign)
+
+
 def _exit_transaction(
     df: pd.DataFrame, amount: float, exit_condition: Callable[[pd.DataFrame], pd.Series]
 ) -> Transaction:
@@ -196,8 +205,8 @@ def exit_on_oppsite_signals(
         TernaryDirection.DOWN: [TernaryDirection.UP.value],
     }
 
-    def _exit_condition(mkt: MarketData) -> pd.Series:
-        return _exit_opposite_signals(mkt, opposite_signals_dict)
+    def _exit_condition(df: pd.DataFrame) -> pd.Series:
+        return _exit_opposite_signals(df, opposite_signals_dict)
 
     return entry_exit_trades(
         mkt, sig, direction_action_dict, max_holding_time, _exit_condition
@@ -229,9 +238,27 @@ def exit_on_other_signals(
         ],
     }
 
-    def _exit_condition(mkt: MarketData) -> pd.Series:
-        return _exit_opposite_signals(mkt, opposite_signals_dict)
+    def _exit_condition(df: pd.DataFrame) -> pd.Series:
+        return _exit_opposite_signals(df, opposite_signals_dict)
 
     return entry_exit_trades(
         mkt, sig, direction_action_dict, max_holding_time, _exit_condition
+    )
+
+
+def exit_by_expectation(
+    mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
+) -> Trades:
+    """
+    Take both positions and close them within maximum holding time.
+    If opposite signals appear, also close positions.
+    """
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+
+    return entry_exit_trades(
+        mkt, sig, direction_action_dict, max_holding_time, _exit_by_expectation
     )
