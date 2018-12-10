@@ -311,3 +311,45 @@ def test_exit_other_signal(market, signal):
     )
     trade = backlight.trades.flatten(trades)
     assert (trade.amount == expected.amount[expected.exist]).all()
+
+
+def test_exit_by_expectation(market):
+    symbol = "usdjpy"
+    data = [
+        [1, 0, 0],  # expectation = 1
+        [0, 0, 1],  # expectation = -1
+        [0, 0, 0],  # expectation = 0
+        [1, 0.9, 0.9],  # expectation = 0.1
+        [1, 0.0, 0.9],  # expectation = 0.1
+        [0.9, 0.9, 1],  # expectation = -0.1
+        [0.9, 0.0, 1],  # expectation = -0.1
+        [0, 0.9, 0],  # expectation = 0.0
+    ]
+    periods = len(data)
+    signal = backlight.signal.from_dataframe(
+        pd.DataFrame(
+            index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+            data=data,
+            columns=["up", "neutral", "down"],
+        ),
+        symbol,
+    )
+
+    max_holding_time = pd.Timedelta("3min")
+    trades = module.exit_by_expectation(market, signal, max_holding_time)
+    expected = pd.DataFrame(
+        index=signal.index,
+        data=[
+            [True, 1.0],  # U
+            [True, -2.0],  # D + D
+            [False, 0.0],  # N
+            [True, 2.0],  # U + U
+            [True, 1.0],  # U
+            [True, -3.0],  # D + 2D
+            [True, -1.0],  # D
+            [True, 2.0],  # N + 2U
+        ],
+        columns=["exist", "amount"],
+    )
+    trade = backlight.trades.flatten(trades)
+    assert (trade.amount == expected.amount[expected.exist]).all()

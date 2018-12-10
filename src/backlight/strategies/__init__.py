@@ -7,4 +7,5 @@ from backlight.strategies.amount_based import (  # noqa
     only_entry_short,
     exit_on_oppsite_signals,
     exit_on_other_signals,
+    exit_by_expectation,
 )
