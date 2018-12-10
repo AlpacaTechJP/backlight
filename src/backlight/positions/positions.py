@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Type, Callable
 
-from backlight.datasource.marketdata import MarketData
+from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
 from backlight.trades import flatten
 from backlight.trades.trades import Trade, Trades
 
@@ -33,7 +33,7 @@ class Positions(pd.DataFrame):
         return Positions
 
 
-def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
+def _mid_pricer(trade: Trade, mkt: MarketData) -> Positions:
     positions = pd.DataFrame(index=mkt.index)
     positions.loc[:, "amount"] = trade.amount.cumsum()
     positions.loc[:, "amount"] = positions["amount"].ffill()
@@ -43,14 +43,34 @@ def _mid_trader(trade: Trade, mkt: MarketData) -> Positions:
     return pos
 
 
+def _askbid_pricer(trade: Trade, mkt: MarketData) -> Positions:
+    positions = pd.DataFrame(index=mkt.index)
+    positions.loc[:, "amount"] = trade.amount.cumsum()
+    positions.loc[:, "amount"] = positions["amount"].ffill()
+    positions.loc[positions.amount > 0, "price"] = mkt.bid
+    positions.loc[positions.amount < 0, "price"] = mkt.ask
+    positions.loc[positions.amount == 0, "price"] = mkt.mid
+    pos = Positions(positions)
+    pos.symbol = trade.symbol
+    return pos
+
+
+def _get_pricer(mkt: MarketData) -> Callable[[Trade, MarketData], Positions]:
+    if isinstance(mkt, MidMarketData):
+        return _mid_pricer
+    if isinstance(mkt, AskBidMarketData):
+        return _askbid_pricer
+    raise NotImplementedError()
+
+
 def calc_positions(
     trades: Trades,
     mkt: MarketData,
-    trader: Callable[[Trade, MarketData], Positions] = _mid_trader,
 ) -> Positions:
     trade = flatten(trades)
+    pricer = _get_pricer(mkt)
     assert trade.symbol == mkt.symbol
-    positions = trader(trade, mkt)
+    positions = pricer(trade, mkt)
     return positions
 
 
