@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Optional
 
-from backlight.datasource.marketdata import MarketData
+from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
 from backlight.query import query
 
 
@@ -59,3 +59,9 @@ def from_dataframe(
     mkt.reset_cols()
 
     return mkt
+
+
+def mid2askbid(mkt: MidMarketData, spread: float) -> AskBidMarketData:
+    mkt.loc[:, "ask"] = mkt.mid + spread
+    mkt.loc[:, "bid"] = mkt.mid - spread
+    return from_dataframe(mkt, mkt.symbol)
