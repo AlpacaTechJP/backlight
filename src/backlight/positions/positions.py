@@ -63,15 +63,11 @@ def _calc_trade_fee(trade_amount: pd.Series, mkt: MarketData) -> pd.Series:
     raise NotImplementedError()
 
 
-def calc_positions(
-    trades: Trades,
-    mkt: MarketData,
-) -> Positions:
+def calc_positions(trades: Trades, mkt: MarketData) -> Positions:
     trade = flatten(trades)
     assert trade.symbol == mkt.symbol
-    assert trade.index.isin(mkt.index)
+    assert (trade.index.isin(mkt.index)).all()
 
-    pricer = _pricer
     positions = _pricer(trade, mkt)
     return positions
 

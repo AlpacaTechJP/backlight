@@ -35,7 +35,7 @@ def askbid(symbol):
         [7.5, 6.5],
         [8.5, 7.5],
         [9.5, 8.5],
-        [9.5, 8.5]
+        [9.5, 8.5],
     ]
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
@@ -110,19 +110,19 @@ def test_calc_positions_with_askbid(trades, askbid):
         [7.5, 6.5],
         [8.5, 7.5],
         [9.5, 8.5],
-        [9.5, 8.5]
+        [9.5, 8.5],
     ]
     data = [
-        [1.0, 1.0, -1.0],
-        [-1.0, 2.0, 3.0],
-        [0.0, 3.0, 0.0],
-        [2.0, 4.0, -8.0],
-        [-2.0, 5.0, 12.0],
-        [0.0, 6.0, 0.0],
-        [1.0, 7.0, -7.0],
-        [1.0, 8.0, -7.0],
-        [2.0, 9.0, -16.0],
-        [2.0, 9.0, -16.0],
+        [1.0, 1.0, -1.5],
+        [-1.0, 2.0, 1.5],
+        [0.0, 3.0, -2.0],
+        [2.0, 4.0, -11.0],
+        [-2.0, 5.0, 7.0],
+        [0.0, 6.0, -6.0],
+        [1.0, 7.0, -13.5],
+        [1.0, 8.0, -13.5],
+        [2.0, 9.0, -23.0],
+        [2.0, 9.0, -23.0],
     ]
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
@@ -130,7 +130,7 @@ def test_calc_positions_with_askbid(trades, askbid):
         columns=["amount", "price", "fee"],
     )
     expected = module.Positions(df)
-    positions = module.calc_positions(trades, mid)
+    positions = module.calc_positions(trades, askbid)
     pd.testing.assert_frame_equal(positions, expected)
 
 
