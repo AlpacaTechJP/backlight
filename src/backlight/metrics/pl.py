@@ -22,14 +22,10 @@ def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
 
 
-def calc_sharp(
-    positions: Positions, principal: float, freq: pd.Timedelta = pd.Timedelta("60min")
-) -> float:
-    positions = positions.copy()
-    positions.loc[:, "fee"] += principal
+def calc_sharp(positions: Positions, freq: pd.Timedelta = pd.Timedelta("1D")) -> float:
     value = positions.value.resample(freq).first().dropna()
     previous_value = value.shift(periods=1)
-    log_return = np.log((value / previous_value)[1:].values)
+    log_return = np.log((value.values / previous_value.values)[1:])
 
     days_in_year = pd.Timedelta("252D")
     annual_factor = math.sqrt(days_in_year / freq)
@@ -45,6 +41,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
     average_pl = _divide(total_pl, trade_amount)
+    sharp = calc_sharp(positions)
 
     m = pd.DataFrame.from_records(
         [
@@ -53,6 +50,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
             ("total_win_pl", win_pl),
             ("total_lose_pl", lose_pl),
             ("cnt_amount", trade_amount),
+            ("sharp", sharp),
         ]
     ).set_index(0)
 
@@ -62,7 +60,9 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     return m.T
 
 
-def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
+def calc_trade_performance(
+    trades: Trades, mkt: MarketData, principal: float = 0.0
+) -> pd.DataFrame:
     total_count, win_count, lose_count = count(trades, mkt)
 
     m = pd.DataFrame.from_records(
@@ -77,7 +77,7 @@ def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
     del m.index.name
     m.columns = ["metrics"]
 
-    positions = calc_positions(trades, mkt)
+    positions = calc_positions(trades, mkt, principal=principal)
     m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
 
     m.loc[:, "avg_win_pl"] = _divide(

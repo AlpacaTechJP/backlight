@@ -14,7 +14,7 @@ class Positions(pd.DataFrame):
     ``Positions``\ ' price are different.
     """
 
-    _target_columns = ["amount", "price", "fee"]  # TODO: better name for fee
+    _target_columns = ["amount", "price", "principal"]
 
     def reset_cols(self) -> None:
         for col in self.columns:
@@ -23,14 +23,14 @@ class Positions(pd.DataFrame):
 
     @property
     def value(self) -> pd.Series:
-        return self.amount * self.price + self.fee
+        return self.amount * self.price + self.principal
 
     @property
     def _constructor(self) -> Type["Positions"]:
         return Positions
 
 
-def _pricer(trade: Trade, mkt: MarketData) -> Positions:
+def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     positions = pd.DataFrame(index=mkt.index)
 
     positions.loc[:, "amount"] = trade.amount.cumsum()
@@ -39,8 +39,9 @@ def _pricer(trade: Trade, mkt: MarketData) -> Positions:
     positions.loc[:, "price"] = mkt.mid
 
     fee = _calc_trade_fee(trade.amount, mkt)
-    positions.loc[:, "fee"] = (fee * trade.amount).cumsum()
-    positions.loc[:, "fee"] = positions["fee"].ffill()
+    positions.loc[:, "principal"] = (fee * trade.amount).cumsum()
+    positions.loc[:, "principal"] = positions["principal"].ffill()
+    positions.loc[:, "principal"] += principal
 
     pos = Positions(positions)
     pos.reset_cols()
@@ -63,12 +64,14 @@ def _calc_trade_fee(trade_amount: pd.Series, mkt: MarketData) -> pd.Series:
     raise NotImplementedError()
 
 
-def calc_positions(trades: Trades, mkt: MarketData) -> Positions:
+def calc_positions(
+    trades: Trades, mkt: MarketData, principal: float = 0.0
+) -> Positions:
     trade = flatten(trades)
     assert trade.symbol == mkt.symbol
     assert (trade.index.isin(mkt.index)).all()
 
-    positions = _pricer(trade, mkt)
+    positions = _pricer(trade, mkt, principal)
     return positions
 
 
