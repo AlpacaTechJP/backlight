@@ -14,19 +14,16 @@ class Positions(pd.DataFrame):
     ``Positions``\ ' price are different.
     """
 
-    _metadata = ["symbol"]
+    _target_columns = ["amount", "price", "fee"]  # TODO: better name for fee
+
+    def reset_cols(self) -> None:
+        for col in self.columns:
+            if col not in self._target_columns:
+                self.drop(col, axis=1, inplace=True)
 
     @property
-    def amount(self) -> pd.Series:
-        if "amount" in self.columns:
-            return self["amount"]
-        raise NotImplementedError
-
-    @property
-    def price(self) -> pd.Series:
-        if "price" in self.columns:
-            return self["price"]
-        raise NotImplementedError
+    def value(self) -> pd.Series:
+        return self.amount * self.price + self.fee
 
     @property
     def _constructor(self) -> Type["Positions"]:
@@ -35,10 +32,18 @@ class Positions(pd.DataFrame):
 
 def _mid_pricer(trade: Trade, mkt: MarketData) -> Positions:
     positions = pd.DataFrame(index=mkt.index)
+
     positions.loc[:, "amount"] = trade.amount.cumsum()
     positions.loc[:, "amount"] = positions["amount"].ffill()
+
     positions.loc[:, "price"] = mkt.mid
+
+    positions.loc[:, "fee"] = (-mkt.mid * trade.amount).cumsum()
+    positions.loc[:, "fee"] = positions["fee"].ffill()
+
+
     pos = Positions(positions)
+    pos.reset_cols()
     pos.symbol = trade.symbol
     return pos
 
@@ -51,6 +56,7 @@ def _askbid_pricer(trade: Trade, mkt: MarketData) -> Positions:
     positions.loc[positions.amount < 0, "price"] = mkt.ask
     positions.loc[positions.amount == 0, "price"] = mkt.mid
     pos = Positions(positions)
+    pos.reset_cols()
     pos.symbol = trade.symbol
     return pos
 
@@ -75,7 +81,6 @@ def calc_positions(
 
 
 def calc_pl(positions: Positions) -> pd.Series:
-    next_price = positions.price.shift(periods=-1)
-    price_diff = next_price - positions.price
-    pl = (price_diff * positions.amount).shift(periods=1)[1:]  # drop first nan
+    next_value = positions.value.shift(periods=-1)
+    pl = (next_value - positions.value).shift(periods=1)[1:]  # drop first nan
     return pl.rename("pl")
