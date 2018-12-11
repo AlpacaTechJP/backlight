@@ -54,8 +54,15 @@ def _calc_trade_fee(trade_amount: pd.Series, mkt: MarketData) -> pd.Series:
 
     if isinstance(mkt, AskBidMarketData):
         fee = pd.Series(data=0.0, index=trade_amount.index)
-        fee.loc[trade_amount > 0.0] = -mkt.loc[trade_amount > 0.0, "ask"]
-        fee.loc[trade_amount < 0.0] = -mkt.loc[trade_amount < 0.0, "bid"]
+
+        # TODO: avoid long codes
+
+        fee.loc[trade_amount > 0.0] = -mkt.loc[
+            pd.Series(data=False, index=mkt.index) | (trade_amount > 0.0), "ask"
+        ]
+        fee.loc[trade_amount < 0.0] = -mkt.loc[
+            pd.Series(data=False, index=mkt.index) | (trade_amount < 0.0), "bid"
+        ]
         return fee
     raise NotImplementedError()
 
