@@ -1,3 +1,5 @@
+import math
+import numpy as np
 import pandas as pd
 
 from backlight.datasource.marketdata import MarketData
@@ -18,6 +20,20 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
 
 def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
+
+
+def calc_sharp(
+    positions: Positions, principal: float, freq: pd.Timedelta = pd.Timedelta("60min")
+) -> float:
+    positions = positions.copy()
+    positions.loc[:, "fee"] += principal
+    value = positions.value.resample(freq).first().dropna()
+    previous_value = value.shift(periods=1)
+    log_return = np.log((value / previous_value)[1:].values)
+
+    days_in_year = pd.Timedelta("252D")
+    annual_factor = math.sqrt(days_in_year / freq)
+    return annual_factor * np.mean(log_return) / np.std(log_return)
 
 
 def calc_position_performance(positions: Positions) -> pd.DataFrame:

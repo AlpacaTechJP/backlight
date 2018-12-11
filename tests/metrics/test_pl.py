@@ -61,6 +61,14 @@ def test__trade_amount(positions):
     assert module._trade_amount(positions.amount) == expected
 
 
+def test_calc_sharp(positions):
+    expected = 118.03782682049378
+    principal = 100.0
+    assert (
+        module.calc_sharp(positions, principal, freq=pd.Timedelta("1min")) == expected
+    )
+
+
 def test_calc_position_performance(positions):
     metrics = module.calc_position_performance(positions)
     expected_total_pl = 2.0
