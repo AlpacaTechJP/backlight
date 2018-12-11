@@ -22,7 +22,16 @@ def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
 
 
-def calc_sharp(positions: Positions, freq: pd.Timedelta = pd.Timedelta("1D")) -> float:
+def calc_sharpe(positions: Positions, freq: pd.Timedelta) -> float:
+    """Compute the yearly Sharpe ratio, a measure of risk adjusted returns.
+
+    Args:
+        positions: Their `value` should always be positive.
+        freq: Frequency to calculate mean and std of returns.
+
+    Returns:
+        sharpe ratio.
+    """
     value = positions.value.resample(freq).first().dropna()
     previous_value = value.shift(periods=1)
     log_return = np.log((value.values / previous_value.values)[1:])
@@ -41,7 +50,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
     average_pl = _divide(total_pl, trade_amount)
-    sharp = calc_sharp(positions)
+    sharpe = calc_sharpe(positions, pd.Timedelta("1D"))
 
     m = pd.DataFrame.from_records(
         [
@@ -50,7 +59,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
             ("total_win_pl", win_pl),
             ("total_lose_pl", lose_pl),
             ("cnt_amount", trade_amount),
-            ("sharp", sharp),
+            ("sharpe", sharpe),
         ]
     ).set_index(0)
 
@@ -63,6 +72,16 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
 def calc_trade_performance(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> pd.DataFrame:
+    """Evaluate the pl perfomance of trades
+
+    Args:
+        trades:  Trades. All the index of `trades` should be in `mkt`.
+        mkt: Market data.
+        principal: Positions' principal is initialized by this.
+
+    Returns:
+        metrics
+    """
     total_count, win_count, lose_count = count(trades, mkt)
 
     m = pd.DataFrame.from_records(

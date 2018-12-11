@@ -62,9 +62,9 @@ def test__trade_amount(positions):
     assert module._trade_amount(positions.amount) == expected
 
 
-def test_calc_sharp(positions):
+def test_calc_sharpe(positions):
     expected = 3.1105698567439286
-    assert module.calc_sharp(positions, freq=pd.Timedelta("1D")) == expected
+    assert module.calc_sharpe(positions, freq=pd.Timedelta("1D")) == expected
 
 
 def test_calc_position_performance(positions):
@@ -73,14 +73,14 @@ def test_calc_position_performance(positions):
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
     expected_trade_amount = 13.0
-    expected_sharp = 3.1105698567439286
+    expected_sharpe = 3.1105698567439286
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "total_pl"] == expected_total_pl
     assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
     assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
     assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
     assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
-    assert metrics.loc["metrics", "sharp"] == expected_sharp
+    assert metrics.loc["metrics", "sharpe"] == expected_sharpe
 
 
 def test_calc_trade_performance(trades, market):
@@ -94,7 +94,7 @@ def test_calc_trade_performance(trades, market):
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
     expected_trade_amount = 13.0
-    expected_sharp = 3.1105698567439286
+    expected_sharpe = 3.1105698567439286
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "cnt_trade"] == expected_cnt_trade
     assert metrics.loc["metrics", "cnt_win"] == expected_cnt_win
@@ -105,4 +105,4 @@ def test_calc_trade_performance(trades, market):
     assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
     assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
     assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
-    assert metrics.loc["metrics", "sharp"] == expected_sharp
+    assert metrics.loc["metrics", "sharpe"] == expected_sharpe

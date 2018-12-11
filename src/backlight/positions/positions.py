@@ -8,10 +8,6 @@ from backlight.trades.trades import Trade, Trades
 
 class Positions(pd.DataFrame):
     """Dataframe for Positions.
-
-    The ``price`` should be the price to evaluate the positions, not the cost to
-    acquire. In some cases (e.g. ask/bid pricing), ``Trades``\ ' price and
-    ``Positions``\ ' price are different.
     """
 
     _target_columns = ["amount", "price", "principal"]
