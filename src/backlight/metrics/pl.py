@@ -1,3 +1,5 @@
+import math
+import numpy as np
 import pandas as pd
 
 from backlight.datasource.marketdata import MarketData
@@ -20,6 +22,25 @@ def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
 
 
+def calc_sharpe(positions: Positions, freq: pd.Timedelta) -> float:
+    """Compute the yearly Sharpe ratio, a measure of risk adjusted returns.
+
+    Args:
+        positions: Their `value` should always be positive.
+        freq: Frequency to calculate mean and std of returns.
+
+    Returns:
+        sharpe ratio.
+    """
+    value = positions.value.resample(freq).first().dropna()
+    previous_value = value.shift(periods=1)
+    log_return = np.log((value.values / previous_value.values)[1:])
+
+    days_in_year = pd.Timedelta("252D")
+    annual_factor = math.sqrt(days_in_year / freq)
+    return annual_factor * np.mean(log_return) / np.std(log_return)
+
+
 def calc_position_performance(positions: Positions) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions"""
     pl = calc_pl(positions)
@@ -29,6 +50,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
     average_pl = _divide(total_pl, trade_amount)
+    sharpe = calc_sharpe(positions, pd.Timedelta("1D"))
 
     m = pd.DataFrame.from_records(
         [
@@ -37,6 +59,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
             ("total_win_pl", win_pl),
             ("total_lose_pl", lose_pl),
             ("cnt_amount", trade_amount),
+            ("sharpe", sharpe),
         ]
     ).set_index(0)
 
@@ -46,7 +69,19 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     return m.T
 
 
-def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
+def calc_trade_performance(
+    trades: Trades, mkt: MarketData, principal: float = 0.0
+) -> pd.DataFrame:
+    """Evaluate the pl perfomance of trades
+
+    Args:
+        trades:  Trades. All the index of `trades` should be in `mkt`.
+        mkt: Market data.
+        principal: Positions' principal is initialized by this.
+
+    Returns:
+        metrics
+    """
     total_count, win_count, lose_count = count(trades, mkt)
 
     m = pd.DataFrame.from_records(
@@ -61,7 +96,7 @@ def calc_trade_performance(trades: Trades, mkt: MarketData) -> pd.DataFrame:
     del m.index.name
     m.columns = ["metrics"]
 
-    positions = calc_positions(trades, mkt)
+    positions = calc_positions(trades, mkt, principal=principal)
     m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
 
     m.loc[:, "avg_win_pl"] = _divide(

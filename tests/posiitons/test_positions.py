@@ -72,7 +72,7 @@ def positions(trades, mid):
     #     [2.0, 9.0, -16.0],  # value = 2.0, pl = 1.0
     #     [2.0, 9.0, -16.0],  # value = 2.0, pl = 0.0
     # ]
-    # columns = ["amount", "price", "fee"]
+    # columns = ["amount", "price", "principal"]
     return backlight.positions.calc_positions(trades, mid)
 
 
@@ -92,7 +92,7 @@ def test_calc_positions(trades, mid):
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
-        columns=["amount", "price", "fee"],
+        columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
     positions = module.calc_positions(trades, mid)
@@ -100,18 +100,6 @@ def test_calc_positions(trades, mid):
 
 
 def test_calc_positions_with_askbid(trades, askbid):
-    data = [
-        [1.5, 0.5],
-        [2.5, 1.5],
-        [3.5, 2.5],
-        [4.5, 3.5],
-        [5.5, 4.5],
-        [6.5, 5.5],
-        [7.5, 6.5],
-        [8.5, 7.5],
-        [9.5, 8.5],
-        [9.5, 8.5],
-    ]
     data = [
         [1.0, 1.0, -1.5],
         [-1.0, 2.0, 1.5],
@@ -127,7 +115,7 @@ def test_calc_positions_with_askbid(trades, askbid):
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
-        columns=["amount", "price", "fee"],
+        columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
     positions = module.calc_positions(trades, askbid)
@@ -159,7 +147,7 @@ def test_calc_positions_bfill(trades, mid):
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="30s", periods=len(data)),
         data=data,
-        columns=["amount", "price", "fee"],
+        columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
     positions = module.calc_positions(trades, mid.resample("30s").ffill())
