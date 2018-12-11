@@ -99,6 +99,41 @@ def test_calc_positions(trades, mid):
     pd.testing.assert_frame_equal(positions, expected)
 
 
+def test_calc_positions_with_askbid(trades, askbid):
+    data = [
+        [1.5, 0.5],
+        [2.5, 1.5],
+        [3.5, 2.5],
+        [4.5, 3.5],
+        [5.5, 4.5],
+        [6.5, 5.5],
+        [7.5, 6.5],
+        [8.5, 7.5],
+        [9.5, 8.5],
+        [9.5, 8.5]
+    ]
+    data = [
+        [1.0, 1.0, -1.0],
+        [-1.0, 2.0, 3.0],
+        [0.0, 3.0, 0.0],
+        [2.0, 4.0, -8.0],
+        [-2.0, 5.0, 12.0],
+        [0.0, 6.0, 0.0],
+        [1.0, 7.0, -7.0],
+        [1.0, 8.0, -7.0],
+        [2.0, 9.0, -16.0],
+        [2.0, 9.0, -16.0],
+    ]
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
+        data=data,
+        columns=["amount", "price", "fee"],
+    )
+    expected = module.Positions(df)
+    positions = module.calc_positions(trades, mid)
+    pd.testing.assert_frame_equal(positions, expected)
+
+
 def test_calc_positions_bfill(trades, mid):
     data = [
         [1.0, 1.0, -1.0],

@@ -30,7 +30,7 @@ class Positions(pd.DataFrame):
         return Positions
 
 
-def _mid_pricer(trade: Trade, mkt: MarketData) -> Positions:
+def _pricer(trade: Trade, mkt: MarketData) -> Positions:
     positions = pd.DataFrame(index=mkt.index)
 
     positions.loc[:, "amount"] = trade.amount.cumsum()
@@ -38,34 +38,28 @@ def _mid_pricer(trade: Trade, mkt: MarketData) -> Positions:
 
     positions.loc[:, "price"] = mkt.mid
 
-    positions.loc[:, "fee"] = (-mkt.mid * trade.amount).cumsum()
+    fee = _calc_trade_fee(trade.amount, mkt)
+    positions.loc[:, "fee"] = (fee * trade.amount).cumsum()
     positions.loc[:, "fee"] = positions["fee"].ffill()
 
-
     pos = Positions(positions)
     pos.reset_cols()
     pos.symbol = trade.symbol
     return pos
 
 
-def _askbid_pricer(trade: Trade, mkt: MarketData) -> Positions:
-    positions = pd.DataFrame(index=mkt.index)
-    positions.loc[:, "amount"] = trade.amount.cumsum()
-    positions.loc[:, "amount"] = positions["amount"].ffill()
-    positions.loc[positions.amount > 0, "price"] = mkt.bid
-    positions.loc[positions.amount < 0, "price"] = mkt.ask
-    positions.loc[positions.amount == 0, "price"] = mkt.mid
-    pos = Positions(positions)
-    pos.reset_cols()
-    pos.symbol = trade.symbol
-    return pos
-
-
-def _get_pricer(mkt: MarketData) -> Callable[[Trade, MarketData], Positions]:
+def _calc_trade_fee(trade_amount: pd.Series, mkt: MarketData) -> pd.Series:
+    """
+    This functionality should be included in Market.
+    """
     if isinstance(mkt, MidMarketData):
-        return _mid_pricer
+        return -mkt.mid[trade_amount.index]
+
     if isinstance(mkt, AskBidMarketData):
-        return _askbid_pricer
+        fee = pd.Series(data=0.0, index=trade_amount.index)
+        fee.loc[trade_amount > 0.0] = -mkt.loc[trade_amount > 0.0, "ask"]
+        fee.loc[trade_amount < 0.0] = -mkt.loc[trade_amount < 0.0, "bid"]
+        return fee
     raise NotImplementedError()
 
 
@@ -74,9 +68,11 @@ def calc_positions(
     mkt: MarketData,
 ) -> Positions:
     trade = flatten(trades)
-    pricer = _get_pricer(mkt)
     assert trade.symbol == mkt.symbol
-    positions = pricer(trade, mkt)
+    assert trade.index.isin(mkt.index)
+
+    pricer = _pricer
+    positions = _pricer(trade, mkt)
     return positions
 
 
