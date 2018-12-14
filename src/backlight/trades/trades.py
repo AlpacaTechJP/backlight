@@ -62,7 +62,6 @@ def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
     from backlight.positions import positions
 
     pos = positions.calc_positions((trade,), mkt)
-    print(positions.calc_pl(pos))
     return _sum(positions.calc_pl(pos))
 
 
