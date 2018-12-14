@@ -58,15 +58,24 @@ def make_trade(symbol: str) -> Trade:
     return t
 
 
-def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
-    from backlight.positions import positions
+def _calc_pl(trade: Trade, mkt: MarketData) -> float:
+    """ TODO: Duplicated impl with positions.calc_pl"""
+    assert trade.index.isin(mkt.index).all()
+    mkt = mkt.loc[trade.index, :]
 
-    pos = positions.calc_positions((trade,), mkt)
-    return _sum(positions.calc_pl(pos))
+    amount = trade.amount.cumsum()
+    price = mkt.mid
+    principal = mkt.fee(trade.amount).cumsum()
+
+    value = amount * price + principal
+
+    next_value = value.shift(periods=-1)
+    pl = (next_value - value).shift(periods=1)[1:]  # drop first nan
+    return _sum(pl)
 
 
 def count(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
-    pls = [_evaluate_pl(t, mkt) for t in trades if len(t.index) > 1]
+    pls = [_calc_pl(t, mkt) for t in trades if len(t.index) > 1]
     total = len(trades)
     win = sum([pl > 0.0 for pl in pls])
     lose = sum([pl < 0.0 for pl in pls])

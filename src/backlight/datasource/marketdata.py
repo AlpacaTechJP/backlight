@@ -34,6 +34,9 @@ class MidMarketData(MarketData):
         """Series: mid price"""
         return self["mid"]
 
+    def fee(self, trade_amount: pd.Series) -> pd.Series:
+        return -self.mid[trade_amount.index] * trade_amount
+
     @property
     def _constructor(self) -> Type["MidMarketData"]:
         return MidMarketData
@@ -47,6 +50,18 @@ class AskBidMarketData(MarketData):
     def mid(self) -> pd.Series:
         """Series: mid price"""
         return (self.ask + self.bid) / 2.0
+
+    def fee(self, trade_amount: pd.Series) -> pd.Series:
+        fee = pd.Series(data=0.0, index=trade_amount.index)
+
+        # TODO: avoid long codes
+        fee.loc[trade_amount > 0.0] = -self.loc[
+            pd.Series(data=False, index=self.index) | (trade_amount > 0.0), "ask"
+        ]
+        fee.loc[trade_amount < 0.0] = -self.loc[
+            pd.Series(data=False, index=self.index) | (trade_amount < 0.0), "bid"
+        ]
+        return fee * trade_amount
 
     @property
     def _constructor(self) -> Type["AskBidMarketData"]:
