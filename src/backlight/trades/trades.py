@@ -42,8 +42,8 @@ class Trade:
 Trades = Tuple[Trade, ...]
 
 
-def _sum(a: list) -> int:
-    return sum(a) if len(a) != 0 else 0
+def _sum(a: pd.Series) -> float:
+    return a.sum() if len(a) != 0 else 0
 
 
 def from_series(sr: pd.Series, symbol: str) -> Trade:
@@ -59,20 +59,18 @@ def make_trade(symbol: str) -> Trade:
 
 
 def _evaluate_pl(trade: Trade, mkt: MarketData) -> float:
-    amount = trade.amount.cumsum()
-    mkt, amount = mkt.align(amount, axis=0, join="inner")
-    # TODO: ask bid pricing
-    next_price = mkt.mid.shift(periods=-1)
-    price_diff = next_price - mkt.mid
-    pl = (price_diff * amount).shift(periods=1)[1:]  # drop first nan
-    return _sum(pl)
+    from backlight.positions import positions
+
+    pos = positions.calc_positions((trade,), mkt)
+    print(positions.calc_pl(pos))
+    return _sum(positions.calc_pl(pos))
 
 
 def count(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
     pls = [_evaluate_pl(t, mkt) for t in trades if len(t.index) > 1]
     total = len(trades)
-    win = _sum([pl > 0.0 for pl in pls])
-    lose = _sum([pl < 0.0 for pl in pls])
+    win = sum([pl > 0.0 for pl in pls])
+    lose = sum([pl < 0.0 for pl in pls])
     return total, win, lose
 
 
