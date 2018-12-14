@@ -34,8 +34,8 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
 
     positions.loc[:, "price"] = mkt.mid
 
-    fee = _calc_trade_fee(trade.amount, mkt)
-    positions.loc[:, "principal"] = (fee * trade.amount).cumsum()
+    fee = mkt.fee(trade.amount)
+    positions.loc[:, "principal"] = fee.cumsum()
     positions.loc[:, "principal"] = positions["principal"].ffill()
     positions.loc[:, "principal"] += principal
 
@@ -45,38 +45,16 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     return pos
 
 
-def _calc_trade_fee(trade_amount: pd.Series, mkt: MarketData) -> pd.Series:
-    """
-    This functionality should be included in Market.
-    """
-    if isinstance(mkt, MidMarketData):
-        return -mkt.mid[trade_amount.index]
-
-    if isinstance(mkt, AskBidMarketData):
-        fee = pd.Series(data=0.0, index=trade_amount.index)
-
-        # TODO: avoid long codes
-        fee.loc[trade_amount > 0.0] = -mkt.loc[
-            pd.Series(data=False, index=mkt.index) | (trade_amount > 0.0), "ask"
-        ]
-        fee.loc[trade_amount < 0.0] = -mkt.loc[
-            pd.Series(data=False, index=mkt.index) | (trade_amount < 0.0), "bid"
-        ]
-        return fee
-    raise NotImplementedError()
-
-
 def calc_positions(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> Positions:
     trade = flatten(trades)
+
     assert trade.symbol == mkt.symbol
     assert (trade.index.isin(mkt.index)).all()
 
     positions = _pricer(trade, mkt, principal)
-    return positions[
-        (trade.index[0] <= positions.index) & (positions.index <= trade.index[-1])
-    ]
+    return positions
 
 
 def calc_pl(positions: Positions) -> pd.Series:

@@ -69,7 +69,7 @@ def test_Trade():
     assert (trade.amount == expected).all()
 
 
-def test__evaluate_pl():
+def test__calc_pl():
     periods = 3
     symbol = "usdjpy"
     dates = pd.date_range(start="2018-12-01", periods=periods)
@@ -86,16 +86,16 @@ def test__evaluate_pl():
     )
 
     trade = _make_trade([t00, t11], symbol)
-    assert module._evaluate_pl(trade, mkt) == 1.0
+    assert module._calc_pl(trade, mkt) == 1.0
 
     trade = _make_trade([t00, t01], symbol)
-    assert module._evaluate_pl(trade, mkt) == 0.0
+    assert module._calc_pl(trade, mkt) == 0.0
 
     trade = _make_trade([t11, t20], symbol)
-    assert module._evaluate_pl(trade, mkt) == -1.0
+    assert module._calc_pl(trade, mkt) == -1.0
 
     trade = _make_trade([t00, t10, t20], symbol)
-    assert module._evaluate_pl(trade, mkt) == 3.0
+    assert module._calc_pl(trade, mkt) == 3.0
 
 
 def test_flatten(symbol, trades):
