@@ -41,7 +41,23 @@ def calc_sharpe(positions: Positions, freq: pd.Timedelta) -> float:
     return annual_factor * np.mean(log_return) / np.std(log_return)
 
 
-def calc_position_performance(positions: Positions) -> pd.DataFrame:
+def calc_drawdown(positions: Positions) -> pd.Series:
+    """Compute drawdown c.f. https://en.wikipedia.org/wiki/Drawdown_(economics)
+
+    Args:
+        positions: Positions.
+
+    Returns:
+        Drawdown in the periods.
+    """
+    histrical_max = positions.value.cummax()
+    value = positions.value
+    return histrical_max - value
+
+
+def calc_position_performance(
+    positions: Positions, window: pd.Timedelta = pd.Timedelta("1D")
+) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions"""
     pl = calc_pl(positions)
     trade_amount = _trade_amount(positions.amount)
@@ -50,7 +66,8 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
     average_pl = _divide(total_pl, trade_amount)
-    sharpe = calc_sharpe(positions, pd.Timedelta("1D"))
+    sharpe = calc_sharpe(positions, window)
+    drawdown = calc_drawdown(positions)
 
     m = pd.DataFrame.from_records(
         [
@@ -60,6 +77,7 @@ def calc_position_performance(positions: Positions) -> pd.DataFrame:
             ("total_lose_pl", lose_pl),
             ("cnt_amount", trade_amount),
             ("sharpe", sharpe),
+            ("max_drawdown", drawdown.max()),
         ]
     ).set_index(0)
 

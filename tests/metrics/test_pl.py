@@ -42,17 +42,18 @@ def trades(symbol):
 def positions(trades, market):
     # positions should be
     # data = [
-    #     [1.0, 1.0],  # pl = None
-    #     [-1.0, 2.0],  # pl = 1.0 * (2.0 - 1.0) = 1.0
-    #     [0.0, 3.0],  # pl = -1.0 * (3.0 - 2.0) = -1.0
-    #     [2.0, 4.0],  # pl = 0.0 * (4.0 - 3.0) = 0.0
-    #     [-2.0, 5.0],  # pl = 2.0 * (5.0 - 4.0) = 2.0
-    #     [0.0, 6.0],  # pl = -2.0 * (6.0 - 5.0) = -2.0
-    #     [1.0, 7.0],  # pl = 0.0 * (7.0 - 6.0) = 0.0
-    #     [1.0, 8.0],  # pl = 1.0 * (8.0 - 7.0) = 1.0
-    #     [2.0, 9.0],  # pl = 1.0 * (9.0 - 8.0) = 1.0
-    #     [2.0, 9.0],  # pl = 2.0 * (9.0 - 9.0) = 0.0
+    #     [1.0, 1.0, -1.0],  # value = 0.0, pl = None
+    #     [-1.0, 2.0, 3.0],  # value = 1.0, pl = 1.0
+    #     [0.0, 3.0, 0.0],  # value = 0.0, pl = -1.0
+    #     [2.0, 4.0, -8.0],  # value = 0.0, pl = 0.0
+    #     [-2.0, 5.0, 12.0],  # value = 2.0, pl = 2.0
+    #     [0.0, 6.0, 0.0],  # value = 0.0, pl = -2.0
+    #     [1.0, 7.0, -7.0],  # value = 0.0, pl = 0.0
+    #     [1.0, 8.0, -7.0],  # value = 1.0, pl = 1.0
+    #     [2.0, 9.0, -16.0],  # value = 2.0, pl = 1.0
+    #     [2.0, 9.0, -16.0],  # value = 2.0, pl = 0.0
     # ]
+    # columns = ["amount", "price", "principal"]
     principal = 100.0
     return backlight.positions.calc_positions(trades, market, principal=principal)
 
@@ -65,6 +66,13 @@ def test__trade_amount(positions):
 def test_calc_sharpe(positions):
     expected = 3.1105698567439286
     assert module.calc_sharpe(positions, freq=pd.Timedelta("1D")) == expected
+
+
+def test_calc_drawdown(positions):
+    expected = pd.Series(
+        data=[0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0], index=positions.index
+    )
+    assert (module.calc_drawdown(positions) == expected).all()
 
 
 def test_calc_position_performance(positions):
