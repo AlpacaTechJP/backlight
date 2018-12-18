@@ -83,8 +83,8 @@ def test_calc_trade_performance(trades, market):
     expected_total_pl = 2.0
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
-    expected_trade_amount = 13.0
-    expected_sharpe = 3.1105698567439286
+    expected_trade_amount = 14.0
+    expected_sharpe = 2.9452967928116256
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "cnt_trade"] == expected_cnt_trade
     assert metrics.loc["metrics", "cnt_win"] == expected_cnt_win

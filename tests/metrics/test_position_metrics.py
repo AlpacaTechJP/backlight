@@ -60,26 +60,29 @@ def positions(trades, market):
 
 def test_calc_pl(positions):
     expected = pd.Series(
-        data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
+        data=[0.0, 1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
         index=positions.index[1:],
         name="pl",
     )
+    print(expected)
+    print(module.calc_pl(positions))
     assert (module.calc_pl(positions) == expected).all()
 
 
 def test__trade_amount(positions):
-    expected = 13.0
+    expected = 14.0
     assert module._trade_amount(positions.amount) == expected
 
 
 def test_calc_sharpe(positions):
-    expected = 3.1105698567439286
+    expected = 2.9452967928116256
     assert module.calc_sharpe(positions, freq=pd.Timedelta("1D")) == expected
 
 
 def test_calc_drawdown(positions):
     expected = pd.Series(
-        data=[0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0], index=positions.index
+        data=[0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0],
+        index=positions.index,
     )
     assert (module.calc_drawdown(positions) == expected).all()
 
@@ -89,8 +92,8 @@ def test_calc_position_performance(positions):
     expected_total_pl = 2.0
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
-    expected_trade_amount = 13.0
-    expected_sharpe = 3.1105698567439286
+    expected_trade_amount = 14.0
+    expected_sharpe = 2.9452967928116256
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "total_pl"] == expected_total_pl
     assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl

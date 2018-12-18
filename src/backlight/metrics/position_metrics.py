@@ -15,8 +15,7 @@ def _sum(a: pd.Series) -> float:
 
 def _trade_amount(amount: pd.Series) -> pd.Series:
     previous_amount = amount.shift(periods=1)
-    amount_diff = amount - previous_amount
-    amount_diff.iloc[0] = 0.0  # Assume first trade amount is zero.
+    amount_diff = (amount - previous_amount)[1:]  # drop first nan
     return _sum(amount_diff.abs())
 
 

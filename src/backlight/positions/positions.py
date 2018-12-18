@@ -1,9 +1,18 @@
 import pandas as pd
+import numpy as np
 from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
 from backlight.trades import flatten
 from backlight.trades.trades import Trade, Trades
+
+
+def _freq(idx: pd.Index) -> pd.Timedelta:
+    if idx.freq is not None:
+        return idx.freq
+    if len(idx) > 1:
+        return idx[1] - idx[0]
+    return pd.Timedelta("1s")
 
 
 class Positions(pd.DataFrame):
@@ -36,17 +45,23 @@ class Positions(pd.DataFrame):
 
 
 def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
-    positions = pd.DataFrame(index=mkt.index)
 
+    # historical data
+    idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
+    positions = pd.DataFrame(index=idx)
     positions.loc[:, "amount"] = trade.amount.cumsum()
-    positions.loc[:, "price"] = mkt.mid
-
+    positions.loc[:, "price"] = mkt.mid.loc[idx]
     fee = mkt.fee(trade.amount)
     positions.loc[:, "principal"] = -fee.cumsum() + principal
-
     positions = positions.ffill()
 
-    pos = Positions(positions)
+    # add initial data
+    initial_idx = idx[0] - _freq(idx)
+    positions.loc[initial_idx, "amount"] = 0.0
+    positions.loc[initial_idx, "price"] = 0.0
+    positions.loc[initial_idx, "principal"] = principal
+
+    pos = Positions(positions.sort_index())
     pos.reset_cols()
     pos.symbol = trade.symbol
     return pos
@@ -55,7 +70,8 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
 def calc_positions(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> Positions:
-    """Create `Positions` from Trades and MarketData.
+    """Create Positions from Trades and MarketData.
+    Positions' frequency is determined by MarketData's frequency.
 
     Args:
         trades: Tuple of trades.
