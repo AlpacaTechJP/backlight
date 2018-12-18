@@ -1,11 +1,12 @@
 import math
 import numpy as np
 import pandas as pd
+from typing import Tuple
 
 from backlight.datasource.marketdata import MarketData
 from backlight.positions import calc_positions
-from backlight.positions.positions import Positions, calc_pl
-from backlight.trades.trades import Trade, Trades, count
+from backlight.positions.positions import Positions
+from backlight.trades.trades import Trade, Trades
 
 
 def _sum(a: pd.Series) -> float:
@@ -20,6 +21,12 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
 
 def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
+
+
+def calc_pl(positions: Positions) -> pd.Series:
+    next_value = positions.value.shift(periods=-1)
+    pl = (next_value - positions.value).shift(periods=1)[1:]  # drop first nan
+    return pl.rename("pl")
 
 
 def calc_sharpe(positions: Positions, freq: pd.Timedelta) -> float:
@@ -85,46 +92,3 @@ def calc_position_performance(
     m.columns = ["metrics"]
 
     return m.T
-
-
-def calc_trade_performance(
-    trades: Trades, mkt: MarketData, principal: float = 0.0
-) -> pd.DataFrame:
-    """Evaluate the pl perfomance of trades
-
-    Args:
-        trades:  Trades. All the index of `trades` should be in `mkt`.
-        mkt: Market data.
-        principal: Positions' principal is initialized by this.
-
-    Returns:
-        metrics
-    """
-    total_count, win_count, lose_count = count(trades, mkt)
-
-    m = pd.DataFrame.from_records(
-        [
-            ("cnt_trade", total_count),
-            ("cnt_win", win_count),
-            ("cnt_lose", lose_count),
-            ("win_ratio", _divide(win_count, total_count)),
-            ("lose_ratio", _divide(lose_count, total_count)),
-        ]
-    ).set_index(0)
-    del m.index.name
-    m.columns = ["metrics"]
-
-    positions = calc_positions(trades, mkt, principal=principal)
-    m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
-
-    m.loc[:, "avg_win_pl"] = _divide(
-        m.loc["metrics", "total_win_pl"], m.loc["metrics", "cnt_win"]
-    )
-    m.loc[:, "avg_lose_pl"] = _divide(
-        m.loc["metrics", "total_lose_pl"], m.loc["metrics", "cnt_lose"]
-    )
-    m.loc[:, "avg_pl_per_trade"] = _divide(
-        m.loc["metrics", "total_pl"], m.loc["metrics", "cnt_trade"]
-    )
-
-    return m

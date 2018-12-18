@@ -78,6 +78,7 @@ def positions(trades, mid):
 
 def test_calc_positions(trades, mid):
     data = [
+        [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.0],
         [-1.0, 2.0, 3.0],
         [0.0, 3.0, 0.0],
@@ -90,7 +91,9 @@ def test_calc_positions(trades, mid):
         [2.0, 9.0, -16.0],
     ]
     df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
+        index=pd.date_range(
+            start="2018-06-05 23:59:00", freq="1min", periods=len(data)
+        ),
         data=data,
         columns=["amount", "price", "principal"],
     )
@@ -101,6 +104,7 @@ def test_calc_positions(trades, mid):
 
 def test_calc_positions_with_askbid(trades, askbid):
     data = [
+        [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.5],
         [-1.0, 2.0, 1.5],
         [0.0, 3.0, -2.0],
@@ -113,7 +117,9 @@ def test_calc_positions_with_askbid(trades, askbid):
         [2.0, 9.0, -23.0],
     ]
     df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
+        index=pd.date_range(
+            start="2018-06-05 23:59:00", freq="1min", periods=len(data)
+        ),
         data=data,
         columns=["amount", "price", "principal"],
     )
@@ -124,6 +130,7 @@ def test_calc_positions_with_askbid(trades, askbid):
 
 def test_calc_positions_bfill(trades, mid):
     data = [
+        [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.0],
         [1.0, 1.0, -1.0],
         [-1.0, 2.0, 3.0],
@@ -145,19 +152,10 @@ def test_calc_positions_bfill(trades, mid):
         [2.0, 9.0, -16.0],
     ]
     df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="30s", periods=len(data)),
+        index=pd.date_range(start="2018-06-05 23:59:30", freq="30s", periods=len(data)),
         data=data,
         columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
     positions = module.calc_positions(trades, mid.resample("30s").ffill())
     pd.testing.assert_frame_equal(positions, expected)
-
-
-def test_calc_pl(positions):
-    expected = pd.Series(
-        data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
-        index=positions.index[1:],
-        name="pl",
-    )
-    assert (module.calc_pl(positions) == expected).all()

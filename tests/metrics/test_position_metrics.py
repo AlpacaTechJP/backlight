@@ -1,10 +1,10 @@
-from backlight.metrics import pl as module
+from backlight.metrics import position_metrics as module
 import pandas as pd
 import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.trades.trades import from_series
+from backlight.trades import trades as tr
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1D", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = from_series(
+        trade = tr.from_series(
             pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
             symbol,
         )
@@ -58,19 +58,31 @@ def positions(trades, market):
     return backlight.positions.calc_positions(trades, market, principal=principal)
 
 
+def test_calc_pl(positions):
+    expected = pd.Series(
+        data=[0.0, 1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
+        index=positions.index[1:],
+        name="pl",
+    )
+    print(expected)
+    print(module.calc_pl(positions))
+    assert (module.calc_pl(positions) == expected).all()
+
+
 def test__trade_amount(positions):
-    expected = 13.0
+    expected = 14.0
     assert module._trade_amount(positions.amount) == expected
 
 
 def test_calc_sharpe(positions):
-    expected = 3.1105698567439286
+    expected = 2.9452967928116256
     assert module.calc_sharpe(positions, freq=pd.Timedelta("1D")) == expected
 
 
 def test_calc_drawdown(positions):
     expected = pd.Series(
-        data=[0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0], index=positions.index
+        data=[0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0],
+        index=positions.index,
     )
     assert (module.calc_drawdown(positions) == expected).all()
 
@@ -80,35 +92,10 @@ def test_calc_position_performance(positions):
     expected_total_pl = 2.0
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
-    expected_trade_amount = 13.0
-    expected_sharpe = 3.1105698567439286
+    expected_trade_amount = 14.0
+    expected_sharpe = 2.9452967928116256
     expected_avg_pl = expected_total_pl / expected_trade_amount
     assert metrics.loc["metrics", "total_pl"] == expected_total_pl
-    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
-    assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
-    assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
-    assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
-    assert metrics.loc["metrics", "sharpe"] == expected_sharpe
-
-
-def test_calc_trade_performance(trades, market):
-    principal = 100.0
-    metrics = module.calc_trade_performance(trades, market, principal=principal)
-
-    expected_cnt_trade = 5
-    expected_cnt_win = 3
-    expected_cnt_lose = 1
-    expected_total_pl = 2.0
-    expected_win_pl = 5.0
-    expected_lose_pl = -3.0
-    expected_trade_amount = 13.0
-    expected_sharpe = 3.1105698567439286
-    expected_avg_pl = expected_total_pl / expected_trade_amount
-    assert metrics.loc["metrics", "cnt_trade"] == expected_cnt_trade
-    assert metrics.loc["metrics", "cnt_win"] == expected_cnt_win
-    assert metrics.loc["metrics", "cnt_lose"] == expected_cnt_lose
-    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
-    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
     assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
     assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
     assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
