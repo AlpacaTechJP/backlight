@@ -35,9 +35,8 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     positions.loc[:, "price"] = mkt.mid
 
     fee = mkt.fee(trade.amount)
-    positions.loc[:, "principal"] = fee.cumsum()
+    positions.loc[:, "principal"] = -fee.cumsum() + principal
     positions.loc[:, "principal"] = positions["principal"].ffill()
-    positions.loc[:, "principal"] += principal
 
     pos = Positions(positions)
     pos.reset_cols()

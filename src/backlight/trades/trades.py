@@ -65,7 +65,7 @@ def _calc_pl(trade: Trade, mkt: MarketData) -> float:
 
     amount = trade.amount.cumsum()
     price = mkt.mid
-    principal = mkt.fee(trade.amount).cumsum()
+    principal = -mkt.fee(trade.amount).cumsum()
 
     value = amount * price + principal
 
