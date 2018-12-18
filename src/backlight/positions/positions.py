@@ -70,9 +70,3 @@ def calc_positions(
     positions = _pricer(trade, mkt, principal)
     positions.symbol = trade.symbol
     return positions
-
-
-def calc_pl(positions: Positions) -> pd.Series:
-    next_value = positions.value.shift(periods=-1)
-    pl = (next_value - positions.value).shift(periods=1)[1:]  # drop first nan
-    return pl.rename("pl")

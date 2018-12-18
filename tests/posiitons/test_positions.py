@@ -152,12 +152,3 @@ def test_calc_positions_bfill(trades, mid):
     expected = module.Positions(df)
     positions = module.calc_positions(trades, mid.resample("30s").ffill())
     pd.testing.assert_frame_equal(positions, expected)
-
-
-def test_calc_pl(positions):
-    expected = pd.Series(
-        data=[1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
-        index=positions.index[1:],
-        name="pl",
-    )
-    assert (module.calc_pl(positions) == expected).all()

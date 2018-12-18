@@ -1,6 +1,7 @@
 import pandas as pd
 
-from backlight.positions.positions import Positions, calc_pl
+from backlight.positions.positions import Positions
+from backlight.metrics.position_metrics import calc_pl
 
 
 def plot_pl(

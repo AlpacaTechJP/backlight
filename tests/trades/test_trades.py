@@ -69,35 +69,6 @@ def test_Trade():
     assert (trade.amount == expected).all()
 
 
-def test__calc_pl():
-    periods = 3
-    symbol = "usdjpy"
-    dates = pd.date_range(start="2018-12-01", periods=periods)
-    amounts = [1.0, -1.0]
-
-    t00 = module.Transaction(timestamp=dates[0], amount=amounts[0])
-    t11 = module.Transaction(timestamp=dates[1], amount=amounts[1])
-    t10 = module.Transaction(timestamp=dates[1], amount=amounts[0])
-    t01 = module.Transaction(timestamp=dates[0], amount=amounts[1])
-    t20 = module.Transaction(timestamp=dates[2], amount=amounts[0])
-
-    mkt = backlight.datasource.from_dataframe(
-        pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
-    )
-
-    trade = _make_trade([t00, t11], symbol)
-    assert module._calc_pl(trade, mkt) == 1.0
-
-    trade = _make_trade([t00, t01], symbol)
-    assert module._calc_pl(trade, mkt) == 0.0
-
-    trade = _make_trade([t11, t20], symbol)
-    assert module._calc_pl(trade, mkt) == -1.0
-
-    trade = _make_trade([t00, t10, t20], symbol)
-    assert module._calc_pl(trade, mkt) == 3.0
-
-
 def test_flatten(symbol, trades):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
@@ -106,7 +77,3 @@ def test_flatten(symbol, trades):
     )
     trade = module.flatten(trades)
     assert trade == expected
-
-
-def test_count(trades, market):
-    assert (5, 3, 1) == module.count(trades, market)
