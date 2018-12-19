@@ -48,7 +48,7 @@ def direction_based_exit(
         sig: Signal data
         entries: Tuple of entry trades.
         max_holding_time: maximum holding time
-        exit_condition: The entry is closed most closest time which 
+        exit_condition: The entry is closed most closest time which
                         condition is `True`.
     Result:
         Trades
