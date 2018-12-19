@@ -59,3 +59,31 @@ def direction_based_exit(
         _exit(trade, df, max_holding_time, exit_condition) for trade in entries
     )
     return trades
+
+
+def exit_by_trailing_stop(
+    mkt: MarketData,
+    entries: Trades,
+    initial_stop: float,
+    trailing_stop: float,
+    draw_positions: bool = True,
+) -> Trades:
+    """Trailing stop exit strategy.
+
+      Given the list of entries, it simulates exits by using the trailing stop logic.
+      The marketdata defines the range for simulation. In case you want to clear all
+      positions at the end of the day, you have to limit the end edge of marketdata,
+      and call this function for each day.
+
+      Args:
+        entries        : List of entries
+        datasource     : Market data
+        initial_stop   : Initial stop in absolute price.
+        trailing_stop  : Trailing stop in absolute price.
+        draw_positions : Close all positions at the end of marketdata.
+
+      Returns:
+        trades : All trades for entry and exit.
+    """
+
+    return entries
