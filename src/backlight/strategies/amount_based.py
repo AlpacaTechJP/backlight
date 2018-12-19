@@ -8,16 +8,9 @@ from backlight.signal.signal import Signal
 from backlight.trades import make_trade
 from backlight.trades.trades import Trade, Trades, Transaction, from_series
 from backlight.labelizer.common import TernaryDirection
-from backlight.strategies.common import Action
-
-
-def _concat(mkt: MarketData, sig: Signal) -> pd.DataFrame:
-    assert mkt.symbol == sig.symbol
-    # Assume sig is less frequent than mkt.
-    assert all([idx in mkt.index for idx in sig.index])
-    df = pd.concat([mkt, sig], axis=1, join="inner")
-    df.symbol = mkt.symbol
-    return df
+from backlight.strategies.common import Action, concat
+from backlight.strategies.entry import direction_based_entry
+from backlight.strategies.exit import direction_based_exit
 
 
 def direction_based_trades(
@@ -32,7 +25,7 @@ def direction_based_trades(
     Result:
         Trades
     """
-    df = _concat(mkt, sig)
+    df = concat(mkt, sig)
     amount = pd.Series(index=df.index, name="amount").astype(np.float64)
     for direction, action in direction_action_dict.items():
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
@@ -59,32 +52,6 @@ def _exit_by_expectation(df: pd.DataFrame) -> pd.Series:
     return pd.Series(index=df.index, data=sign)
 
 
-def _exit_transaction(
-    df: pd.DataFrame, amount: float, exit_condition: Callable[[pd.DataFrame], pd.Series]
-) -> Transaction:
-    exit_indices = df[exit_condition(df)].index
-    if exit_indices.empty:
-        exit_index = df.index[-1]
-    else:
-        exit_index = exit_indices[0]
-    return Transaction(timestamp=exit_index, amount=-amount)
-
-
-def _entry_exit_trade(
-    amount: float,
-    idx: pd.Timestamp,
-    df: pd.DataFrame,
-    max_holding_time: pd.Timedelta,
-    exit_condition: Callable[[pd.DataFrame], pd.Series],
-) -> Trade:
-    trade = make_trade(df.symbol)
-    trade.add(Transaction(timestamp=idx, amount=amount))
-    df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
-    transaction = _exit_transaction(df_exit, amount, exit_condition)
-    trade.add(transaction)
-    return trade
-
-
 def entry_exit_trades(
     mkt: MarketData,
     sig: Signal,
@@ -104,20 +71,9 @@ def entry_exit_trades(
     Result:
         Trades
     """
-    df = _concat(mkt, sig)
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
+    trades = direction_based_exit(mkt, sig, entries, max_holding_time, exit_condition)
 
-    trades = ()  # type: Trades
-    for direction, action in direction_action_dict.items():
-
-        amount = action.act_on_amount()
-        if amount == 0.0:
-            continue
-
-        target_index = df[df["pred"] == direction.value].index
-        trades += tuple(
-            _entry_exit_trade(amount, idx, df, max_holding_time, exit_condition)
-            for idx in target_index
-        )
     return trades
 
 
