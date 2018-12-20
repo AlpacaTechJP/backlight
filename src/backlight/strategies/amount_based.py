@@ -8,7 +8,7 @@ from backlight.signal.signal import Signal
 from backlight.trades import make_trade
 from backlight.trades.trades import Trade, Trades, Transaction, from_series
 from backlight.labelizer.common import TernaryDirection
-from backlight.strategies.common import Action, concat
+from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
 from backlight.strategies.exit import (
     exit_at_max_holding_time,
@@ -29,7 +29,9 @@ def direction_based_trades(
     Result:
         Trades
     """
-    df = concat(mkt, sig)
+    assert all([idx in mkt.index for idx in sig.index])
+    df = sig
+
     amount = pd.Series(index=df.index, name="amount").astype(np.float64)
     for direction, action in direction_action_dict.items():
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
