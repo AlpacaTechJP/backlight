@@ -103,7 +103,7 @@ def test_entry_exit_trades(market, signal):
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    trades = module.entry_exit_trades(
+    trades = module._entry_and_exit_at_max_holding_time(
         market, signal, direction_action_dict, max_holding_time
     )
     expected = pd.DataFrame(
@@ -138,9 +138,9 @@ def test_entry_exit_trades(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_simple_entry(market, signal):
+def test_simple_entry_and_exit(market, signal):
     max_holding_time = pd.Timedelta("3min")
-    trades = module.simple_entry(market, signal, max_holding_time)
+    trades = module.simple_entry_and_exit(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=market.index,
         data=[
@@ -173,9 +173,9 @@ def test_simple_entry(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_only_entry_short(market, signal):
+def test_only_entry_short_and_exit(market, signal):
     max_holding_time = pd.Timedelta("3min")
-    trades = module.only_entry_short(market, signal, max_holding_time)
+    trades = module.only_entry_short_and_exit(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=market.index,
         data=[
@@ -208,9 +208,9 @@ def test_only_entry_short(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_only_entry_long(market, signal):
+def test_only_entry_long_and_exit(market, signal):
     max_holding_time = pd.Timedelta("3min")
-    trades = module.only_entry_long(market, signal, max_holding_time)
+    trades = module.only_entry_long_and_exit(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=market.index,
         data=[
@@ -243,9 +243,9 @@ def test_only_entry_long(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_exit_opposite_signal(market, signal):
+def test_entry_and_exit_opposite_signal(market, signal):
     max_holding_time = pd.Timedelta("3min")
-    trades = module.exit_on_oppsite_signals(market, signal, max_holding_time)
+    trades = module.entry_and_exit_at_opposite_signals(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=market.index,
         data=[
@@ -278,9 +278,9 @@ def test_exit_opposite_signal(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_exit_other_signal(market, signal):
+def test_entry_and_exit_other_signal(market, signal):
     max_holding_time = pd.Timedelta("3min")
-    trades = module.exit_on_other_signals(market, signal, max_holding_time)
+    trades = module.entry_and_exit_at_other_signals(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=market.index,
         data=[
@@ -313,7 +313,7 @@ def test_exit_other_signal(market, signal):
     assert (trade.amount == expected.amount[expected.exist]).all()
 
 
-def test_exit_by_expectation(market):
+def test_entry_and_exit_by_expectation(market):
     symbol = "usdjpy"
     data = [
         [1, 0, 0],  # expectation = 1
@@ -336,7 +336,7 @@ def test_exit_by_expectation(market):
     )
 
     max_holding_time = pd.Timedelta("3min")
-    trades = module.exit_by_expectation(market, signal, max_holding_time)
+    trades = module.entry_and_exit_by_expectation(market, signal, max_holding_time)
     expected = pd.DataFrame(
         index=signal.index,
         data=[
