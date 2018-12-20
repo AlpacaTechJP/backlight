@@ -10,7 +10,11 @@ from backlight.trades.trades import Trade, Trades, Transaction, from_series
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action, concat
 from backlight.strategies.entry import direction_based_entry
-from backlight.strategies.exit import direction_based_exit
+from backlight.strategies.exit import (
+    exit_at_max_holding_time,
+    exit_at_opposite_signals,
+    exit_by_expectation,
+)
 
 
 def direction_based_trades(
@@ -31,50 +35,6 @@ def direction_based_trades(
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
     trade = from_series(amount, df.symbol)
     return (trade,)
-
-
-def _no_exit(df: pd.DataFrame) -> pd.Series:
-    return pd.Series(index=df.index, data=False)
-
-
-def _exit_opposite_signals(df: pd.DataFrame, opposite_signals_dict: dict) -> pd.Series:
-    current_signal = TernaryDirection(df["pred"][0])
-    opposite_signals = opposite_signals_dict[current_signal]
-    return df["pred"].isin(opposite_signals)
-
-
-def _exit_by_expectation(df: pd.DataFrame) -> pd.Series:
-    current_signal = TernaryDirection(df["pred"][0])
-    v = np.array([1.0, 0.0, -1.0])
-    expectation = np.dot(df[["up", "neutral", "down"]].values, v)
-    expectation = current_signal.value * expectation
-    sign = expectation < 0.0
-    return pd.Series(index=df.index, data=sign)
-
-
-def entry_exit_trades(
-    mkt: MarketData,
-    sig: Signal,
-    direction_action_dict: dict,
-    max_holding_time: pd.Timedelta,
-    exit_condition: Callable[[pd.DataFrame], pd.Series] = _no_exit,
-) -> Trades:
-    """Take positions and close them within maximum holding time.
-
-    Args:
-        mkt: Market data
-        sig: Signal data
-        direction_action_dict: Dictionary from signals to actions
-        max_holding_time: maximum holding time
-        exit_condition: The entry is closed most closest time which 
-                        condition is `True`.
-    Result:
-        Trades
-    """
-    entries = direction_based_entry(mkt, sig, direction_action_dict)
-    trades = direction_based_exit(mkt, sig, entries, max_holding_time, exit_condition)
-
-    return trades
 
 
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
@@ -104,7 +64,30 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
     return direction_based_trades(mkt, sig, direction_action_dict)
 
 
-def only_entry_long(
+def _entry_and_exit_at_max_holding_time(
+    mkt: MarketData,
+    sig: Signal,
+    direction_action_dict: dict,
+    max_holding_time: pd.Timedelta,
+) -> Trades:
+    """Take positions and close them within maximum holding time.
+
+    Args:
+        mkt: Market data
+        sig: Signal data
+        direction_action_dict: Dictionary from signals to actions
+        max_holding_time: maximum holding time
+        exit_condition: The entry is closed most closest time which 
+                        condition is `True`.
+    Result:
+        Trades
+    """
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
+    trades = exit_at_max_holding_time(mkt, sig, entries, max_holding_time)
+    return trades
+
+
+def only_entry_long_and_exit(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """Take only long positions and close them within maximum holding time.
@@ -114,10 +97,12 @@ def only_entry_long(
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.Donothing,
     }
-    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+    return _entry_and_exit_at_max_holding_time(
+        mkt, sig, direction_action_dict, max_holding_time
+    )
 
 
-def only_entry_short(
+def only_entry_short_and_exit(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """Take only short positions and close them within maximum holding time.
@@ -127,10 +112,12 @@ def only_entry_short(
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+    return _entry_and_exit_at_max_holding_time(
+        mkt, sig, direction_action_dict, max_holding_time
+    )
 
 
-def simple_entry(
+def simple_entry_and_exit(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """Take both positions and close them within maximum holding time. """
@@ -139,10 +126,12 @@ def simple_entry(
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return entry_exit_trades(mkt, sig, direction_action_dict, max_holding_time)
+    return _entry_and_exit_at_max_holding_time(
+        mkt, sig, direction_action_dict, max_holding_time
+    )
 
 
-def exit_on_oppsite_signals(
+def entry_and_exit_at_opposite_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """
@@ -154,22 +143,20 @@ def exit_on_oppsite_signals(
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
 
     opposite_signals_dict = {
         TernaryDirection.UP: [TernaryDirection.DOWN.value],
         TernaryDirection.NEUTRAL: [],
         TernaryDirection.DOWN: [TernaryDirection.UP.value],
     }
-
-    def _exit_condition(df: pd.DataFrame) -> pd.Series:
-        return _exit_opposite_signals(df, opposite_signals_dict)
-
-    return entry_exit_trades(
-        mkt, sig, direction_action_dict, max_holding_time, _exit_condition
+    trades = exit_at_opposite_signals(
+        mkt, sig, entries, max_holding_time, opposite_signals_dict
     )
+    return trades
 
 
-def exit_on_other_signals(
+def entry_and_exit_at_other_signals(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """
@@ -181,6 +168,7 @@ def exit_on_other_signals(
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
 
     opposite_signals_dict = {
         TernaryDirection.UP: [
@@ -193,16 +181,13 @@ def exit_on_other_signals(
             TernaryDirection.NEUTRAL.value,
         ],
     }
-
-    def _exit_condition(df: pd.DataFrame) -> pd.Series:
-        return _exit_opposite_signals(df, opposite_signals_dict)
-
-    return entry_exit_trades(
-        mkt, sig, direction_action_dict, max_holding_time, _exit_condition
+    trades = exit_at_opposite_signals(
+        mkt, sig, entries, max_holding_time, opposite_signals_dict
     )
+    return trades
 
 
-def exit_by_expectation(
+def entry_and_exit_by_expectation(
     mkt: MarketData, sig: Signal, max_holding_time: pd.Timedelta
 ) -> Trades:
     """
@@ -215,6 +200,7 @@ def exit_by_expectation(
         TernaryDirection.DOWN: Action.TakeShort,
     }
 
-    return entry_exit_trades(
-        mkt, sig, direction_action_dict, max_holding_time, _exit_by_expectation
-    )
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
+
+    trades = exit_by_expectation(mkt, sig, entries, max_holding_time)
+    return trades
