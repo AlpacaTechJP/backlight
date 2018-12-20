@@ -23,6 +23,19 @@ def _exit_transaction(
 def _exit(
     trade: Trade,
     df: pd.DataFrame,
+    exit_condition: Callable[[pd.DataFrame], pd.Series],
+) -> Trade:
+    idx = trade.index[0]
+    amount = trade.amount.sum()
+    df_exit = df[idx <= df.index]
+    transaction = _exit_transaction(df_exit, amount, exit_condition)
+    trade.add(transaction)
+    return trade
+
+
+def _exit_with_max_holding_time(
+    trade: Trade,
+    df: pd.DataFrame,
     max_holding_time: pd.Timedelta,
     exit_condition: Callable[[pd.DataFrame], pd.Series],
 ) -> Trade:
@@ -41,7 +54,7 @@ def direction_based_exit(
     max_holding_time: pd.Timedelta,
     exit_condition: Callable[[pd.DataFrame], pd.Series],
 ) -> Trades:
-    """Take positions.
+    """Exit at max_holding_time or satisfy the conditions.
 
     Args:
         mkt: Market data
@@ -56,9 +69,12 @@ def direction_based_exit(
     df = concat(mkt, sig)
 
     trades = tuple(
-        _exit(trade, df, max_holding_time, exit_condition) for trade in entries
+        _exit_with_max_holding_time(trade, df, max_holding_time, exit_condition)
+        for trade
+        in entries
     )
     return trades
+
 
 
 def exit_by_trailing_stop(
@@ -76,8 +92,8 @@ def exit_by_trailing_stop(
       and call this function for each day.
 
       Args:
+        mkt            : Market data
         entries        : List of entries
-        datasource     : Market data
         initial_stop   : Initial stop in absolute price.
         trailing_stop  : Trailing stop in absolute price.
         draw_positions : Close all positions at the end of marketdata.
@@ -85,5 +101,9 @@ def exit_by_trailing_stop(
       Returns:
         trades : All trades for entry and exit.
     """
-
-    return entries
+    trades = tuple(
+        _exit_with_max_holding_time(trade, df, exit_condition)
+        for trade
+        in entries
+    )
+    return trades
