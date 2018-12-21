@@ -171,7 +171,7 @@ def test_exit_by_trailing_stop(market, signal, entries):
         _make_trade(
             [
                 Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5),
-                Transaction(pd.Timestamp("2018-06-06 00:09:00"), -0.5),  # loss cut
+                Transaction(pd.Timestamp("2018-06-06 00:05:00"), -0.5),  # loss cut
             ]
         ),
         _make_trade(

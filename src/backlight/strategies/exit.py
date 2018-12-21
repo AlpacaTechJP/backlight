@@ -210,8 +210,8 @@ def exit_by_trailing_stop(
       Args:
         mkt            : Market data
         entries        : List of entries
-        initial_stop   : Initial stop in absolute loss.
-        trailing_stop  : Trailing stop in absolute loss.
+        initial_stop   : Initial stop in absolute price.
+        trailing_stop  : Trailing stop in absolute price.
 
       Returns:
         trades : All trades for entry and exit.
@@ -224,11 +224,11 @@ def exit_by_trailing_stop(
 
         amount = trade.amount.sum()
         entry_price = prices.iloc[0]
-        pl_from_entry = amount * (prices - entry_price)
-        is_initial_stop = pl_from_entry <= -initial_stop
+        pl_per_amount = np.sign(amount) * (prices - entry_price)
+        is_initial_stop = pl_per_amount <= -initial_stop
 
-        historical_max_pl = pl_from_entry.cummax()
-        drawdown = historical_max_pl - pl_from_entry
+        historical_max_pl = pl_per_amount.cummax()
+        drawdown = historical_max_pl - pl_per_amount
         is_trailing_stop = (historical_max_pl >= trailing_stop) & (
             drawdown >= trailing_stop
         )
