@@ -65,6 +65,9 @@ def exit(
         df: pd.DataFrame,
         exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
     ) -> Trade:
+        if trade.amount.sum() == 0:
+            return trade
+
         idx = trade.index[0]
         df_exit = df[idx <= df.index]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
@@ -195,11 +198,7 @@ def exit_by_expectation(
 
 
 def exit_by_trailing_stop(
-    mkt: MarketData,
-    entries: Trades,
-    initial_stop: float,
-    trailing_stop: float,
-    draw_positions: bool = True,
+    mkt: MarketData, entries: Trades, initial_stop: float, trailing_stop: float
 ) -> Trades:
     """Trailing stop exit strategy.
 
@@ -211,13 +210,14 @@ def exit_by_trailing_stop(
       Args:
         mkt            : Market data
         entries        : List of entries
-        initial_stop   : Initial stop in absolute price.
-        trailing_stop  : Trailing stop in absolute price.
-        draw_positions : Close all positions at the end of marketdata.
+        initial_stop   : Initial stop in absolute loss.
+        trailing_stop  : Trailing stop in absolute loss.
 
       Returns:
         trades : All trades for entry and exit.
     """
+    assert initial_stop >= 0.0
+    assert trailing_stop >= 0.0
 
     def _exit_by_trailing_stop(df: pd.DataFrame, trade: Trade) -> pd.Series:
         prices = df.mid
@@ -228,7 +228,9 @@ def exit_by_trailing_stop(
         is_initial_stop = pl_from_entry <= -initial_stop
 
         drawdown = pl_from_entry.cummax() - pl_from_entry
-        is_trailing_stop = (pl_from_entry >= initial_stop) & (drawdown >= trailing_stop)
+        is_trailing_stop = (pl_from_entry.cummax() >= trailing_stop) & (
+            drawdown >= trailing_stop
+        )
         return is_initial_stop | is_trailing_stop
 
     return exit(mkt, None, entries, _exit_by_trailing_stop)
