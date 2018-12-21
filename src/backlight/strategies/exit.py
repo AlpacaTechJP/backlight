@@ -227,8 +227,9 @@ def exit_by_trailing_stop(
         pl_from_entry = amount * (prices - entry_price)
         is_initial_stop = pl_from_entry <= -initial_stop
 
-        drawdown = pl_from_entry.cummax() - pl_from_entry
-        is_trailing_stop = (pl_from_entry.cummax() >= trailing_stop) & (
+        historical_max_pl = pl_from_entry.cummax()
+        drawdown = historical_max_pl - pl_from_entry
+        is_trailing_stop = (historical_max_pl >= trailing_stop) & (
             drawdown >= trailing_stop
         )
         return is_initial_stop | is_trailing_stop
