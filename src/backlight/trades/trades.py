@@ -18,6 +18,9 @@ class Trade:
     def __eq__(self, other: Any) -> bool:
         return self.__class__ == other.__class__ and self.__hash__() == other.__hash__()
 
+    def __repr__(self) -> str:
+        return str(self.amount)
+
     def __hash__(self) -> int:
         return hash((self._index, self._amount, self.symbol))
 
