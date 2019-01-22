@@ -66,6 +66,6 @@ def flatten(trades: Trades) -> Trade:
     symbol = trades[0].symbol
     assert all([t.symbol == symbol for t in trades])
 
-    amounts = pd.concat([t.amount for t in trades], axis=1, join="outer")
-    amount = amounts.sum(axis=1, skipna=True).sort_index()
+    amounts = pd.concat([t.amount for t in trades], axis=0)
+    amount = amounts.groupby(amounts.index).sum().sort_index()
     return from_series(amount, symbol)
