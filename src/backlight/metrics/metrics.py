@@ -6,6 +6,15 @@ from backlight.signal.signal import Signal
 
 
 def calc_metrics(sig: Signal, lbl: Label, dropna: bool = True) -> pd.DataFrame:
+    """Calculate basic metrics for signals.
+
+    Args:
+        sig : Signals to be evaluated
+        lbl : Correct label
+
+    Returns:
+        DataFrame of metrics.
+    """
     if lbl.label_type == LabelType.TERNARY:
         return calc_ternary_metrics(sig.dropna(), lbl.dropna())
     else:

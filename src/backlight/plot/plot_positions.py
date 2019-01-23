@@ -9,10 +9,12 @@ def plot_pl(
     window: pd.Timedelta = pd.Timedelta("1D"),
     freq: pd.Timedelta = pd.Timedelta("1D"),
 ) -> None:
+    """Plot rolled pl."""
     pl = calc_pl(positions)
     pl.rolling(window).sum().resample(freq).first().plot()
 
 
 def plot_cumulative_pl(positions: Positions) -> None:
+    """Plot cumulative pl"""
     pl = calc_pl(positions)
     pl.cumsum().plot()

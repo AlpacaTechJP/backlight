@@ -14,6 +14,18 @@ def load_label(
     end_dt: Optional[pd.Timestamp] = None,
     mapping: Optional[dict] = None,
 ) -> Label:
+    """An abstraction interface for loading the label data..
+
+    Args:
+        symbol :  A symbol to query
+        url :  An url to the data source
+        start_dt :  Date to query from
+        end_dt :  Date to query to
+        mapping :  A dict to map columns
+
+    Returns:
+        Label
+    """
     df = query(symbol, start_dt, end_dt, url)
     return from_dataframe(df=df, lbl_mapping=mapping)
 
