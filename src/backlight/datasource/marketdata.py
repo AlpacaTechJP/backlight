@@ -37,7 +37,7 @@ class MidMarketData(MarketData):
         return self["mid"]
 
     def fee(self, trade_amount: pd.Series) -> pd.Series:
-        """Calculate trade fee when trading them with mid prices"""
+        """Calculate trading fee when trading on mid prices."""
         return self.mid[trade_amount.index] * trade_amount
 
     @property
