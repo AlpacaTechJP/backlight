@@ -55,7 +55,7 @@ class AskBidMarketData(MarketData):
         return (self.ask + self.bid) / 2.0
 
     def fee(self, trade_amount: pd.Series) -> pd.Series:
-        """Calculate trade fee when trading them with ask/bid prices"""
+        """Calculate trading fee when trading on ask/bid prices."""
         fee = pd.Series(data=0.0, index=trade_amount.index)
 
         # TODO: avoid long codes
