@@ -18,15 +18,24 @@ def _sum(a: pd.Series) -> float:
 
 
 def _calc_pl(trade: Trade, mkt: MarketData) -> float:
-    assert trade.index.isin(mkt.index).all()
     mkt = mkt.loc[trade.index, :]
-
     positions = backlight.positions.calc_positions((trade,), mkt)
     pl = calc_pl(positions)
     return _sum(pl)
 
 
 def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
+    """Count winning, losing and total number of trades.
+
+    Args:
+        trades : Trades to evaluate. Each trade is evaluated
+                 only if it contains more than one transactions,
+                 because we can define pl in that case.
+        mkt: Market data. The index should contains all trades' index.
+
+    Returns:
+        total count, win count, lose count
+    """
     pls = [_calc_pl(t, mkt) for t in trades if len(t.index) > 1]
     total = len(trades)
     win = sum([pl > 0.0 for pl in pls])
@@ -37,15 +46,15 @@ def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
 def calc_trade_performance(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> pd.DataFrame:
-    """Evaluate the pl perfomance of trades
+    """Evaluate the pl perfomance of trades and positions.
 
     Args:
-        trades:  Trades. All the index of `trades` should be in `mkt`.
-        mkt: Market data.
-        principal: Positions' principal is initialized by this.
+        trades:  Trades to evaluate. Trades will be flattened as Positions.
+        mkt: Market data. The index should contains all trades' index.
+        principal: Positions' principal is initialized by this value.
 
     Returns:
-        metrics
+        Metrics of trades and positions.
     """
     total_count, win_count, lose_count = count_trades(trades, mkt)
 

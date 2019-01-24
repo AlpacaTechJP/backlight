@@ -24,6 +24,14 @@ def _divide(a: float, b: float) -> float:
 
 
 def calc_pl(positions: Positions) -> pd.Series:
+    """Compute pl of positions.
+
+    Args:
+        positions: Positions to be evaluated.
+
+    Returns:
+        Series of pl.
+    """
     next_value = positions.value.shift(periods=-1)
     pl = (next_value - positions.value).shift(periods=1)[1:]  # drop first nan
     return pl.rename("pl")
@@ -65,7 +73,15 @@ def calc_drawdown(positions: Positions) -> pd.Series:
 def calc_position_performance(
     positions: Positions, window: pd.Timedelta = pd.Timedelta("1D")
 ) -> pd.DataFrame:
-    """Evaluate the pl perfomance of positions"""
+    """Evaluate the pl perfomance of positions
+
+    Args:
+        positions: Positions to be evaluated.
+        window: Window for `calc_sharpe`.
+
+    Returns:
+        DataFrame of perfomance
+    """
     pl = calc_pl(positions)
     trade_amount = _trade_amount(positions.amount)
 

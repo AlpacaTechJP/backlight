@@ -26,15 +26,18 @@ class MarketData(pd.DataFrame):
 
 
 class MidMarketData(MarketData):
+    """MarketData container for mid price.
+    """
 
     _target_columns = ["mid"]
 
     @property
     def mid(self) -> pd.Series:
-        """Series: mid price"""
+        """Mid price"""
         return self["mid"]
 
     def fee(self, trade_amount: pd.Series) -> pd.Series:
+        """Calculate trading fee when trading on mid prices."""
         return self.mid[trade_amount.index] * trade_amount
 
     @property
@@ -48,10 +51,11 @@ class AskBidMarketData(MarketData):
 
     @property
     def mid(self) -> pd.Series:
-        """Series: mid price"""
+        """Mid price"""
         return (self.ask + self.bid) / 2.0
 
     def fee(self, trade_amount: pd.Series) -> pd.Series:
+        """Calculate trading fee when trading on ask/bid prices."""
         fee = pd.Series(data=0.0, index=trade_amount.index)
 
         # TODO: avoid long codes

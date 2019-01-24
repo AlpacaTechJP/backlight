@@ -10,6 +10,15 @@ def _r(a: int, b: int) -> float:
 
 
 def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
+    """Compute metrics on ternary signal.
+
+    Args:
+        sig :  Signal to evaluate.
+        lbl : Correct answer.
+
+    Returns:
+        DataFrame of metrics.
+    """
 
     sig = sig.dropna()
     lbl = lbl.dropna()
