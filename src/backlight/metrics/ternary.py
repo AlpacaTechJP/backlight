@@ -10,10 +10,10 @@ def _r(a: int, b: int) -> float:
 
 
 def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
-    """Compute ternary signals metrics.
+    """Compute metrics on ternary signal.
 
     Args:
-        sig :  Signals to be evaluated
+        sig :  Signal to evaluate.
         lbl : Correct answer.
 
     Returns:

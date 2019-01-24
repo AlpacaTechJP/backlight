@@ -25,16 +25,16 @@ def _calc_pl(trade: Trade, mkt: MarketData) -> float:
 
 
 def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
-    """ Count total trades, win trades and lose trades
+    """Count winning, losing and total number of trades.
 
     Args:
-        trades : Trades to be evaluated. Each trade is evaluated
+        trades : Trades to evaluate. Each trade is evaluated
                  only if it contains more than one transactions,
                  because we can define pl in that case.
         mkt: Market data. The index should contains all trades' index.
 
     Returns:
-        total count, wind count, lose count
+        total count, win count, lose count
     """
     pls = [_calc_pl(t, mkt) for t in trades if len(t.index) > 1]
     total = len(trades)
@@ -49,12 +49,12 @@ def calc_trade_performance(
     """Evaluate the pl perfomance of trades and positions.
 
     Args:
-        trades:  Trades to be evaluated. Trades will be flattend as Positions.
+        trades:  Trades to evaluate. Trades will be flattened as Positions.
         mkt: Market data. The index should contains all trades' index.
         principal: Positions' principal is initialized by this value.
 
     Returns:
-        metrics of trades and
+        Metrics of trades and positions.
     """
     total_count, win_count, lose_count = count_trades(trades, mkt)
 

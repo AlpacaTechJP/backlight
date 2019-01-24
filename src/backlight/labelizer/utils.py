@@ -14,7 +14,7 @@ def load_label(
     end_dt: Optional[pd.Timestamp] = None,
     mapping: Optional[dict] = None,
 ) -> Label:
-    """An abstraction interface for loading the label data..
+    """Query market data and return labels created from a mapping.
 
     Args:
         symbol :  A symbol to query

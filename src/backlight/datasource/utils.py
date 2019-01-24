@@ -66,7 +66,7 @@ def mid2askbid(mkt: MidMarketData, spread: float) -> AskBidMarketData:
 
     Args:
         mkt: MidMarketData
-        spread: ask/bid spread from mid price.
+        spread: Constant ask/bid spread added on mid price.
     """
     mkt.loc[:, "ask"] = mkt.mid + spread
     mkt.loc[:, "bid"] = mkt.mid - spread

@@ -6,10 +6,10 @@ from backlight.signal.signal import Signal
 
 
 def calc_metrics(sig: Signal, lbl: Label, dropna: bool = True) -> pd.DataFrame:
-    """Calculate basic metrics for signals.
+    """Calculate basic metrics on signal.
 
     Args:
-        sig : Signals to be evaluated
+        sig : Signal to evaluate.
         lbl : Correct label
 
     Returns:
