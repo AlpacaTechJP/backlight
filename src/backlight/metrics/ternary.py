@@ -41,7 +41,7 @@ def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
 
     lbl = lbl.reindex(sig.index)
 
-    pl = lbl[sig.pred != TD.N.value].label_diff
+    pl = lbl[sig.pred != TD.N.value].label_diff.copy()
     pl.loc[sig.pred == TD.D.value] *= -1
 
     avg_pl = pl.mean()
