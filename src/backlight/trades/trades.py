@@ -89,6 +89,7 @@ def from_series(sr: pd.Series, symbol: str) -> Trade:
     Returns:
         Trade
     """
+    sr = sr.groupby(sr.index).sum().sort_index()
     t = Trade(sr)
     t.symbol = symbol
     return t
@@ -109,10 +110,10 @@ def make_trade(symbol: str, transactions: Iterable[Transaction] = None) -> Trade
         sr = pd.Series(name="amount")
         return from_series(sr, symbol)
 
-    trade = make_trade(symbol)
-    for t in transactions:
-        trade = trade.add(t)
-    return trade
+    index = [t.timestamp for t in transactions]
+    data = [t.amount for t in transactions]
+    sr = pd.Series(index=index, data=data, name="amount")
+    return from_series(sr, symbol)
 
 
 def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
