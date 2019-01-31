@@ -20,7 +20,6 @@ class Trade(pd.Series):
         """Add transaction"""
         sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
         sr = pd.concat([self, sr])
-        sr = sr.groupby(sr.index).sum().sort_index()
         return from_series(sr, self.symbol)
 
 
