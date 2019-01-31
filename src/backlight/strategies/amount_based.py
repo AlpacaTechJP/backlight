@@ -6,7 +6,7 @@ from typing import Callable, List
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Trade, Trades, Transaction, from_series
+from backlight.trades.trades import Trade, Trades, Transaction, from_series, from_tuple
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
@@ -36,7 +36,7 @@ def direction_based_trades(
     for direction, action in direction_action_dict.items():
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
     trade = from_series(amount, df.symbol)
-    return (trade,)
+    return from_tuple((trade,))
 
 
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:

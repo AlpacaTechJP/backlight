@@ -41,7 +41,8 @@ def trades(symbol):
             symbol,
         )
         trades.append(trade)
-    return tuple(trades)
+    trades = tr.from_tuple(trades)
+    return trades
 
 
 def test__calc_pl():

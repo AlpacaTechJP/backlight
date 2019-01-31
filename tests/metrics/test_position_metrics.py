@@ -35,7 +35,8 @@ def trades(symbol):
             symbol,
         )
         trades.append(trade)
-    return tuple(trades)
+    trades = tr.from_tuple(trades)
+    return trades
 
 
 @pytest.fixture

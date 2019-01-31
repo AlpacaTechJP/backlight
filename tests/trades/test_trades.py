@@ -29,7 +29,8 @@ def trades(symbol):
             symbol,
         )
         trades.append(trade)
-    return tuple(trades)
+    trades = module.from_tuple(trades)
+    return trades
 
 
 @pytest.fixture
@@ -76,4 +77,4 @@ def test_flatten(symbol, trades):
         pd.Series(index=index, data=data, name="amount"), symbol
     )
     trade = module.flatten(trades)
-    assert trade == expected
+    pd.testing.assert_series_equal(trade.amount, expected.amount)
