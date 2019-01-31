@@ -73,20 +73,6 @@ def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0
 
 
-def from_series(sr: pd.Series) -> Trade:
-    """Create a Trade instance from pd.Series.
-
-    Args:
-        sr :  Series
-        symbol :  A symbol
-
-    Returns:
-        Trade
-    """
-    sr = sr.groupby(sr.index).sum().sort_index()
-    return sr
-
-
 def _sort(t: Trades) -> Trades:
     t["ind"] = t.index
     t = t.sort_values(by=["ind", "_id"])
@@ -115,7 +101,7 @@ def make_trade(transactions: Iterable[Transaction]) -> Trade:
     index = [t.timestamp for t in transactions]
     data = [t.amount for t in transactions]
     sr = pd.Series(index=index, data=data, name="amount")
-    return from_series(sr)
+    return sr.groupby(sr.index).sum().sort_index()
 
 
 def concat(trades: Iterable[Trades]):
