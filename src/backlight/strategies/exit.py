@@ -7,7 +7,14 @@ from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import TernaryDirection
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades, from_tuple, from_series, add_transaction
+from backlight.trades.trades import (
+    Transaction,
+    Trade,
+    Trades,
+    from_tuple,
+    from_series,
+    add_transaction,
+)
 from backlight.strategies.common import Action
 
 

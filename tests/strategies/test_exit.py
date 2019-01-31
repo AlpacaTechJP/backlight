@@ -10,10 +10,6 @@ from backlight.strategies.entry import direction_based_entry
 from backlight.trades.trades import Transaction, from_tuple, make_trade
 
 
-def _make_trade(transactions, symbol="hoge"):
-    return make_trade(symbol, transactions)
-
-
 @pytest.fixture
 def signal():
     symbol = "usdjpy"
@@ -135,12 +131,12 @@ def test_exit_by_trailing_stop(market, signal, entries):
     )
     entries = from_tuple(
         (
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0)]),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0)]),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0)]),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
         ),
         symbol,
     )
@@ -150,7 +146,7 @@ def test_exit_by_trailing_stop(market, signal, entries):
     trades = module.exit_by_trailing_stop(market, entries, initial_stop, trailing_stop)
     expected = from_tuple(
         (
-            _make_trade(
+            make_trade(
                 [
                     Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0),
                     Transaction(
@@ -158,14 +154,14 @@ def test_exit_by_trailing_stop(market, signal, entries):
                     ),  # trail stop
                 ]
             ),
-            _make_trade(
+            make_trade(
                 [
                     Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0),
                     Transaction(pd.Timestamp("2018-06-06 00:02:00"), 1.0),  # loss cut
                 ]
             ),
-            _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
-            _make_trade(
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
+            make_trade(
                 [
                     Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0),
                     Transaction(
@@ -173,13 +169,13 @@ def test_exit_by_trailing_stop(market, signal, entries):
                     ),  # trail stop
                 ]
             ),
-            _make_trade(
+            make_trade(
                 [
                     Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5),
                     Transaction(pd.Timestamp("2018-06-06 00:05:00"), -0.5),  # loss cut
                 ]
             ),
-            _make_trade(
+            make_trade(
                 [
                     Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0),
                     Transaction(pd.Timestamp("2018-06-06 00:10:00"), 1.0),  # trail stop

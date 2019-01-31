@@ -55,7 +55,7 @@ class Trades(pd.DataFrame):
 
     def get_trade(self, trade_id: int) -> Trade:
         trade = self.loc[self._id == trade_id, "amount"]
-        return from_series(trade.groupby(trade.index).sum().sort_index())
+        return trade.groupby(trade.index).sum().sort_index()
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -83,8 +83,7 @@ def from_series(sr: pd.Series) -> Trade:
         Trade
     """
     sr = sr.groupby(sr.index).sum().sort_index()
-    t = Trade(sr)
-    return t
+    return sr
 
 
 def from_tuple(trades: Iterable[Trade], symbol: str) -> Trades:
@@ -94,7 +93,7 @@ def from_tuple(trades: Iterable[Trade], symbol: str) -> Trades:
     return trs
 
 
-def make_trade(symbol: str, transactions: Iterable[Transaction] = None) -> Trade:
+def make_trade(transactions: Iterable[Transaction]) -> Trade:
     """Initialize Trade instance"""
     if transactions is None:
         sr = pd.Series(name="amount")
@@ -115,10 +114,6 @@ def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
     t.symbol = symbol
     t.reset_cols()
     return t
-
-
-def concat(trades: Iterable[Trade]):
-    return pd
 
 
 def flatten(trades: Trades) -> Trade:

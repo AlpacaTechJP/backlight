@@ -37,7 +37,6 @@ def market(symbol):
 
 
 def test_Trade():
-    symbol = "hoge"
     periods = 2
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = range(periods)
@@ -46,17 +45,17 @@ def test_Trade():
     t11 = module.Transaction(timestamp=dates[1], amount=amounts[1])
     t01 = module.Transaction(timestamp=dates[0], amount=amounts[1])
 
-    trade = module.make_trade(symbol, [t00, t11])
+    trade = module.make_trade([t00, t11])
     expected = pd.Series(index=dates, data=amounts[:2], name="amount")
     assert (trade == expected).all()
 
-    trade = module.make_trade(symbol, [t00, t01])
+    trade = module.make_trade([t00, t01])
     expected = pd.Series(
         index=[dates[0]], data=[amounts[0] + amounts[1]], name="amount"
     )
     assert (trade == expected).all()
 
-    trade = module.make_trade(symbol, [t11, t01, t00])
+    trade = module.make_trade([t11, t01, t00])
     expected = pd.Series(
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
