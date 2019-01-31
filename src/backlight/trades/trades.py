@@ -54,7 +54,7 @@ class Trades(pd.DataFrame):
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
 
-    def append_trade(self, trade_id: int, trade: Trade) -> Type["Trades"]:
+    def append_trade(self, trade: Trade, trade_id: int) -> Type["Trades"]:
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = trade_id
 
@@ -89,8 +89,16 @@ def from_series(sr: pd.Series) -> Trade:
     return sr
 
 
-def from_tuple(trades: Iterable[Trade], symbol: str) -> Trades:
+def from_tuple(trades: Iterable[Trade], symbol: str, ids: Iterable[int] = None) -> Trades:
+    if ids is None:
+        ids = range(len(trades))
+
+    assert len(ids) == len(trades)
+
     trs = make_trades(symbol)
+    for i, t in zip(ids, trades)
+        trs.append_trade(t, 
+
     for t in trades:
         trs = trs.add_trade(t)
     return trs

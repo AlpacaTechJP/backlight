@@ -68,17 +68,22 @@ def exit(
     df = _concat(mkt, sig)
 
     def _exit(
-        trade: Trade,
+        trades: Trades,
         df: pd.DataFrame,
         exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
     ) -> Trade:
-        if trade.sum() == 0:
-            return trade
+        exits = []
+        for i in trades.ids:
+            trade = trades.get_trade(i)
 
-        idx = trade.index[0]
-        df_exit = df[idx <= df.index]
-        transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = add_transaction(trade, transaction)
+            if trade.sum() == 0:
+                continue
+
+            idx = trade.index[0]
+            df_exit = df[idx <= df.index]
+            transaction = _exit_transaction(df_exit, trade, exit_condition)
+            exits.append(make_trade([transaction])
+            trade = add_transaction(trade, transaction)
         return trade
 
     symbol = entries.symbol
