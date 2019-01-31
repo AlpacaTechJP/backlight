@@ -13,7 +13,7 @@ from backlight.trades.trades import (
     Trades,
     from_tuple,
     from_series,
-    add_transaction,
+    concat,
 )
 from backlight.strategies.common import Action
 
@@ -72,7 +72,9 @@ def exit(
         df: pd.DataFrame,
         exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
     ) -> Trade:
+
         exits = []
+        ids = []
         for i in trades.ids:
             trade = trades.get_trade(i)
 
@@ -82,13 +84,15 @@ def exit(
             idx = trade.index[0]
             df_exit = df[idx <= df.index]
             transaction = _exit_transaction(df_exit, trade, exit_condition)
-            exits.append(make_trade([transaction])
-            trade = add_transaction(trade, transaction)
-        return trade
+            exits.append(make_trade([transaction]))
+            ids.append(i)
+
+        return from_tuple(exits, symbol, ids)
 
     symbol = entries.symbol
-    trades = tuple(_exit(entries.get_trade(i), df, exit_condition) for i in entries.ids)
-    return from_tuple(trades, symbol)
+    exits = _exit(entries, df, exit_condition)
+    df = concat([entries, exits])
+    return df
 
 
 def exit_by_max_holding_time(
@@ -113,25 +117,32 @@ def exit_by_max_holding_time(
     df = _concat(mkt, sig)
 
     def _exit_by_max_holding_time(
-        trade: Trade,
+        trades: Trade,
         df: pd.DataFrame,
         max_holding_time: pd.Timedelta,
         exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
     ) -> Trade:
-        idx = trade.index[0]
-        df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
-        transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = add_transaction(trade, transaction)
-        return trade
+        exits = []
+        ids = []
+        for i in trades.ids:
+            trade = trades.get_trade(i)
+
+            if trade.sum() == 0:
+                continue
+
+            idx = trade.index[0]
+            df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+            transaction = _exit_transaction(df_exit, trade, exit_condition)
+            exits.append(make_trade([transaction]))
+            ids.append(i)
+
+        return from_tuple(exits, symbol, ids)
 
     symbol = entries.symbol
-    trades = tuple(
-        _exit_by_max_holding_time(
-            entries.get_trade(i), df, max_holding_time, exit_condition
-        )
-        for i in entries.ids
-    )
-    return from_tuple(trades, symbol)
+    symbol = entries.symbol
+    exits = _exit_by_max_holding_time(entries, df, max_holding_time, exit_condition)
+    df = concat([entries, exits])
+    return df
 
 
 def exit_at_max_holding_time(

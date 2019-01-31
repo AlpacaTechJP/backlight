@@ -12,13 +12,6 @@ Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 Trade = pd.Series
 
 
-def add_transaction(trade: Trade, t: Transaction) -> Trade:
-    """Add transaction"""
-    sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
-    sr = pd.concat([trade, sr])
-    return from_series(sr)
-
-
 def _max(s: pd.Series) -> int:
     if len(s) == 0:
         return 0
@@ -48,7 +41,7 @@ class Trades(pd.DataFrame):
 
     def add_trade(self, trade: Trade) -> Type["Trades"]:
         next_id = _max(self.ids) + 1
-        return self.append_trade(next_id, trade)
+        return self.append_trade(trade, next_id)
 
     def get_trade(self, trade_id: int) -> Trade:
         trade = self.loc[self._id == trade_id, "amount"]
@@ -89,19 +82,26 @@ def from_series(sr: pd.Series) -> Trade:
     return sr
 
 
-def from_tuple(trades: Iterable[Trade], symbol: str, ids: Iterable[int] = None) -> Trades:
+def sort(t: Trades) -> Trades:
+    t["ind"] = t.index
+    t = t.sort_values(by=["ind", "_id"])
+    t.reset_cols()
+    return t
+
+
+def from_tuple(
+    trades: Iterable[Trade], symbol: str, ids: Iterable[int] = None
+) -> Trades:
     if ids is None:
         ids = range(len(trades))
 
     assert len(ids) == len(trades)
 
     trs = make_trades(symbol)
-    for i, t in zip(ids, trades)
-        trs.append_trade(t, 
+    for i, t in zip(ids, trades):
+        trs = trs.append_trade(t, i)
 
-    for t in trades:
-        trs = trs.add_trade(t)
-    return trs
+    return sort(trs)
 
 
 def make_trade(transactions: Iterable[Transaction]) -> Trade:
@@ -116,11 +116,19 @@ def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
     """Initialize Trades instance"""
     if df is None:
         df = pd.DataFrame()
+        t = Trades(df)
+        t.symbol = symbol
+        return t
 
     t = Trades(df)
     t.symbol = symbol
-    t.reset_cols()
-    return t
+    return sort(t)
+
+
+def concat(trades: Iterable[Trades]):
+    symbol = trades[0].symbol
+    df = pd.concat(trades, axis=0)
+    return make_trades(symbol, df)
 
 
 def flatten(trades: Trades) -> Trade:
