@@ -4,7 +4,7 @@ import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.trades.trades import from_tuple
+from backlight.trades.trades import make_trades
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def trades(symbol):
         name="amount",
     )
     trade = sr
-    trades = from_tuple([trade], symbol)
+    trades = make_trades(symbol, [trade])
     return trades
 
 

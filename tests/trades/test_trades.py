@@ -21,7 +21,7 @@ def trades(symbol):
             index=index[i : i + 2], data=data[i : i + 2], name="amount"
         )
         trades.append(trade)
-    trades = module.from_tuple(trades, symbol)
+    trades = module.make_trades(symbol, trades)
     return trades
 
 

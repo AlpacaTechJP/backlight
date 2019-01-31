@@ -3,7 +3,7 @@ import pandas as pd
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades, from_tuple, make_trade
+from backlight.trades.trades import Transaction, Trade, Trades, make_trades, make_trade
 from backlight.strategies.common import Action
 
 
@@ -36,4 +36,4 @@ def direction_based_entry(
         target_index = df[df["pred"] == direction.value].index
         trades += tuple(_entry(amount, idx, df.symbol) for idx in target_index)
 
-    return from_tuple(trades, df.symbol)
+    return make_trades(df.symbol, trades)

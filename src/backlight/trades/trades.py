@@ -80,22 +80,6 @@ def _sort(t: Trades) -> Trades:
     return t
 
 
-def from_tuple(
-    trades: Iterable[Trade], symbol: str, ids: Iterable[int] = None
-) -> Trades:
-    if ids is None:
-        ids = range(len(trades))
-
-    assert len(ids) == len(trades)
-
-    trs = Trades()
-    trs.symbol = symbol
-    for i, t in zip(ids, trades):
-        trs = trs.append_trade(t, i)
-
-    return _sort(trs)
-
-
 def make_trade(transactions: Iterable[Transaction]) -> Trade:
     """Initialize Trade instance"""
     index = [t.timestamp for t in transactions]
@@ -108,3 +92,19 @@ def concat(trades: Iterable[Trades]):
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
     return _sort(t)
+
+
+def make_trades(
+    symbol: str, trades: Iterable[Trade], ids: Iterable[int] = None
+) -> Trades:
+    if ids is None:
+        ids = range(len(trades))
+
+    assert len(ids) == len(trades)
+
+    trs = Trades()
+    trs.symbol = symbol
+    for i, t in zip(ids, trades):
+        trs = trs.append_trade(t, i)
+
+    return _sort(trs)

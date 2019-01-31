@@ -7,7 +7,7 @@ import backlight
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
-from backlight.trades.trades import Transaction, from_tuple, make_trade
+from backlight.trades.trades import Transaction, make_trades, make_trade
 
 
 @pytest.fixture
@@ -128,7 +128,8 @@ def test_exit_by_trailing_stop(market, signal, entries):
         ),
         symbol,
     )
-    entries = from_tuple(
+    entries = make_trades(
+        symbol,
         (
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0)]),
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0)]),
@@ -137,13 +138,13 @@ def test_exit_by_trailing_stop(market, signal, entries):
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
         ),
-        symbol,
     )
 
     initial_stop = 2.0
     trailing_stop = 1.0
     trades = module.exit_by_trailing_stop(market, entries, initial_stop, trailing_stop)
-    expected = from_tuple(
+    expected = make_trades(
+        symbol,
         (
             make_trade(
                 [
@@ -181,7 +182,6 @@ def test_exit_by_trailing_stop(market, signal, entries):
                 ]
             ),
         ),
-        symbol,
     )
 
     pd.testing.assert_frame_equal(trades, expected)

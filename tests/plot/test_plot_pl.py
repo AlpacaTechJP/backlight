@@ -6,7 +6,7 @@ import pytest
 
 import backlight.datasource
 import backlight.positions
-from backlight.trades.trades import Trade, from_tuple
+from backlight.trades.trades import Trade, make_trades
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def positions():
     for i in range(0, len(data), 2):
         trade = Trade(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
-    trades = from_tuple(trades, symbol)
+    trades = make_trades(symbol, trades)
 
     return backlight.positions.calc_positions(trades, market)
 
