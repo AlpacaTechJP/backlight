@@ -39,6 +39,11 @@ class Trades(pd.DataFrame):
             return []
         return self._id.unique().tolist()
 
+    @property
+    def amount(self) -> Trade:
+        a = self["amount"]
+        return a.groupby(a.index).sum().sort_index()
+
     def add_trade(self, trade: Trade) -> Type["Trades"]:
         next_id = _max(self.ids) + 1
         return self.append_trade(trade, next_id)
@@ -117,8 +122,3 @@ def concat(trades: Iterable[Trades]):
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
     return _sort(t)
-
-
-def flatten(trades: Trades) -> Trade:
-    """Flatten tuple of trade to a trade."""
-    return from_series(trades.amount)

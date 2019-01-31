@@ -3,7 +3,6 @@ import numpy as np
 from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
-from backlight.trades import flatten
 from backlight.trades.trades import Trade, Trades
 
 
@@ -45,7 +44,7 @@ class Positions(pd.DataFrame):
 
 
 def _pricer(trades: Trades, mkt: MarketData, principal: float) -> Positions:
-    trade = flatten(trades)
+    trade = trades.amount
 
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades

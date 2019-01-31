@@ -101,8 +101,7 @@ def test_exit_at_max_holding_time(market, signal, entries):
         ],
         columns=["exist", "amount"],
     )
-    trade = backlight.trades.flatten(trades)
-    assert (trade == expected.amount[expected.exist]).all()
+    assert (trades.amount == expected.amount[expected.exist]).all()
 
 
 def test_exit_by_trailing_stop(market, signal, entries):

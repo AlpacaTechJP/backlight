@@ -60,11 +60,3 @@ def test_Trade():
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
     assert (trade == expected).all()
-
-
-def test_flatten(symbol, trades):
-    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
-    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    expected = module.from_series(pd.Series(index=index, data=data, name="amount"))
-    trade = module.flatten(trades)
-    pd.testing.assert_series_equal(trade, expected)
