@@ -51,7 +51,7 @@ class Trades(pd.DataFrame):
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = trade_id
 
-        return make_trades(self.symbol, pd.concat([self, df], axis=0))
+        return _sort(concat([self, df]))
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -82,7 +82,7 @@ def from_series(sr: pd.Series) -> Trade:
     return sr
 
 
-def sort(t: Trades) -> Trades:
+def _sort(t: Trades) -> Trades:
     t["ind"] = t.index
     t = t.sort_values(by=["ind", "_id"])
     t.reset_cols()
@@ -97,11 +97,12 @@ def from_tuple(
 
     assert len(ids) == len(trades)
 
-    trs = make_trades(symbol)
+    trs = Trades()
+    trs.symbol = symbol
     for i, t in zip(ids, trades):
         trs = trs.append_trade(t, i)
 
-    return sort(trs)
+    return _sort(trs)
 
 
 def make_trade(transactions: Iterable[Transaction]) -> Trade:
@@ -112,23 +113,10 @@ def make_trade(transactions: Iterable[Transaction]) -> Trade:
     return from_series(sr)
 
 
-def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
-    """Initialize Trades instance"""
-    if df is None:
-        df = pd.DataFrame()
-        t = Trades(df)
-        t.symbol = symbol
-        return t
-
-    t = Trades(df)
-    t.symbol = symbol
-    return sort(t)
-
-
 def concat(trades: Iterable[Trades]):
-    symbol = trades[0].symbol
-    df = pd.concat(trades, axis=0)
-    return make_trades(symbol, df)
+    t = Trades(pd.concat(trades, axis=0))
+    t.symbol = trades[0].symbol
+    return _sort(t)
 
 
 def flatten(trades: Trades) -> Trade:

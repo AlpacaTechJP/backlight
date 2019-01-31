@@ -184,8 +184,5 @@ def test_exit_by_trailing_stop(market, signal, entries):
         ),
         symbol,
     )
-    print("GEGGGGE")
-    print(trades)
-    print(expected)
 
     pd.testing.assert_frame_equal(trades, expected)

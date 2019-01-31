@@ -5,7 +5,7 @@ from typing import Tuple
 
 import backlight.positions
 from backlight.datasource.marketdata import MarketData
-from backlight.trades.trades import Trade, Trades, make_trades, from_series
+from backlight.trades.trades import Trade, Trades, from_tuple
 from backlight.metrics.position_metrics import calc_pl, calc_position_performance
 
 
@@ -19,7 +19,7 @@ def _sum(a: pd.Series) -> float:
 
 def _calc_pl(trade: Trade, mkt: MarketData) -> float:
     mkt = mkt.loc[trade.index, :]
-    trades = make_trades(mkt.symbol).add_trade(trade)
+    trades = from_tuple([trade], mkt.symbol)
     positions = backlight.positions.calc_positions(trades, mkt)
     pl = calc_pl(positions)
     return _sum(pl)
