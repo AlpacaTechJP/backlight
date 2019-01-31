@@ -9,16 +9,14 @@ from backlight.datasource.marketdata import MarketData
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 
-class Trade(pd.Series):
-    """Series object like instance for Trade. The purpose of the class is
-        to improve computation speed.
-    """
+Trade = pd.Series
 
-    def add_transaction(self, t: Transaction) -> Type["Trade"]:
-        """Add transaction"""
-        sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
-        sr = pd.concat([self, sr])
-        return from_series(sr)
+
+def add_transaction(trade: Trade, t: Transaction) -> Trade:
+    """Add transaction"""
+    sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
+    sr = pd.concat([trade, sr])
+    return from_series(sr)
 
 
 def _max(s: pd.Series) -> int:
@@ -117,6 +115,10 @@ def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
     t.symbol = symbol
     t.reset_cols()
     return t
+
+
+def concat(trades: Iterable[Trade]):
+    return pd
 
 
 def flatten(trades: Trades) -> Trade:

@@ -7,7 +7,7 @@ from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import TernaryDirection
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades, from_tuple, from_series
+from backlight.trades.trades import Transaction, Trade, Trades, from_tuple, from_series, add_transaction
 from backlight.strategies.common import Action
 
 
@@ -71,7 +71,7 @@ def exit(
         idx = trade.index[0]
         df_exit = df[idx <= df.index]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = trade.add_transaction(transaction)
+        trade = add_transaction(trade, transaction)
         return trade
 
     symbol = entries.symbol
@@ -109,7 +109,7 @@ def exit_by_max_holding_time(
         idx = trade.index[0]
         df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = trade.add_transaction(transaction)
+        trade = add_transaction(trade, transaction)
         return trade
 
     symbol = entries.symbol

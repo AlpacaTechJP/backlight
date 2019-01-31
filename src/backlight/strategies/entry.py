@@ -3,13 +3,13 @@ import pandas as pd
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades, from_tuple
+from backlight.trades.trades import Transaction, Trade, Trades, from_tuple, add_transaction
 from backlight.strategies.common import Action
 
 
 def _entry(amount: float, idx: pd.Timestamp, symbol: str) -> Trade:
     trade = make_trade(symbol)
-    trade = trade.add_transaction(Transaction(timestamp=idx, amount=amount))
+    trade = add_transaction(trade, Transaction(timestamp=idx, amount=amount))
     return trade
 
 
