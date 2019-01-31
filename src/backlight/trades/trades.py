@@ -121,6 +121,4 @@ def concat(trades: Iterable[Trades]):
 
 def flatten(trades: Trades) -> Trade:
     """Flatten tuple of trade to a trade."""
-    amounts = trades.amount
-    amount = amounts.groupby(amounts.index).sum().sort_index()
-    return from_series(amount)
+    return from_series(trades.amount)
