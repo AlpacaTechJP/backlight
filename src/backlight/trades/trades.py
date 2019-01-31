@@ -46,16 +46,19 @@ class Trades(pd.DataFrame):
             return []
         return self._id.unique().tolist()
 
-    def add_trade(self, trade: pd.Series) -> Type["Trades"]:
+    def add_trade(self, trade: Trade) -> Type["Trades"]:
         next_id = _max(self.ids) + 1
-        df = trade.to_frame(name="amount")
-        df.loc[:, "_id"] = next_id
-
-        return make_trades(self.symbol, pd.concat([self, df], axis=0))
+        return self.append_trade(next_id, trade)
 
     def get_trade(self, trade_id: int) -> Trade:
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
+
+    def append_trade(self, trade_id: int, trade: Trade) -> Type["Trades"]:
+        df = trade.to_frame(name="amount")
+        df.loc[:, "_id"] = trade_id
+
+        return make_trades(self.symbol, pd.concat([self, df], axis=0))
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -95,10 +98,6 @@ def from_tuple(trades: Iterable[Trade], symbol: str) -> Trades:
 
 def make_trade(transactions: Iterable[Transaction]) -> Trade:
     """Initialize Trade instance"""
-    if transactions is None:
-        sr = pd.Series(name="amount")
-        return from_series(sr)
-
     index = [t.timestamp for t in transactions]
     data = [t.amount for t in transactions]
     sr = pd.Series(index=index, data=data, name="amount")
