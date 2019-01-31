@@ -54,14 +54,14 @@ class Trades(pd.DataFrame):
         assert self.symbol == trade.symbol
 
         next_id = _max(self.ids) + 1
-        print(trade)
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = next_id
 
         return make_trades(self.symbol, pd.concat([self, df], axis=0))
 
-    def get_trade(self, trade_id: int) -> Trade:
-        return from_series(self.loc[self._id == trade_id, "amount"], self.symbol)
+    def get_trade(self, trade_id: int) -> pd.Series:
+        trade = self.loc[self._id == trade_id, "amount"]
+        return trade.groupby(trade.index).sum().sort_index()
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
