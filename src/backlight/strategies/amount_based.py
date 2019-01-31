@@ -35,8 +35,8 @@ def direction_based_trades(
     amount = pd.Series(index=df.index, name="amount").astype(np.float64)
     for direction, action in direction_action_dict.items():
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
-    trade = from_series(amount, df.symbol)
-    return from_tuple((trade,))
+    trade = from_series(amount)
+    return from_tuple((trade,), df.symbol)
 
 
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:

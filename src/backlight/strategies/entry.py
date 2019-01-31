@@ -9,7 +9,7 @@ from backlight.strategies.common import Action
 
 def _entry(amount: float, idx: pd.Timestamp, symbol: str) -> Trade:
     trade = make_trade(symbol)
-    trade = trade.add(Transaction(timestamp=idx, amount=amount))
+    trade = trade.add_transaction(Transaction(timestamp=idx, amount=amount))
     return trade
 
 
@@ -36,4 +36,4 @@ def direction_based_entry(
         target_index = df[df["pred"] == direction.value].index
         trades += tuple(_entry(amount, idx, df.symbol) for idx in target_index)
 
-    return from_tuple(trades)
+    return from_tuple(trades, df.symbol)

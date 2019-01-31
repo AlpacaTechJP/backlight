@@ -53,8 +53,8 @@ def trades(symbol):
         data=data,
         name="amount",
     )
-    trade = from_series(sr, symbol)
-    trades = from_tuple([trade])
+    trade = from_series(sr)
+    trades = from_tuple([trade], symbol)
     return trades
 
 

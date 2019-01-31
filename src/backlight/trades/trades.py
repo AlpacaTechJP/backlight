@@ -14,13 +14,11 @@ class Trade(pd.Series):
         to improve computation speed.
     """
 
-    _metadata = ["symbol"]
-
-    def add(self, t: Transaction) -> Type["Trade"]:
+    def add_transaction(self, t: Transaction) -> Type["Trade"]:
         """Add transaction"""
         sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
         sr = pd.concat([self, sr])
-        return from_series(sr, self.symbol)
+        return from_series(sr)
 
 
 def _max(s: pd.Series) -> int:
@@ -50,18 +48,16 @@ class Trades(pd.DataFrame):
             return []
         return self._id.unique().tolist()
 
-    def add_trade(self, trade: Trade) -> Type["Trades"]:
-        assert self.symbol == trade.symbol
-
+    def add_trade(self, trade: pd.Series) -> Type["Trades"]:
         next_id = _max(self.ids) + 1
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = next_id
 
         return make_trades(self.symbol, pd.concat([self, df], axis=0))
 
-    def get_trade(self, trade_id: int) -> pd.Series:
+    def get_trade(self, trade_id: int) -> Trade:
         trade = self.loc[self._id == trade_id, "amount"]
-        return trade.groupby(trade.index).sum().sort_index()
+        return from_series(trade.groupby(trade.index).sum().sort_index())
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -78,7 +74,7 @@ def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0
 
 
-def from_series(sr: pd.Series, symbol: str) -> Trade:
+def from_series(sr: pd.Series) -> Trade:
     """Create a Trade instance from pd.Series.
 
     Args:
@@ -90,15 +86,12 @@ def from_series(sr: pd.Series, symbol: str) -> Trade:
     """
     sr = sr.groupby(sr.index).sum().sort_index()
     t = Trade(sr)
-    t.symbol = symbol
     return t
 
 
-def from_tuple(trades: Iterable[Trade]) -> Trades:
-    symbol = trades[0].symbol
+def from_tuple(trades: Iterable[Trade], symbol: str) -> Trades:
     trs = make_trades(symbol)
     for t in trades:
-        print(t)
         trs = trs.add_trade(t)
     return trs
 
@@ -107,12 +100,12 @@ def make_trade(symbol: str, transactions: Iterable[Transaction] = None) -> Trade
     """Initialize Trade instance"""
     if transactions is None:
         sr = pd.Series(name="amount")
-        return from_series(sr, symbol)
+        return from_series(sr)
 
     index = [t.timestamp for t in transactions]
     data = [t.amount for t in transactions]
     sr = pd.Series(index=index, data=data, name="amount")
-    return from_series(sr, symbol)
+    return from_series(sr)
 
 
 def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:
@@ -130,4 +123,4 @@ def flatten(trades: Trades) -> Trade:
     """Flatten tuple of trade to a trade."""
     amounts = trades.amount
     amount = amounts.groupby(amounts.index).sum().sort_index()
-    return from_series(amount, trades.symbol)
+    return from_series(amount)

@@ -31,11 +31,10 @@ def trades(symbol):
     trades = []
     for i in range(0, len(data), 2):
         trade = tr.from_series(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
-            symbol,
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         )
         trades.append(trade)
-    trades = tr.from_tuple(trades)
+    trades = tr.from_tuple(trades, symbol)
     return trades
 
 

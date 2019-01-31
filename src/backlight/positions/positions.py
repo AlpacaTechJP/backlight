@@ -44,7 +44,8 @@ class Positions(pd.DataFrame):
         return Positions
 
 
-def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
+def _pricer(trades: Trades, mkt: MarketData, principal: float) -> Positions:
+    trade = flatten(trades)
 
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
@@ -61,10 +62,7 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     positions.loc[initial_idx, "price"] = 0.0
     positions.loc[initial_idx, "principal"] = principal
 
-    pos = Positions(positions.sort_index())
-    pos.reset_cols()
-    pos.symbol = trade.symbol
-    return pos
+    return positions.sort_index()
 
 
 def calc_positions(
@@ -78,11 +76,10 @@ def calc_positions(
         mkt: Market data.
         principal: The initial principal value.
     """
-    trade = flatten(trades)
+    assert trades.symbol == mkt.symbol
+    assert trades.index.isin(mkt.index).all()
 
-    assert trade.symbol == mkt.symbol
-    assert (trade.index.isin(mkt.index)).all()
-
-    positions = _pricer(trade, mkt, principal)
-    positions.symbol = trade.symbol
-    return positions
+    pos = Positions(_pricer(trades, mkt, principal))
+    pos.reset_cols()
+    pos.symbol = trades.symbol
+    return pos

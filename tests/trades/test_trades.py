@@ -18,11 +18,10 @@ def trades(symbol):
     trades = []
     for i in range(0, len(data), 2):
         trade = module.from_series(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
-            symbol,
+            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         )
         trades.append(trade)
-    trades = module.from_tuple(trades)
+    trades = module.from_tuple(trades, symbol)
     return trades
 
 
@@ -67,8 +66,6 @@ def test_Trade():
 def test_flatten(symbol, trades):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    expected = module.from_series(
-        pd.Series(index=index, data=data, name="amount"), symbol
-    )
+    expected = module.from_series(pd.Series(index=index, data=data, name="amount"))
     trade = module.flatten(trades)
     pd.testing.assert_series_equal(trade, expected)

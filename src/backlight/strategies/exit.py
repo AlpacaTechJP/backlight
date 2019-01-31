@@ -71,15 +71,12 @@ def exit(
         idx = trade.index[0]
         df_exit = df[idx <= df.index]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = trade.add(transaction)
+        trade = trade.add_transaction(transaction)
         return trade
 
     symbol = entries.symbol
-    trades = tuple(
-        _exit(from_series(entries.get_trade(i), symbol), df, exit_condition)
-        for i in entries.ids
-    )
-    return from_tuple(trades)
+    trades = tuple(_exit(entries.get_trade(i), df, exit_condition) for i in entries.ids)
+    return from_tuple(trades, symbol)
 
 
 def exit_by_max_holding_time(
@@ -112,20 +109,17 @@ def exit_by_max_holding_time(
         idx = trade.index[0]
         df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade = trade.add(transaction)
+        trade = trade.add_transaction(transaction)
         return trade
 
     symbol = entries.symbol
     trades = tuple(
         _exit_by_max_holding_time(
-            from_series(entries.get_trade(i), symbol),
-            df,
-            max_holding_time,
-            exit_condition,
+            entries.get_trade(i), df, max_holding_time, exit_condition
         )
         for i in entries.ids
     )
-    return from_tuple(trades)
+    return from_tuple(trades, symbol)
 
 
 def exit_at_max_holding_time(

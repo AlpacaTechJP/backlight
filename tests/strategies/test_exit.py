@@ -141,7 +141,8 @@ def test_exit_by_trailing_stop(market, signal, entries):
             _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0)]),
             _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
             _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
-        )
+        ),
+        symbol,
     )
 
     initial_stop = 2.0
@@ -184,7 +185,8 @@ def test_exit_by_trailing_stop(market, signal, entries):
                     Transaction(pd.Timestamp("2018-06-06 00:10:00"), 1.0),  # trail stop
                 ]
             ),
-        )
+        ),
+        symbol,
     )
 
     print(trades)

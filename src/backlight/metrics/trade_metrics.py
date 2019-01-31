@@ -19,7 +19,7 @@ def _sum(a: pd.Series) -> float:
 
 def _calc_pl(trade: Trade, mkt: MarketData) -> float:
     mkt = mkt.loc[trade.index, :]
-    trades = make_trades(trade.symbol).add_trade(trade)
+    trades = make_trades(mkt.symbol).add_trade(trade)
     positions = backlight.positions.calc_positions(trades, mkt)
     pl = calc_pl(positions)
     return _sum(pl)
@@ -37,9 +37,8 @@ def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
     Returns:
         total count, win count, lose count
     """
-    symbol = trades.symbol
     pls = [
-        _calc_pl(from_series(trades.get_trade(i), symbol), mkt)
+        _calc_pl(trades.get_trade(i), mkt)
         for i in trades.ids
         if len(trades.get_trade(i).index) > 1
     ]
