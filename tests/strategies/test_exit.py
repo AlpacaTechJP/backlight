@@ -7,14 +7,11 @@ import backlight
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
-from backlight.trades.trades import Transaction, Trade, from_tuple
+from backlight.trades.trades import Transaction, from_tuple, make_trade
 
 
 def _make_trade(transactions, symbol="hoge"):
-    trade = Trade(symbol)
-    for t in transactions:
-        trade.add(t)
-    return trade
+    return make_trade(symbol, transactions)
 
 
 @pytest.fixture
@@ -109,7 +106,7 @@ def test_exit_at_max_holding_time(market, signal, entries):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_exit_by_trailing_stop(market, signal, entries):

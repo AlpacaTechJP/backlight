@@ -33,7 +33,7 @@ def _exit_transaction(
         exit_index = df.index[-1]
     else:
         exit_index = exit_indices[0]
-    return Transaction(timestamp=exit_index, amount=-trade.amount.sum())
+    return Transaction(timestamp=exit_index, amount=-trade.sum())
 
 
 def _no_exit_condition(df: pd.DataFrame, trade: Trade) -> pd.Series:
@@ -65,13 +65,13 @@ def exit(
         df: pd.DataFrame,
         exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
     ) -> Trade:
-        if trade.amount.sum() == 0:
+        if trade.sum() == 0:
             return trade
 
         idx = trade.index[0]
         df_exit = df[idx <= df.index]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade.add(transaction)
+        trade = trade.add(transaction)
         return trade
 
     symbol = entries.symbol
@@ -112,7 +112,7 @@ def exit_by_max_holding_time(
         idx = trade.index[0]
         df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
         transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade.add(transaction)
+        trade = trade.add(transaction)
         return trade
 
     symbol = entries.symbol
@@ -232,7 +232,7 @@ def exit_by_trailing_stop(
     def _exit_by_trailing_stop(df: pd.DataFrame, trade: Trade) -> pd.Series:
         prices = df.mid
 
-        amount = trade.amount.sum()
+        amount = trade.sum()
         entry_price = prices.iloc[0]
         pl_per_amount = np.sign(amount) * (prices - entry_price)
         is_initial_stop = pl_per_amount <= -initial_stop

@@ -6,13 +6,6 @@ import pandas as pd
 import backlight.datasource
 
 
-def _make_trade(transactions, symbol="hoge"):
-    trade = module.Trade(symbol)
-    for t in transactions:
-        trade.add(t)
-    return trade
-
-
 @pytest.fixture
 def symbol():
     return "usdjpy"
@@ -45,6 +38,7 @@ def market(symbol):
 
 
 def test_Trade():
+    symbol = "hoge"
     periods = 2
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = range(periods)
@@ -53,21 +47,21 @@ def test_Trade():
     t11 = module.Transaction(timestamp=dates[1], amount=amounts[1])
     t01 = module.Transaction(timestamp=dates[0], amount=amounts[1])
 
-    trade = _make_trade([t00, t11])
+    trade = module.make_trade(symbol, [t00, t11])
     expected = pd.Series(index=dates, data=amounts[:2], name="amount")
-    assert (trade.amount == expected).all()
+    assert (trade == expected).all()
 
-    trade = _make_trade([t00, t01])
+    trade = module.make_trade(symbol, [t00, t01])
     expected = pd.Series(
         index=[dates[0]], data=[amounts[0] + amounts[1]], name="amount"
     )
-    assert (trade.amount == expected).all()
+    assert (trade == expected).all()
 
-    trade = _make_trade([t11, t01, t00])
+    trade = module.make_trade(symbol, [t11, t01, t00])
     expected = pd.Series(
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
-    assert (trade.amount == expected).all()
+    assert (trade == expected).all()
 
 
 def test_flatten(symbol, trades):
@@ -77,4 +71,4 @@ def test_flatten(symbol, trades):
         pd.Series(index=index, data=data, name="amount"), symbol
     )
     trade = module.flatten(trades)
-    pd.testing.assert_series_equal(trade.amount, expected.amount)
+    pd.testing.assert_series_equal(trade, expected)

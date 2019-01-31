@@ -6,13 +6,6 @@ import backlight.datasource
 from backlight.trades import trades as tr
 
 
-def _make_trade(transactions, symbol="hoge"):
-    trade = module.Trade(symbol)
-    for t in transactions:
-        trade.add(t)
-    return trade
-
-
 @pytest.fixture
 def symbol():
     return "usdjpy"
@@ -61,16 +54,16 @@ def test__calc_pl():
         pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
     )
 
-    trade = _make_trade([t00, t11], symbol)
+    trade = tr.make_trade(symbol, [t00, t11])
     assert module._calc_pl(trade, mkt) == 1.0
 
-    trade = _make_trade([t00, t01], symbol)
+    trade = tr.make_trade(symbol, [t00, t01])
     assert module._calc_pl(trade, mkt) == 0.0
 
-    trade = _make_trade([t11, t20], symbol)
+    trade = tr.make_trade(symbol, [t11, t20])
     assert module._calc_pl(trade, mkt) == -1.0
 
-    trade = _make_trade([t00, t10, t20], symbol)
+    trade = tr.make_trade(symbol, [t00, t10, t20])
     assert module._calc_pl(trade, mkt) == 3.0
 
 

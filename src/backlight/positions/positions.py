@@ -49,9 +49,9 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
     positions = pd.DataFrame(index=idx)
-    positions.loc[:, "amount"] = trade.amount.cumsum()
+    positions.loc[:, "amount"] = trade.cumsum()
     positions.loc[:, "price"] = mkt.mid.loc[idx]
-    fee = mkt.fee(trade.amount)
+    fee = mkt.fee(trade)
     positions.loc[:, "principal"] = -fee.cumsum() + principal
     positions = positions.ffill()
 

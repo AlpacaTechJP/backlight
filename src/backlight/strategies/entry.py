@@ -9,7 +9,7 @@ from backlight.strategies.common import Action
 
 def _entry(amount: float, idx: pd.Timestamp, symbol: str) -> Trade:
     trade = make_trade(symbol)
-    trade.add(Transaction(timestamp=idx, amount=amount))
+    trade = trade.add(Transaction(timestamp=idx, amount=amount))
     return trade
 
 

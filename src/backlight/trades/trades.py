@@ -9,39 +9,19 @@ from backlight.datasource.marketdata import MarketData
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 
 
-class Trade:
+class Trade(pd.Series):
     """Series object like instance for Trade. The purpose of the class is
         to improve computation speed.
     """
 
-    def __init__(self, symbol: str) -> None:
-        self._symbol = symbol
-        self._index = ()  # type: tuple
-        self._amount = ()  # type: tuple
+    _metadata = ["symbol"]
 
-    def __repr__(self) -> str:
-        return str(self.amount)
-
-    def add(self, t: Transaction) -> None:
+    def add(self, t: Transaction) -> Type["Trade"]:
         """Add transaction"""
-        self._index += (t.timestamp,)
-        self._amount += (t.amount,)
-
-    @property
-    def amount(self) -> pd.Series:
-        """Amount of transactions at that moment"""
-        amount = pd.Series(data=self._amount, index=self._index)
-        return amount.groupby(amount.index).sum().sort_index()
-
-    @property
-    def index(self) -> pd.Index:
-        """Index of transactions"""
-        return pd.Index(self._index).drop_duplicates().sort_values()
-
-    @property
-    def symbol(self) -> str:
-        """Asset symbol"""
-        return self._symbol
+        sr = pd.Series(index=[t.timestamp], data=[t.amount], name="amount")
+        sr = pd.concat([self, sr])
+        sr = sr.groupby(sr.index).sum().sort_index()
+        return from_series(sr, self.symbol)
 
 
 def _max(s: pd.Series) -> int:
@@ -75,13 +55,14 @@ class Trades(pd.DataFrame):
         assert self.symbol == trade.symbol
 
         next_id = _max(self.ids) + 1
-        df = trade.amount.to_frame(name="amount")
+        print(trade)
+        df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = next_id
 
         return make_trades(self.symbol, pd.concat([self, df], axis=0))
 
-    def get_trade(self, trade_id: int) -> pd.Series:
-        return self.loc[self._id == trade_id, "amount"]
+    def get_trade(self, trade_id: int) -> Trade:
+        return from_series(self.loc[self._id == trade_id, "amount"], self.symbol)
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -108,9 +89,8 @@ def from_series(sr: pd.Series, symbol: str) -> Trade:
     Returns:
         Trade
     """
-    t = Trade(symbol)
-    t._index = tuple([i for i in sr.index])
-    t._amount = tuple(sr.values.tolist())
+    t = Trade(sr)
+    t.symbol = symbol
     return t
 
 
@@ -118,14 +98,21 @@ def from_tuple(trades: Iterable[Trade]) -> Trades:
     symbol = trades[0].symbol
     trs = make_trades(symbol)
     for t in trades:
+        print(t)
         trs = trs.add_trade(t)
     return trs
 
 
-def make_trade(symbol: str) -> Trade:
+def make_trade(symbol: str, transactions: Iterable[Transaction] = None) -> Trade:
     """Initialize Trade instance"""
-    t = Trade(symbol)
-    return t
+    if transactions is None:
+        sr = pd.Series(name="amount")
+        return from_series(sr, symbol)
+
+    trade = make_trade(symbol)
+    for t in transactions:
+        trade = trade.add(t)
+    return trade
 
 
 def make_trades(symbol: str, df: pd.DataFrame = None) -> Trades:

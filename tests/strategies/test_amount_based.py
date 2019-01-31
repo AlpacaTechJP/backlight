@@ -93,7 +93,7 @@ def test_direction_based_trades(market, signal):
         name="amount",
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected).all()
+    assert (trade == expected).all()
 
 
 def test_entry_exit_trades(market, signal):
@@ -135,7 +135,7 @@ def test_entry_exit_trades(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_simple_entry_and_exit(market, signal):
@@ -170,7 +170,7 @@ def test_simple_entry_and_exit(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_only_entry_short_and_exit(market, signal):
@@ -205,7 +205,7 @@ def test_only_entry_short_and_exit(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_only_entry_long_and_exit(market, signal):
@@ -240,7 +240,7 @@ def test_only_entry_long_and_exit(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_entry_and_exit_opposite_signal(market, signal):
@@ -275,7 +275,7 @@ def test_entry_and_exit_opposite_signal(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_entry_and_exit_other_signal(market, signal):
@@ -310,7 +310,7 @@ def test_entry_and_exit_other_signal(market, signal):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
 
 
 def test_entry_and_exit_by_expectation(market):
@@ -352,4 +352,4 @@ def test_entry_and_exit_by_expectation(market):
         columns=["exist", "amount"],
     )
     trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trade == expected.amount[expected.exist]).all()
