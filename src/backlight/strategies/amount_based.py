@@ -36,7 +36,7 @@ def direction_based_trades(
     for direction, action in direction_action_dict.items():
         amount.loc[df["pred"] == direction.value] = action.act_on_amount()
     trade = amount
-    return make_trades(df.symbol, (trade,))
+    return make_trades(df.symbol, [trade])
 
 
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:

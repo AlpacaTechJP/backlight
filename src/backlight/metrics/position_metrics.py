@@ -6,7 +6,6 @@ from typing import Tuple
 from backlight.datasource.marketdata import MarketData
 from backlight.positions import calc_positions
 from backlight.positions.positions import Positions
-from backlight.trades.trades import Trade, Trades
 
 
 def _sum(a: pd.Series) -> float:

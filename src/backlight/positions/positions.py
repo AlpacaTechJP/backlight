@@ -3,7 +3,7 @@ import numpy as np
 from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
-from backlight.trades.trades import Trade, Trades
+from backlight.trades.trades import Trades
 
 
 def _freq(idx: pd.Index) -> pd.Timedelta:

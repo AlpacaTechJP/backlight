@@ -17,9 +17,7 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = module.Trade(
-            index=index[i : i + 2], data=data[i : i + 2], name="amount"
-        )
+        trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
     trades = module.make_trades(symbol, trades)
     return trades
@@ -36,7 +34,7 @@ def market(symbol):
     return backlight.datasource.from_dataframe(df, symbol)
 
 
-def test_Trade():
+def test_make_trade():
     periods = 2
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = range(periods)

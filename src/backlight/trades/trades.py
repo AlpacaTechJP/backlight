@@ -1,15 +1,12 @@
 import pandas as pd
 from collections import namedtuple
 from functools import lru_cache
-from typing import Any, Type, Tuple, List, Iterable  # noqa
+from typing import Type, List, Iterable, Optional  # noqa
 
 from backlight.datasource.marketdata import MarketData
 
 
 Transaction = namedtuple("Transaction", ["timestamp", "amount"])
-
-
-Trade = pd.Series
 
 
 def _max(s: pd.Series) -> int:
@@ -40,15 +37,15 @@ class Trades(pd.DataFrame):
         return self._id.unique().tolist()
 
     @property
-    def amount(self) -> Trade:
+    def amount(self) -> pd.Series:
         a = self["amount"]
         return a.groupby(a.index).sum().sort_index()
 
-    def get_trade(self, trade_id: int) -> Trade:
+    def get_trade(self, trade_id: int) -> pd.Series:
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
 
-    def add_trade(self, trade: Trade, trade_id: int) -> Type["Trades"]:
+    def add_trade(self, trade: pd.Series, trade_id: int) -> Type["Trades"]:
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = trade_id
 
@@ -76,7 +73,7 @@ def _sort(t: Trades) -> Trades:
     return t
 
 
-def make_trade(transactions: Iterable[Transaction]) -> Trade:
+def make_trade(transactions: Iterable[Transaction]) -> pd.Series:
     """Initialize Trade instance"""
     index = [t.timestamp for t in transactions]
     data = [t.amount for t in transactions]
@@ -84,23 +81,25 @@ def make_trade(transactions: Iterable[Transaction]) -> Trade:
     return sr.groupby(sr.index).sum().sort_index()
 
 
-def concat(trades: Iterable[Trades]):
+def concat(trades: List[Trades]) -> Trades:
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
     return _sort(t)
 
 
 def make_trades(
-    symbol: str, trades: Iterable[Trade], ids: Iterable[int] = None
+    symbol: str, trades: List[pd.Series], ids: Optional[List[int]] = None
 ) -> Trades:
     if ids is None:
-        ids = range(len(trades))
+        _ids = list(range(len(trades)))
+    else:
+        _ids = ids
 
-    assert len(ids) == len(trades)
+    assert len(_ids) == len(trades)
 
     trs = Trades()
     trs.symbol = symbol
-    for i, t in zip(ids, trades):
-        trs = trs.add_trade(t, i)
+    for i, t in zip(_ids, trades):
+        trs = trs.add_trade(t, i)  # type: ignore
 
     return _sort(trs)

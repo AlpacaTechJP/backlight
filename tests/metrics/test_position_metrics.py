@@ -30,7 +30,7 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1D", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = tr.Trade(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
     trades = tr.make_trades(symbol, trades)
     return trades
