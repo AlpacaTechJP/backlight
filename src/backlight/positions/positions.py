@@ -43,7 +43,7 @@ class Positions(pd.DataFrame):
         return Positions
 
 
-def _pricer(trades: Trades, mkt: MarketData, principal: float) -> Positions:
+def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
     trade = trades.amount
 
     # historical data

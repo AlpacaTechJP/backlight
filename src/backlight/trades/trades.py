@@ -12,7 +12,6 @@ Transaction = namedtuple("Transaction", ["timestamp", "amount"])
 def _max(s: pd.Series) -> int:
     if len(s) == 0:
         return 0
-
     return max(s)
 
 
