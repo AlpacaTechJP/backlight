@@ -1,7 +1,7 @@
 import pandas as pd
 from collections import namedtuple
 from functools import lru_cache
-from typing import Type, List, Iterable, Optional  # noqa
+from typing import Any, Type, List, Iterable, Optional  # noqa
 
 from backlight.datasource.marketdata import MarketData
 
@@ -54,6 +54,38 @@ class Trades(pd.DataFrame):
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
 
+    def get_any(self, key: Any) -> Type["Trades"]:
+        """Filter trade which match conditions at least one element.
+
+        Args:
+            key: Same arguments with pd.DataFrame.__getitem__.
+
+        Returns:
+            Trades.
+        """
+        filterd_ids = self[key].ids
+        trades = [self.get_trade(i) for i in filterd_ids]
+        return make_trades(self.symbol, trades, filterd_ids)
+
+    def get_all(self, key: Any) -> Type["Trades"]:
+        """Filter trade which match conditions at least one element.
+
+        Args:
+            key: Same arguments with pd.DataFrame.__getitem__.
+
+        Returns:
+            Trades.
+        """
+        filterd = self[key]
+        ids = []
+        trades = []
+        for i in filterd.ids:
+            t = self.get_trade(i)
+            if t.equals(filterd.get_trade(i)):
+                ids.append(i)
+                trades.append(t)
+        return make_trades(self.symbol, trades, ids)
+
     def add_trade(self, trade: pd.Series, trade_id: int) -> Type["Trades"]:
         """Register new trade.
 
@@ -68,19 +100,6 @@ class Trades(pd.DataFrame):
         df.loc[:, "_id"] = trade_id
 
         return _sort(concat([self, df]))
-
-    def filter_trade(self, **kwargs) -> Type["Trades"]:
-        """Filter trades which match conditions at least one element.
-
-        Args:
-            kwargs: Same key ward arguments with pd.DataFrame.filter.
-
-        Returns:
-            Trades.
-        """
-        filterd_ids = self.filter(**kwargs).ids
-        trades = [self.get_trade(i) for i in filterd_ids]
-        return make_trades(self.symbol, trades, filterd_ids)
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""

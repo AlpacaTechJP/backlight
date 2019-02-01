@@ -34,11 +34,24 @@ def test_trades_amount(trades):
     pd.testing.assert_series_equal(trades.amount, expected)
 
 
-def test_trades_filter_trade(trades):
-    data = [1.0, -2.0]
-    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+def test_trades_get_all(trades):
+    data = [1.0, -2.0, -4.0, 2.0]
+    index = [
+        pd.Timestamp("2018-06-06 00:00:00"),
+        pd.Timestamp("2018-06-06 00:01:00"),
+        pd.Timestamp("2018-06-06 00:04:00"),
+        pd.Timestamp("2018-06-06 00:05:00"),
+    ]
     expected = pd.Series(data=data, index=index, name="amount")
-    result = trades.filter_trade(trades.index == index[0])
+    result = trades.get_any(trades.index.minute.isin([0, 4, 5]))
+    pd.testing.assert_series_equal(result.amount, expected)
+
+
+def test_trades_get_any(trades):
+    data = [-4.0, 2.0]
+    index = [pd.Timestamp("2018-06-06 00:04:00"), pd.Timestamp("2018-06-06 00:05:00")]
+    expected = pd.Series(data=data, index=index, name="amount")
+    result = trades.get_all(trades.index.minute.isin([0, 4, 5]))
     pd.testing.assert_series_equal(result.amount, expected)
 
 
