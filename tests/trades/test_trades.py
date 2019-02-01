@@ -34,6 +34,14 @@ def test_trades_amount(trades):
     pd.testing.assert_series_equal(trades.amount, expected)
 
 
+def test_trades_filter_trade(trades):
+    data = [1.0, -2.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    result = trades.filter_trade(trades.index == index[0])
+    pd.testing.assert_series_equal(result.amount, expected)
+
+
 def test_trades_get_trade(trades):
     data = [1.0, -2.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))

@@ -44,7 +44,7 @@ class Trades(pd.DataFrame):
 
     def get_trade(self, trade_id: int) -> pd.Series:
         """Get trade.
-        
+
         Args:
             trade_id: Id for the trade.
                       Trades of the same id are recognized as one individual trade.
@@ -56,7 +56,7 @@ class Trades(pd.DataFrame):
 
     def add_trade(self, trade: pd.Series, trade_id: int) -> Type["Trades"]:
         """Register new trade.
-        
+
         Args:
             trade: Trade.
             trade_id: Id for the trade.
@@ -68,6 +68,19 @@ class Trades(pd.DataFrame):
         df.loc[:, "_id"] = trade_id
 
         return _sort(concat([self, df]))
+
+    def filter_trade(self, **kwargs) -> Type["Trades"]:
+        """Filter trades which match conditions at least one element.
+
+        Args:
+            kwargs: Same key ward arguments with pd.DataFrame.filter.
+
+        Returns:
+            Trades.
+        """
+        filterd_ids = self.filter(**kwargs).ids
+        trades = [self.get_trade(i) for i in filterd_ids]
+        return make_trades(self.symbol, trades, filterd_ids)
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
