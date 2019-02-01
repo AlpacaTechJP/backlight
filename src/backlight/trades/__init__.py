@@ -1,1 +1,1 @@
-from backlight.trades.trades import make_trades  # noqa
+from backlight.trades.trades import make_trade, make_trades  # noqa
