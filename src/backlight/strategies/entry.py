@@ -5,7 +5,7 @@ from typing import List
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Trades
+from backlight.trades.trades import Trades, from_dataframe
 from backlight.strategies.common import Action
 
 
@@ -42,6 +42,5 @@ def direction_based_entry(
     df_trades = pd.concat(trades, axis=0).sort_index()
     df_trades.loc[:, "_id"] = range(len(df_trades.index))
 
-    t = Trades(df_trades)
-    t.symbol = df.symbol
+    t = from_dataframe(df_trades, df.symbol)
     return t

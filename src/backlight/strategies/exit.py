@@ -7,7 +7,12 @@ from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import TernaryDirection
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trades, make_trades, concat
+from backlight.trades.trades import (
+    Transaction,
+    Trades,
+    concat,
+    from_dataframe,
+)
 from backlight.strategies.common import Action
 
 
@@ -66,26 +71,27 @@ def exit(
         exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
     ) -> pd.Series:
 
-        exits = []  # type: List[pd.Series]
-        ids = []  # type: List[int]
+        indices = []  # type: List[pd.Timestamp]
+        exits = []  # type: List[float]
         for i in trades.ids:
             trade = trades.get_trade(i)
-
             if trade.sum() == 0:
                 continue
 
             idx = trade.index[0]
             df_exit = df[idx <= df.index]
             transaction = _exit_transaction(df_exit, trade, exit_condition)
-            exits.append(make_trade([transaction]))
-            ids.append(i)
 
-        return make_trades(symbol, exits, ids)
+            indices.append(transaction.timestamp)
+            exits.append((transaction.amount, i))
+
+        df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
+
+        return from_dataframe(df, symbol)
 
     symbol = entries.symbol
     exits = _exit(entries, df, exit_condition)
-    df = concat([entries, exits])
-    return df
+    return concat([entries, exits])
 
 
 def exit_by_max_holding_time(
@@ -115,27 +121,27 @@ def exit_by_max_holding_time(
         max_holding_time: pd.Timedelta,
         exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
     ) -> Trades:
-        exits = []  # type: List[pd.Series]
-        ids = []  # type: List[int]
+
+        indices = []  # type: List[pd.Timestamp]
+        exits = []  # type: List[float]
         for i in trades.ids:
             trade = trades.get_trade(i)
-
             if trade.sum() == 0:
                 continue
 
             idx = trade.index[0]
             df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
             transaction = _exit_transaction(df_exit, trade, exit_condition)
-            exits.append(make_trade([transaction]))
-            ids.append(i)
 
-        return make_trades(symbol, exits, ids)
+            indices.append(transaction.timestamp)
+            exits.append((transaction.amount, i))
 
-    symbol = entries.symbol
+        df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
+        return from_dataframe(df, symbol)
+
     symbol = entries.symbol
     exits = _exit_by_max_holding_time(entries, df, max_holding_time, exit_condition)
-    df = concat([entries, exits])
-    return df
+    return concat([entries, exits])
 
 
 def exit_at_max_holding_time(

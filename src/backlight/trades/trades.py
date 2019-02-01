@@ -51,8 +51,7 @@ class Trades(pd.DataFrame):
         Returns:
             Trade of pd.Series.
         """
-        trade = self.loc[self._id == trade_id, "amount"]
-        return trade.groupby(trade.index).sum().sort_index()
+        return self.loc[self._id == trade_id, "amount"]
 
     def get_any(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions at least one element.
@@ -68,7 +67,7 @@ class Trades(pd.DataFrame):
         return make_trades(self.symbol, trades, filterd_ids)
 
     def get_all(self, key: Any) -> Type["Trades"]:
-        """Filter trade which match conditions at least one element.
+        """Filter trade which match conditions for all elements.
 
         Args:
             key: Same arguments with pd.DataFrame.__getitem__.
@@ -129,6 +128,24 @@ def make_trade(transactions: Iterable[Transaction]) -> pd.Series:
     data = [t.amount for t in transactions]
     sr = pd.Series(index=index, data=data, name="amount")
     return sr.groupby(sr.index).sum().sort_index()
+
+
+def from_dataframe(df: pd.DataFrame, symbol: str) -> Trades:
+    """Create a Trades instance out of a DataFrame object
+
+    Args:
+        df:  DataFrame
+        symbol: symbol to query
+
+    Returns:
+        Trades
+    """
+
+    trades = Trades(df.copy())
+    trades.symbol = symbol
+    trades.reset_cols()
+
+    return _sort(trades)
 
 
 def concat(trades: List[Trades]) -> Trades:
