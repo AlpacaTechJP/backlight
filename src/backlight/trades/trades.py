@@ -22,8 +22,7 @@ class Trades(pd.DataFrame):
     This is designed to achieve following purposes
     1. Compute metrics which need individual trade perfomance
        s.t. win_rate and lose_rate.
-    2. Filter the trades
-       s.t. `[t for t in trades if trades.index[0].hour in [0, 1, 2])]`.
+    2. Filter the trades.
     """
 
     _metadata = ["symbol"]
@@ -32,20 +31,39 @@ class Trades(pd.DataFrame):
 
     @property
     def ids(self) -> List[int]:
+        """Return all unique ids"""
         if "_id" not in self.columns:
             return []
         return self._id.unique().tolist()
 
     @property
     def amount(self) -> pd.Series:
+        """Flattend as one Trade"""
         a = self["amount"]
         return a.groupby(a.index).sum().sort_index()
 
     def get_trade(self, trade_id: int) -> pd.Series:
+        """Get trade.
+        
+        Args:
+            trade_id: Id for the trade.
+                      Trades of the same id are recognized as one individual trade.
+        Returns:
+            Trade of pd.Series.
+        """
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
 
     def add_trade(self, trade: pd.Series, trade_id: int) -> Type["Trades"]:
+        """Register new trade.
+        
+        Args:
+            trade: Trade.
+            trade_id: Id for the trade.
+                      Trades of the same id are recognized as one individual trade.
+        Returns:
+            Trades.
+        """
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = trade_id
 
@@ -74,7 +92,7 @@ def _sort(t: Trades) -> Trades:
 
 
 def make_trade(transactions: Iterable[Transaction]) -> pd.Series:
-    """Initialize Trade instance"""
+    """Create Trade instance from transacsions"""
     index = [t.timestamp for t in transactions]
     data = [t.amount for t in transactions]
     sr = pd.Series(index=index, data=data, name="amount")
@@ -82,6 +100,7 @@ def make_trade(transactions: Iterable[Transaction]) -> pd.Series:
 
 
 def concat(trades: List[Trades]) -> Trades:
+    """Concatenate some fo Trades"""
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
     return _sort(t)
@@ -90,6 +109,7 @@ def concat(trades: List[Trades]) -> Trades:
 def make_trades(
     symbol: str, trades: List[pd.Series], ids: Optional[List[int]] = None
 ) -> Trades:
+    """Create Trades from some of trades"""
     if ids is None:
         _ids = list(range(len(trades)))
     else:

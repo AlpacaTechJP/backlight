@@ -3,7 +3,6 @@ from backlight.trades import trades as module
 import pytest
 
 import pandas as pd
-import backlight.datasource
 
 
 @pytest.fixture
@@ -23,15 +22,34 @@ def trades(symbol):
     return trades
 
 
-@pytest.fixture
-def market(symbol):
-    data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
-        data=data,
-        columns=["mid"],
-    )
-    return backlight.datasource.from_dataframe(df, symbol)
+def test_trades_ids(trades):
+    expected = [0, 1, 2, 3, 4]
+    assert trades.ids == expected
+
+
+def test_trades_amount(trades):
+    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    pd.testing.assert_series_equal(trades.amount, expected)
+
+
+def test_trades_get_trade(trades):
+    data = [1.0, -2.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    pd.testing.assert_series_equal(trades.get_trade(0), expected)
+
+
+def test_trades_add_trade(trades):
+    data = [1.0, -2.0]
+    trade_id = 9
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    t = pd.Series(data=data, index=index, name="amount")
+
+    expected = t
+    trades = trades.add_trade(expected, trade_id)
+    pd.testing.assert_series_equal(trades.get_trade(trade_id), expected)
 
 
 def test_make_trade():
@@ -45,16 +63,16 @@ def test_make_trade():
 
     trade = module.make_trade([t00, t11])
     expected = pd.Series(index=dates, data=amounts[:2], name="amount")
-    assert (trade == expected).all()
+    pd.testing.assert_series_equal(trade, expected)
 
     trade = module.make_trade([t00, t01])
     expected = pd.Series(
         index=[dates[0]], data=[amounts[0] + amounts[1]], name="amount"
     )
-    assert (trade == expected).all()
+    pd.testing.assert_series_equal(trade, expected)
 
     trade = module.make_trade([t11, t01, t00])
     expected = pd.Series(
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
-    assert (trade == expected).all()
+    pd.testing.assert_series_equal(trade, expected)
