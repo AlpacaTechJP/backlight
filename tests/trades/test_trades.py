@@ -34,7 +34,7 @@ def test_trades_amount(trades):
     pd.testing.assert_series_equal(trades.amount, expected)
 
 
-def test_trades_get_all(trades):
+def test_trades_get_any(trades):
     data = [1.0, -2.0, -4.0, 2.0]
     index = [
         pd.Timestamp("2018-06-06 00:00:00"),
@@ -47,7 +47,7 @@ def test_trades_get_all(trades):
     pd.testing.assert_series_equal(result.amount, expected)
 
 
-def test_trades_get_any(trades):
+def test_trades_get_all(trades):
     data = [-4.0, 2.0]
     index = [pd.Timestamp("2018-06-06 00:04:00"), pd.Timestamp("2018-06-06 00:05:00")]
     expected = pd.Series(data=data, index=index, name="amount")
