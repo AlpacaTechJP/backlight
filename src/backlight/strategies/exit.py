@@ -1,18 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import TernaryDirection
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import (
-    Transaction,
-    Trades,
-    concat,
-    from_dataframe,
-)
+from backlight.trades.trades import Transaction, Trades, concat, from_dataframe
 from backlight.strategies.common import Action
 
 
@@ -72,7 +67,7 @@ def exit(
     ) -> pd.Series:
 
         indices = []  # type: List[pd.Timestamp]
-        exits = []  # type: List[float]
+        exits = []  # type: List[Tuple[float, int]]
         for i in trades.ids:
             trade = trades.get_trade(i)
             if trade.sum() == 0:
@@ -123,7 +118,7 @@ def exit_by_max_holding_time(
     ) -> Trades:
 
         indices = []  # type: List[pd.Timestamp]
-        exits = []  # type: List[float]
+        exits = []  # type: List[Tuple[float, int]]
         for i in trades.ids:
             trade = trades.get_trade(i)
             if trade.sum() == 0:
