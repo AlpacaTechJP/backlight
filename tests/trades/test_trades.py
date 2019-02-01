@@ -62,17 +62,6 @@ def test_trades_get_trade(trades):
     pd.testing.assert_series_equal(trades.get_trade(0), expected)
 
 
-def test_trades_add_trade(trades):
-    data = [1.0, -2.0]
-    trade_id = 9
-    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    t = pd.Series(data=data, index=index, name="amount")
-
-    expected = t
-    trades = trades.add_trade(expected, trade_id)
-    pd.testing.assert_series_equal(trades.get_trade(trade_id), expected)
-
-
 def test_make_trade():
     periods = 2
     dates = pd.date_range(start="2018-12-01", periods=periods)

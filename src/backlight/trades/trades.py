@@ -85,21 +85,6 @@ class Trades(pd.DataFrame):
                 trades.append(t)
         return make_trades(self.symbol, trades, ids)
 
-    def add_trade(self, trade: pd.Series, trade_id: int) -> Type["Trades"]:
-        """Register new trade.
-
-        Args:
-            trade: Trade.
-            trade_id: Id for the trade.
-                      Trades of the same id are recognized as one individual trade.
-        Returns:
-            Trades.
-        """
-        df = trade.to_frame(name="amount")
-        df.loc[:, "_id"] = trade_id
-
-        return _sort(concat([self, df]))
-
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
         for col in self.columns:
@@ -166,9 +151,12 @@ def make_trades(
 
     assert len(_ids) == len(trades)
 
-    trs = Trades()
-    trs.symbol = symbol
+    df = pd.concat(trades, axis=0).to_frame(name="amount")
+    df.loc[:, "_id"] = 0
+    current = 0
     for i, t in zip(_ids, trades):
-        trs = trs.add_trade(t, i)  # type: ignore
+        l = len(t.index)
+        df.iloc[current : current + l, 1] = i
+        current += l
 
-    return _sort(trs)
+    return from_dataframe(df, symbol)
