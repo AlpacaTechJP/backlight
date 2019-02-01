@@ -44,15 +44,11 @@ class Trades(pd.DataFrame):
         a = self["amount"]
         return a.groupby(a.index).sum().sort_index()
 
-    def add_trade(self, trade: Trade) -> Type["Trades"]:
-        next_id = _max(self.ids) + 1
-        return self.append_trade(trade, next_id)
-
     def get_trade(self, trade_id: int) -> Trade:
         trade = self.loc[self._id == trade_id, "amount"]
         return trade.groupby(trade.index).sum().sort_index()
 
-    def append_trade(self, trade: Trade, trade_id: int) -> Type["Trades"]:
+    def add_trade(self, trade: Trade, trade_id: int) -> Type["Trades"]:
         df = trade.to_frame(name="amount")
         df.loc[:, "_id"] = trade_id
 
@@ -105,6 +101,6 @@ def make_trades(
     trs = Trades()
     trs.symbol = symbol
     for i, t in zip(ids, trades):
-        trs = trs.append_trade(t, i)
+        trs = trs.add_trade(t, i)
 
     return _sort(trs)
