@@ -46,7 +46,7 @@ def exit(
     entries: Trades,
     exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
 ) -> Trades:
-    """Exit trade at max holding time or satisfying condition.
+    """Exit trade when satisfying condition.
 
     Args:
         mkt: Market data
