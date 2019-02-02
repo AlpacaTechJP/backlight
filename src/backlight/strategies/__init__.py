@@ -9,3 +9,4 @@ from backlight.strategies.amount_based import (  # noqa
     entry_and_exit_at_other_signals,
     entry_and_exit_by_expectation,
 )
+from backlight.strategies.filter import limit_max_amount  # noqa
