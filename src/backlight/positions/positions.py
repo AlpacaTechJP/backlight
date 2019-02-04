@@ -3,8 +3,7 @@ import numpy as np
 from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
-from backlight.trades import flatten
-from backlight.trades.trades import Trade, Trades
+from backlight.trades.trades import Trades
 
 
 def _freq(idx: pd.Index) -> pd.Timedelta:
@@ -44,14 +43,15 @@ class Positions(pd.DataFrame):
         return Positions
 
 
-def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
+def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
+    trade = trades.amount
 
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
     positions = pd.DataFrame(index=idx)
-    positions.loc[:, "amount"] = trade.amount.cumsum()
+    positions.loc[:, "amount"] = trade.cumsum()
     positions.loc[:, "price"] = mkt.mid.loc[idx]
-    fee = mkt.fee(trade.amount)
+    fee = mkt.fee(trade)
     positions.loc[:, "principal"] = -fee.cumsum() + principal
     positions = positions.ffill()
 
@@ -61,10 +61,7 @@ def _pricer(trade: Trade, mkt: MarketData, principal: float) -> Positions:
     positions.loc[initial_idx, "price"] = 0.0
     positions.loc[initial_idx, "principal"] = principal
 
-    pos = Positions(positions.sort_index())
-    pos.reset_cols()
-    pos.symbol = trade.symbol
-    return pos
+    return positions.sort_index()
 
 
 def calc_positions(
@@ -78,11 +75,10 @@ def calc_positions(
         mkt: Market data.
         principal: The initial principal value.
     """
-    trade = flatten(trades)
+    assert trades.symbol == mkt.symbol
+    assert trades.index.isin(mkt.index).all()
 
-    assert trade.symbol == mkt.symbol
-    assert (trade.index.isin(mkt.index)).all()
-
-    positions = _pricer(trade, mkt, principal)
-    positions.symbol = trade.symbol
-    return positions
+    pos = Positions(_pricer(trades, mkt, principal))
+    pos.reset_cols()
+    pos.symbol = trades.symbol
+    return pos

@@ -3,14 +3,6 @@ from backlight.trades import trades as module
 import pytest
 
 import pandas as pd
-import backlight.datasource
-
-
-def _make_trade(transactions, symbol="hoge"):
-    trade = module.Trade(symbol)
-    for t in transactions:
-        trade.add(t)
-    return trade
 
 
 @pytest.fixture
@@ -24,26 +16,53 @@ def trades(symbol):
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
-        trade = module.from_series(
-            pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount"),
-            symbol,
-        )
+        trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
-    return tuple(trades)
+    trades = module.make_trades(symbol, trades)
+    return trades
 
 
-@pytest.fixture
-def market(symbol):
-    data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
-        data=data,
-        columns=["mid"],
-    )
-    return backlight.datasource.from_dataframe(df, symbol)
+def test_trades_ids(trades):
+    expected = [0, 1, 2, 3, 4]
+    assert trades.ids == expected
 
 
-def test_Trade():
+def test_trades_amount(trades):
+    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    pd.testing.assert_series_equal(trades.amount, expected)
+
+
+def test_trades_get_any(trades):
+    data = [1.0, -2.0, -4.0, 2.0]
+    index = [
+        pd.Timestamp("2018-06-06 00:00:00"),
+        pd.Timestamp("2018-06-06 00:01:00"),
+        pd.Timestamp("2018-06-06 00:04:00"),
+        pd.Timestamp("2018-06-06 00:05:00"),
+    ]
+    expected = pd.Series(data=data, index=index, name="amount")
+    result = trades.get_any(trades.index.minute.isin([0, 4, 5]))
+    pd.testing.assert_series_equal(result.amount, expected)
+
+
+def test_trades_get_all(trades):
+    data = [-4.0, 2.0]
+    index = [pd.Timestamp("2018-06-06 00:04:00"), pd.Timestamp("2018-06-06 00:05:00")]
+    expected = pd.Series(data=data, index=index, name="amount")
+    result = trades.get_all(trades.index.minute.isin([0, 4, 5]))
+    pd.testing.assert_series_equal(result.amount, expected)
+
+
+def test_trades_get_trade(trades):
+    data = [1.0, -2.0]
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    pd.testing.assert_series_equal(trades.get_trade(0), expected)
+
+
+def test_make_trade():
     periods = 2
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = range(periods)
@@ -52,28 +71,18 @@ def test_Trade():
     t11 = module.Transaction(timestamp=dates[1], amount=amounts[1])
     t01 = module.Transaction(timestamp=dates[0], amount=amounts[1])
 
-    trade = _make_trade([t00, t11])
+    trade = module.make_trade([t00, t11])
     expected = pd.Series(index=dates, data=amounts[:2], name="amount")
-    assert (trade.amount == expected).all()
+    pd.testing.assert_series_equal(trade, expected)
 
-    trade = _make_trade([t00, t01])
+    trade = module.make_trade([t00, t01])
     expected = pd.Series(
         index=[dates[0]], data=[amounts[0] + amounts[1]], name="amount"
     )
-    assert (trade.amount == expected).all()
+    pd.testing.assert_series_equal(trade, expected)
 
-    trade = _make_trade([t11, t01, t00])
+    trade = module.make_trade([t11, t01, t00])
     expected = pd.Series(
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
-    assert (trade.amount == expected).all()
-
-
-def test_flatten(symbol, trades):
-    data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
-    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    expected = module.from_series(
-        pd.Series(index=index, data=data, name="amount"), symbol
-    )
-    trade = module.flatten(trades)
-    assert trade == expected
+    pd.testing.assert_series_equal(trade, expected)

@@ -7,14 +7,7 @@ import backlight
 from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
-from backlight.trades.trades import Transaction, Trade
-
-
-def _make_trade(transactions, symbol="hoge"):
-    trade = Trade(symbol)
-    for t in transactions:
-        trade.add(t)
-    return trade
+from backlight.trades.trades import Transaction, make_trades, make_trade
 
 
 @pytest.fixture
@@ -108,8 +101,7 @@ def test_exit_at_max_holding_time(market, signal, entries):
         ],
         columns=["exist", "amount"],
     )
-    trade = backlight.trades.flatten(trades)
-    assert (trade.amount == expected.amount[expected.exist]).all()
+    assert (trades.amount == expected.amount[expected.exist]).all()
 
 
 def test_exit_by_trailing_stop(market, signal, entries):
@@ -136,52 +128,60 @@ def test_exit_by_trailing_stop(market, signal, entries):
         ),
         symbol,
     )
-    entries = (
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0)]),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0)]),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0)]),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
+    entries = make_trades(
+        symbol,
+        (
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
+        ),
     )
 
     initial_stop = 2.0
     trailing_stop = 1.0
     trades = module.exit_by_trailing_stop(market, entries, initial_stop, trailing_stop)
-    expected = (
-        _make_trade(
-            [
-                Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0),
-                Transaction(pd.Timestamp("2018-06-06 00:05:00"), -1.0),  # trail stop
-            ]
-        ),
-        _make_trade(
-            [
-                Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0),
-                Transaction(pd.Timestamp("2018-06-06 00:02:00"), 1.0),  # loss cut
-            ]
-        ),
-        _make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
-        _make_trade(
-            [
-                Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0),
-                Transaction(pd.Timestamp("2018-06-06 00:05:00"), -1.0),  # trail stop
-            ]
-        ),
-        _make_trade(
-            [
-                Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5),
-                Transaction(pd.Timestamp("2018-06-06 00:05:00"), -0.5),  # loss cut
-            ]
-        ),
-        _make_trade(
-            [
-                Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0),
-                Transaction(pd.Timestamp("2018-06-06 00:10:00"), 1.0),  # trail stop
-            ]
+    expected = make_trades(
+        symbol,
+        (
+            make_trade(
+                [
+                    Transaction(pd.Timestamp("2018-06-06 00:00:00"), 1.0),
+                    Transaction(
+                        pd.Timestamp("2018-06-06 00:05:00"), -1.0
+                    ),  # trail stop
+                ]
+            ),
+            make_trade(
+                [
+                    Transaction(pd.Timestamp("2018-06-06 00:00:00"), -1.0),
+                    Transaction(pd.Timestamp("2018-06-06 00:02:00"), 1.0),  # loss cut
+                ]
+            ),
+            make_trade([Transaction(pd.Timestamp("2018-06-06 00:00:00"), 0.0)]),
+            make_trade(
+                [
+                    Transaction(pd.Timestamp("2018-06-06 00:03:00"), 1.0),
+                    Transaction(
+                        pd.Timestamp("2018-06-06 00:05:00"), -1.0
+                    ),  # trail stop
+                ]
+            ),
+            make_trade(
+                [
+                    Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5),
+                    Transaction(pd.Timestamp("2018-06-06 00:05:00"), -0.5),  # loss cut
+                ]
+            ),
+            make_trade(
+                [
+                    Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0),
+                    Transaction(pd.Timestamp("2018-06-06 00:10:00"), 1.0),  # trail stop
+                ]
+            ),
         ),
     )
-    print(entries)
-    print(expected)
 
-    assert trades == expected
+    pd.testing.assert_frame_equal(trades, expected)

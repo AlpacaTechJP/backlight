@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from backlight.datasource.marketdata import MarketData
 from backlight.labelizer.common import TernaryDirection
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades
+from backlight.trades.trades import Transaction, Trades, concat, from_dataframe
 from backlight.strategies.common import Action
 
 
@@ -25,18 +25,18 @@ def _concat(mkt: MarketData, sig: Optional[Signal]) -> pd.DataFrame:
 
 def _exit_transaction(
     df: pd.DataFrame,
-    trade: Trade,
-    exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
+    trade: pd.Series,
+    exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
 ) -> Transaction:
     exit_indices = df[exit_condition(df, trade)].index
     if exit_indices.empty:
         exit_index = df.index[-1]
     else:
         exit_index = exit_indices[0]
-    return Transaction(timestamp=exit_index, amount=-trade.amount.sum())
+    return Transaction(timestamp=exit_index, amount=-trade.sum())
 
 
-def _no_exit_condition(df: pd.DataFrame, trade: Trade) -> pd.Series:
+def _no_exit_condition(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
     return pd.Series(index=df.index, data=False)
 
 
@@ -44,9 +44,9 @@ def exit(
     mkt: MarketData,
     sig: Optional[Signal],
     entries: Trades,
-    exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
+    exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
 ) -> Trades:
-    """Exit trade at max holding time or satisfying condition.
+    """Exit trade when satisfying condition.
 
     Args:
         mkt: Market data
@@ -61,21 +61,32 @@ def exit(
     df = _concat(mkt, sig)
 
     def _exit(
-        trade: Trade,
+        trades: Trades,
         df: pd.DataFrame,
-        exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
-    ) -> Trade:
-        if trade.amount.sum() == 0:
-            return trade
+        exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
+    ) -> pd.Series:
 
-        idx = trade.index[0]
-        df_exit = df[idx <= df.index]
-        transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade.add(transaction)
-        return trade
+        indices = []  # type: List[pd.Timestamp]
+        exits = []  # type: List[Tuple[float, int]]
+        for i in trades.ids:
+            trade = trades.get_trade(i)
+            if trade.sum() == 0:
+                continue
 
-    trades = tuple(_exit(trade, df, exit_condition) for trade in entries)
-    return trades
+            idx = trade.index[0]
+            df_exit = df[idx <= df.index]
+            transaction = _exit_transaction(df_exit, trade, exit_condition)
+
+            indices.append(transaction.timestamp)
+            exits.append((transaction.amount, i))
+
+        df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
+
+        return from_dataframe(df, symbol)
+
+    symbol = entries.symbol
+    exits = _exit(entries, df, exit_condition)
+    return concat([entries, exits])
 
 
 def exit_by_max_holding_time(
@@ -83,7 +94,7 @@ def exit_by_max_holding_time(
     sig: Optional[Signal],
     entries: Trades,
     max_holding_time: pd.Timedelta,
-    exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
+    exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
 ) -> Trades:
     """Exit trade at max holding time or satisfying condition.
 
@@ -100,22 +111,32 @@ def exit_by_max_holding_time(
     df = _concat(mkt, sig)
 
     def _exit_by_max_holding_time(
-        trade: Trade,
+        trades: Trades,
         df: pd.DataFrame,
         max_holding_time: pd.Timedelta,
-        exit_condition: Callable[[pd.DataFrame, Trade], pd.Series],
-    ) -> Trade:
-        idx = trade.index[0]
-        df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
-        transaction = _exit_transaction(df_exit, trade, exit_condition)
-        trade.add(transaction)
-        return trade
+        exit_condition: Callable[[pd.DataFrame, pd.Series], pd.Series],
+    ) -> Trades:
 
-    trades = tuple(
-        _exit_by_max_holding_time(trade, df, max_holding_time, exit_condition)
-        for trade in entries
-    )
-    return trades
+        indices = []  # type: List[pd.Timestamp]
+        exits = []  # type: List[Tuple[float, int]]
+        for i in trades.ids:
+            trade = trades.get_trade(i)
+            if trade.sum() == 0:
+                continue
+
+            idx = trade.index[0]
+            df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+            transaction = _exit_transaction(df_exit, trade, exit_condition)
+
+            indices.append(transaction.timestamp)
+            exits.append((transaction.amount, i))
+
+        df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
+        return from_dataframe(df, symbol)
+
+    symbol = entries.symbol
+    exits = _exit_by_max_holding_time(entries, df, max_holding_time, exit_condition)
+    return concat([entries, exits])
 
 
 def exit_at_max_holding_time(
@@ -162,7 +183,7 @@ def exit_at_opposite_signals(
         opposite_signals = opposite_signals_dict[current_signal]
         return df["pred"].isin(opposite_signals)
 
-    def _exit_condition(df: pd.DataFrame, trade: Trade) -> pd.Series:
+    def _exit_condition(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
         return _exit_at_opposite_signals_condition(df, opposite_signals_dict)
 
     return exit_by_max_holding_time(
@@ -184,7 +205,7 @@ def exit_by_expectation(
         Trades
     """
 
-    def _exit_by_expectation_condition(df: pd.DataFrame, trade: Trade) -> pd.Series:
+    def _exit_by_expectation_condition(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
         current_signal = TernaryDirection(df["pred"][0])
         v = np.array([1.0, 0.0, -1.0])
         expectation = np.dot(df[["up", "neutral", "down"]].values, v)
@@ -219,10 +240,10 @@ def exit_by_trailing_stop(
     assert initial_stop >= 0.0
     assert trailing_stop >= 0.0
 
-    def _exit_by_trailing_stop(df: pd.DataFrame, trade: Trade) -> pd.Series:
+    def _exit_by_trailing_stop(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
         prices = df.mid
 
-        amount = trade.amount.sum()
+        amount = trade.sum()
         entry_price = prices.iloc[0]
         pl_per_amount = np.sign(amount) * (prices - entry_price)
         is_initial_stop = pl_per_amount <= -initial_stop

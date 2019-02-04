@@ -1,16 +1,12 @@
 import pandas as pd
 
+from typing import List
+
 from backlight.datasource.marketdata import MarketData
 from backlight.signal.signal import Signal
 from backlight.trades import make_trade
-from backlight.trades.trades import Transaction, Trade, Trades
+from backlight.trades.trades import Trades, from_dataframe
 from backlight.strategies.common import Action
-
-
-def _entry(amount: float, idx: pd.Timestamp, symbol: str) -> Trade:
-    trade = make_trade(symbol)
-    trade.add(Transaction(timestamp=idx, amount=amount))
-    return trade
 
 
 def direction_based_entry(
@@ -28,12 +24,23 @@ def direction_based_entry(
     assert all([idx in mkt.index for idx in sig.index])
     df = sig
 
-    trades = ()  # type: Trades
+    trades = []  # type: List[pd.Dataframe]
     for direction, action in direction_action_dict.items():
+
         amount = action.act_on_amount()
         if amount == 0.0:
             continue
-        target_index = df[df["pred"] == direction.value].index
-        trades += tuple(_entry(amount, idx, df.symbol) for idx in target_index)
 
-    return trades
+        trades.append(
+            pd.DataFrame(
+                index=df[df["pred"] == direction.value].index,
+                data=direction.value,
+                columns=["amount"],
+            )
+        )
+
+    df_trades = pd.concat(trades, axis=0).sort_index()
+    df_trades.loc[:, "_id"] = range(len(df_trades.index))
+
+    t = from_dataframe(df_trades, df.symbol)
+    return t
