@@ -34,10 +34,22 @@ def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
     dd = ((sig.pred == TD.D.value) & (lbl.label == TD.D.value)).sum()
     total = len(sig)
 
+    cnt_u = uu + un + ud
+    cnt_n = nu + nn + nd
+    cnt_d = du + dn + dd
+
     hit_ratio = _r(uu + dd, uu + ud + du + dd)
+    hit_ratio_u = _r(uu, uu + ud)
+    hit_ratio_d = _r(dd, du + dd)
+
     hedge_ratio = _r(uu + un + dn + dd, uu + un + ud + du + dn + dd)
-    neutral_ratio = _r(nu + nn + nd, total)
-    coverage = _r(uu + un + ud + du + dn + dd, total)  # = 1.0 - neutral_ratio
+    hedge_ratio_u = _r(uu + un, uu + un + ud)
+    hedge_ratio_d = _r(dn + dd, du + dn + dd)
+
+    neutral_ratio = _r(cnt_n, total)
+    coverage = _r(cnt_u + cnt_d, total)  # = 1.0 - neutral_ratio
+    coverage_u = _r(cnt_u, total)
+    coverage_d = _r(cnt_d, total)
 
     lbl = lbl.reindex(sig.index)
 
@@ -60,9 +72,15 @@ def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
             ("cnt_dd", dd),
             ("cnt_total", total),
             ("hit_ratio", hit_ratio),
+            ("hit_ratio_u", hit_ratio_u),
+            ("hit_ratio_d", hit_ratio_d),
             ("hedge_ratio", hedge_ratio),
+            ("hedge_ratio_u", hedge_ratio_u),
+            ("hedge_ratio_d", hedge_ratio_d),
             ("neutral_ratio", neutral_ratio),
             ("coverage", coverage),
+            ("coverage_u", coverage_u),
+            ("coverage_d", coverage_d),
             ("avg_pl", avg_pl),
             ("total_pl", total_pl),
         ]
