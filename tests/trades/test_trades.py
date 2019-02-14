@@ -3,7 +3,6 @@ from backlight.trades import trades as module
 import pytest
 
 import pandas as pd
-import numpy as np
 
 
 @pytest.fixture
@@ -89,10 +88,16 @@ def test_make_trade():
     pd.testing.assert_series_equal(trade, expected)
 
 
-def test_concat(trades):
+@pytest.mark.parametrize(
+    "expected_ids, refresh_id",
+    [
+        [[0, 1, 2, 3, 4], False],
+        [[0, 5, 1, 6, 2, 7, 3, 8, 4, 9], True],
+    ])
+def test_concat(trades, expected_ids, refresh_id):
     trades1 = trades.copy()
     trades2 = trades.copy()
-    result = module.concat([trades1, trades2])
+    result = module.concat([trades1, trades2], refresh_id)
 
     # check symbol
     expected = trades1.symbol
@@ -103,35 +108,11 @@ def test_concat(trades):
     assert len(result) == expected
 
     # check ids
-    expected = [0, 1, 2, 3, 4]
+    expected = expected_ids
     assert result.ids == expected
 
     # check amount
-    data = np.array([1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]) * 2.0
-    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
-    expected = pd.Series(data=data, index=index, name="amount")
-    pd.testing.assert_series_equal(result.amount, expected)
-
-
-def test_concat_trades_with_refreshing_id(trades):
-    trades1 = trades.copy()
-    trades2 = trades.copy()
-    result = module.concat([trades1, trades2], True)
-
-    # check symbol
-    expected = trades1.symbol
-    assert result.symbol == expected
-
-    # check len
-    expected = len(trades1) + len(trades2)
-    assert len(result) == expected
-
-    # check _id
-    expected = [0, 5, 1, 6, 2, 7, 3, 8, 4, 9]
-    assert result.ids == expected
-
-    # check amount
-    data = np.array([1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]) * 2.0
+    data = trades.amount * 2.0
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     expected = pd.Series(data=data, index=index, name="amount")
     pd.testing.assert_series_equal(result.amount, expected)
