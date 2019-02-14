@@ -57,44 +57,6 @@ def market():
     return market
 
 
-def test_direction_based_trades(market, signal):
-    direction_action_dict = {
-        TernaryDirection.UP: Action.TakeLong,
-        TernaryDirection.NEUTRAL: Action.Donothing,
-        TernaryDirection.DOWN: Action.TakeShort,
-    }
-    trades = module.direction_based_trades(market, signal, direction_action_dict)
-    expected = pd.Series(
-        index=market.index,
-        data=[
-            1.0,  # U
-            -1.0,  # D
-            0.0,  # N
-            1.0,  # U
-            1.0,  # U
-            -1.0,  # D
-            -1.0,  # D
-            0.0,  # N
-            0.0,  # N
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-            -1.0,  # D
-            -1.0,  # D
-            -1.0,  # D
-            0.0,  # N
-            0.0,  # N
-            0.0,  # N
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-            1.0,  # U
-        ],
-        name="amount",
-    )
-    assert (trades.amount == expected).all()
-
-
 def test_entry_exit_trades(market, signal):
     max_holding_time = pd.Timedelta("3min")
     direction_action_dict = {

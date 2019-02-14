@@ -17,35 +17,13 @@ from backlight.strategies.exit import (
 )
 
 
-def direction_based_trades(
-    mkt: MarketData, sig: Signal, direction_action_dict: dict
-) -> Trades:
-    """Just take trades without closing them.
-
-    Args:
-        mkt: Market data
-        sig: Signal data
-        direction_action_dict: Dictionary from signals to actions
-    Result:
-        Trades
-    """
-    assert all([idx in mkt.index for idx in sig.index])
-    df = sig
-
-    amount = pd.Series(index=df.index, name="amount").astype(np.float64)
-    for direction, action in direction_action_dict.items():
-        amount.loc[df["pred"] == direction.value] = action.act_on_amount()
-    trade = amount
-    return make_trades(df.symbol, [trade])
-
-
 def only_take_long(mkt: MarketData, sig: Signal) -> Trades:
     direction_action_dict = {
         TernaryDirection.UP: Action.TakeLong,
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.Donothing,
     }
-    return direction_based_trades(mkt, sig, direction_action_dict)
+    return direction_based_entry(mkt, sig, direction_action_dict)
 
 
 def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
@@ -54,7 +32,7 @@ def only_take_short(mkt: MarketData, sig: Signal) -> Trades:
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return direction_based_trades(mkt, sig, direction_action_dict)
+    return direction_based_entry(mkt, sig, direction_action_dict)
 
 
 def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
@@ -63,7 +41,7 @@ def simple_buy_sell(mkt: MarketData, sig: Signal) -> Trades:
         TernaryDirection.NEUTRAL: Action.Donothing,
         TernaryDirection.DOWN: Action.TakeShort,
     }
-    return direction_based_trades(mkt, sig, direction_action_dict)
+    return direction_based_entry(mkt, sig, direction_action_dict)
 
 
 def _entry_and_exit_at_max_holding_time(
