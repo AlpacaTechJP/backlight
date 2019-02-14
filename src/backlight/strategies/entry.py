@@ -28,13 +28,13 @@ def direction_based_entry(
     for direction, action in direction_action_dict.items():
 
         amount = action.act_on_amount()
-        if amount == 0.0:
+        if amount == Action.Donothing.act_on_amount():
             continue
 
         trades.append(
             pd.DataFrame(
                 index=df[df["pred"] == direction.value].index,
-                data=direction.value,
+                data=amount,
                 columns=["amount"],
             )
         )

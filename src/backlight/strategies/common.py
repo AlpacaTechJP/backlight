@@ -10,5 +10,5 @@ class Action(Enum):
     Donothing = 0
     TakeLong = 1
 
-    def act_on_amount(self) -> "Action":
-        return self.value
+    def act_on_amount(self) -> float:
+        return float(self.value)
