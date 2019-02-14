@@ -90,10 +90,8 @@ def test_make_trade():
 
 @pytest.mark.parametrize(
     "expected_ids, refresh_id",
-    [
-        [[0, 1, 2, 3, 4], False],
-        [[0, 5, 1, 6, 2, 7, 3, 8, 4, 9], True],
-    ])
+    [[[0, 1, 2, 3, 4], False], [[0, 5, 1, 6, 2, 7, 3, 8, 4, 9], True]],
+)
 def test_concat(trades, expected_ids, refresh_id):
     trades1 = trades.copy()
     trades2 = trades.copy()
