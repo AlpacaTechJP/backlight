@@ -144,13 +144,13 @@ def concat(trades: List[Trades], refresh_id: bool = False) -> Trades:
     """
     if refresh_id:
         id_offset = 0
-        t = []
-        for trade in trades:
-            trade = trade.copy()
-            trade._id += id_offset
-            id_offset = trade._id.max() + 1
-            t.append(trade)
-        trades = t
+        list_of_trades = []
+        for a_trades in trades:
+            a_trades = a_trades.copy()
+            a_trades._id += id_offset
+            id_offset = a_trades._id.max() + 1
+            list_of_trades.append(a_trades)
+        trades = list_of_trades
 
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol

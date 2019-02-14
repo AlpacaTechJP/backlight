@@ -94,8 +94,13 @@ def test_concat(trades):
     trades2 = trades.copy()
     result = module.concat([trades1, trades2])
 
+    # check symbol
+    expected = trades1.symbol
+    assert result.symbol == expected
+
     # check len
-    assert len(result) == len(trades1) + len(trades2)
+    expected = len(trades1) + len(trades2)
+    assert len(result) == expected
 
     # check ids
     expected = [0, 1, 2, 3, 4]
@@ -113,8 +118,13 @@ def test_concat_trades_with_refreshing_id(trades):
     trades2 = trades.copy()
     result = module.concat([trades1, trades2], True)
 
+    # check symbol
+    expected = trades1.symbol
+    assert result.symbol == expected
+
     # check len
-    assert len(result) == len(trades1) + len(trades2)
+    expected = len(trades1) + len(trades2)
+    assert len(result) == expected
 
     # check _id
     expected = [0, 5, 1, 6, 2, 7, 3, 8, 4, 9]
