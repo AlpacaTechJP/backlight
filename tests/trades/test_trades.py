@@ -86,3 +86,31 @@ def test_make_trade():
         index=dates, data=[amounts[0] + amounts[1], amounts[1]], name="amount"
     )
     pd.testing.assert_series_equal(trade, expected)
+
+
+@pytest.mark.parametrize(
+    "expected_ids, refresh_id",
+    [[[0, 1, 2, 3, 4], False], [[0, 5, 1, 6, 2, 7, 3, 8, 4, 9], True]],
+)
+def test_concat(trades, expected_ids, refresh_id):
+    trades1 = trades.copy()
+    trades2 = trades.copy()
+    result = module.concat([trades1, trades2], refresh_id)
+
+    # check symbol
+    expected = trades1.symbol
+    assert result.symbol == expected
+
+    # check len
+    expected = len(trades1) + len(trades2)
+    assert len(result) == expected
+
+    # check ids
+    expected = expected_ids
+    assert result.ids == expected
+
+    # check amount
+    data = trades.amount * 2.0
+    index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
+    expected = pd.Series(data=data, index=index, name="amount")
+    pd.testing.assert_series_equal(result.amount, expected)

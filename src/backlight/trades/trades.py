@@ -132,8 +132,26 @@ def from_dataframe(df: pd.DataFrame, symbol: str) -> Trades:
     return _sort(trades)
 
 
-def concat(trades: List[Trades]) -> Trades:
-    """Concatenate some fo Trades"""
+def concat(trades: List[Trades], refresh_id: bool = False) -> Trades:
+    """Concatenate some of Trades
+
+    Args:
+        trades: List of trades
+        refresh_id: Set true to re-assign ids for trades. Default: False
+
+    Returns:
+        Trades
+    """
+    if refresh_id:
+        id_offset = 0
+        list_of_trades = []
+        for a_trades in trades:
+            a_trades = a_trades.copy()
+            a_trades._id += id_offset
+            id_offset = a_trades._id.max() + 1
+            list_of_trades.append(a_trades)
+        trades = list_of_trades
+
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
     return _sort(t)
