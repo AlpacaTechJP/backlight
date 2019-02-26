@@ -18,7 +18,7 @@ jobs:
             make unittest
   test_pypy:
     docker:
-      - image: pypy:3.6
+      - image: jamiehewland/alpine-pypy:3.5-7-alpine3.9
     working_directory: ~/project
     steps:
       - checkout
