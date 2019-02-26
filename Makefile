@@ -27,7 +27,7 @@ _install_pypy:
 	docker run $(DOCKER_OPTS) \
 		-it --volumes-from mysrc \
 		$(IMAGE_NAME) \
-		bash -c 'sudo apt-get update -y; sudo apt-get install pypy3 -y'
+		bash -c 'apt-get update -y; apt-get install pypy3 -y'
 
 mypy: _mount_src
 	docker pull alpacadb/alpaca-containers:mypy-v0.0.1
