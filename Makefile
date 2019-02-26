@@ -23,12 +23,6 @@ _mount_src:
 	docker create -v /project --name mysrc alpine:3.4 /bin/true
 	docker cp $(PROJECT_ROOT)/. mysrc:/project/
 
-_install_pypy:
-	docker run $(DOCKER_OPTS) \
-		-it --volumes-from mysrc \
-		$(IMAGE_NAME) \
-		bash -c 'add-apt-repository -y ppa:pypy/ppa; apt-get update -y; apt-get install pypy3 -y'
-
 mypy: _mount_src
 	docker pull alpacadb/alpaca-containers:mypy-v0.0.1
 	docker run -it -w /project --volumes-from mysrc \
@@ -59,11 +53,11 @@ unittest: _mount_src
 		$(IMAGE_NAME) \
 		bash -c 'PYTHONIOENCODING=UTF-8 py.test $(UNIT_TEST_OPTS)'
 
-unittest_pypy: _mount_src _install_pypy
+unittest_pypy: _mount_src
 	docker run $(DOCKER_OPTS) \
 		-it --volumes-from mysrc \
 		$(IMAGE_NAME) \
-		bash -c 'PYTHONIOENCODING=UTF-8 pypy3 -m pytest $(UNIT_TEST_OPTS)'
+		bash -c 'add-apt-repository -y ppa:pypy/ppa && apt-get update -qq -y && apt-get install pypy3 -y && PYTHONIOENCODING=UTF-8 pypy3 -m pytest $(UNIT_TEST_OPTS)'
 
 
 build:
