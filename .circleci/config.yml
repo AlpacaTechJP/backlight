@@ -16,19 +16,7 @@ jobs:
           name: unittest
           command: |
             make unittest
-  test_pypy:
-    docker:
-      - image: circleci/pypy:4.0.1
-    working_directory: ~/project
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 18.05.0-ce
-          reusable: false
-      - run:
-          name: unittest
-          command: |
-            make unittest
+            make unittest_pypy
   black:
     docker:
       - image: circleci/python:3.6
@@ -62,5 +50,4 @@ workflows:
     jobs:
       - black
       - test
-      - test_pypy
       - mypy

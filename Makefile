@@ -53,6 +53,12 @@ unittest: _mount_src
 		$(IMAGE_NAME) \
 		bash -c 'PYTHONIOENCODING=UTF-8 py.test $(UNIT_TEST_OPTS)'
 
+unittest_pypy: _mount_src
+	docker run $(DOCKER_OPTS) \
+		-it --volumes-from mysrc \
+		$(IMAGE_NAME) \
+		bash -c 'PYTHONIOENCODING=UTF-8 pypy -m pytest $(UNIT_TEST_OPTS)'
+
 
 build:
 	python setup.py build
