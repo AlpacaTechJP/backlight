@@ -36,6 +36,45 @@ def _exit_transaction(
     return Transaction(timestamp=exit_index, amount=-trade.sum())
 
 
+def _exit_transaction_gain_loss(
+    df: pd.DataFrame,
+    trade: pd.Series,
+    loss_threshold: float,  # Negative
+    gain_threshold: float,  # Positive
+) -> Transaction:
+
+    # Get an exit indice that satisfies gain or loss limit
+    current_signal = df["pred"][0]
+    if df["pred"][0] == 1.0:  # If signal UP, we buy at ask, sell at bid
+        potential_gain_loss = df["bid"][1:] - df["ask"][0]
+
+    if df["pred"][0] == -1.0:  # If signal DOWN, we sell at bid, buy at ask
+        potential_gain_loss = df["bid"][0] - df["ask"][1:]
+
+    # Define 3 signals
+    loss_index = potential_gain_loss[potential_gain_loss < loss_threshold].index
+    gain_index = potential_gain_loss[potential_gain_loss > gain_threshold].index
+    last_index = df.index[-1]
+
+    # ISSUE : Maybe should find better way to write conditions
+
+    if (loss_index.empty is False) and (gain_index.empty is False):
+        exit_index = min(loss_index[0], gain_index[0], last_index)
+        return Transaction(timestamp=exit_index, amount=-trade.sum())
+
+    if (loss_index.empty is True) and (gain_index.empty is False):
+        exit_index = min(gain_index[0], last_index)
+        return Transaction(timestamp=exit_index, amount=-trade.sum())
+
+    if (loss_index.empty is False) and (gain_index.empty is True):
+        exit_index = min(loss_index[0], last_index)
+        return Transaction(timestamp=exit_index, amount=-trade.sum())
+
+    else:
+        exit_index = last_index
+        return Transaction(timestamp=exit_index, amount=-trade.sum())
+
+
 def _no_exit_condition(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
     return pd.Series(index=df.index, data=False)
 
@@ -256,3 +295,47 @@ def exit_by_trailing_stop(
         return is_initial_stop | is_trailing_stop
 
     return exit(mkt, None, entries, _exit_by_trailing_stop)
+
+
+def exit_at_loss_at_gain(
+    mkt: MarketData,
+    sig: Optional[Signal],
+    entries: Trades,
+    max_holding_time: pd.Timedelta,
+    loss_threshold: float,
+    gain_threshold: float,
+) -> Trades:
+
+    df = _concat(mkt, sig)
+
+    def _exit(
+        trades: Trades,
+        df: pd.DataFrame,
+        max_holding_time: pd.Timedelta,
+        loss_threshold: float,
+        gain_threshold: float,
+    ) -> Trades:
+
+        indices = []  # type: List[pd.Timestamp]
+        exits = []  # type: List[Tuple[float, int]]
+        for i in trades.ids:
+            trade = trades.get_trade(i)
+            # If there no assets
+            if trade.sum() == 0:
+                continue
+
+            idx = trade.index[0]
+            df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+            transaction = _exit_transaction_gain_loss(
+                df_exit, trade, loss_threshold, gain_threshold
+            )
+
+            indices.append(transaction.timestamp)
+            exits.append((transaction.amount, i))
+
+        df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
+        return from_dataframe(df, symbol)
+
+    symbol = entries.symbol
+    exits = _exit(entries, df, max_holding_time, loss_threshold, gain_threshold)
+    return concat([entries, exits])

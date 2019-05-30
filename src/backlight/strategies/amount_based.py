@@ -14,6 +14,7 @@ from backlight.strategies.exit import (
     exit_at_max_holding_time,
     exit_at_opposite_signals,
     exit_by_expectation,
+    exit_at_loss_at_gain,
 )
 
 
@@ -183,4 +184,34 @@ def entry_and_exit_by_expectation(
     entries = direction_based_entry(mkt, sig, direction_action_dict)
 
     trades = exit_by_expectation(mkt, sig, entries, max_holding_time)
+    return trades
+
+
+def enter_exit_loss_gain(
+    mkt: MarketData,
+    sig: Signal,
+    gain_threshold: float,
+    loss_threshold: float,
+    max_holding: pd.Timedelta,
+) -> Trades:
+    """Take positions and close them when a certain threshold of gain is attained OR
+    loss in attained. Otherwise close it after max_holding
+    Args:
+        mkt: Market data
+        sig: Signal data
+        direction_action_dict: Dictionary from signals to actions
+        max_holding_time: maximum holding time
+        gain_threshold: postive float when to take gain,
+        loss_threshold: negative float when to stop loss,
+        max_holding: max holding time,
+    Result:
+        Trades
+    """
+    direction_action_dict = {
+        TernaryDirection.UP: Action.TakeLong,
+        TernaryDirection.NEUTRAL: Action.Donothing,
+        TernaryDirection.DOWN: Action.TakeShort,
+    }
+    entries = direction_based_entry(mkt, sig, direction_action_dict)
+    trades = exit_at_loss_at_gain(mkt, sig, entries, max_holding,loss_threshold,gain_threshold)
     return trades
