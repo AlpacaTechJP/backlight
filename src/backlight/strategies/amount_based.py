@@ -213,5 +213,7 @@ def enter_exit_loss_gain(
         TernaryDirection.DOWN: Action.TakeShort,
     }
     entries = direction_based_entry(mkt, sig, direction_action_dict)
-    trades = exit_at_loss_at_gain(mkt, sig, entries, max_holding,loss_threshold,gain_threshold)
+    trades = exit_at_loss_at_gain(
+        mkt, sig, entries, max_holding, loss_threshold, gain_threshold
+    )
     return trades
