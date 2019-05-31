@@ -201,8 +201,8 @@ def enter_exit_loss_gain(
         sig: Signal data
         direction_action_dict: Dictionary from signals to actions
         max_holding_time: maximum holding time
-        gain_threshold: postive float when to take gain,
-        loss_threshold: negative float when to stop loss,
+        gain_threshold: positive float when to take gain,
+        loss_threshold: positive float when to stop loss,
         max_holding: max holding time,
     Result:
         Trades
