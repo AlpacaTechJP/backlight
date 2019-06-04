@@ -258,7 +258,7 @@ def exit_by_trailing_stop(
     return exit(mkt, None, entries, _exit_by_trailing_stop)
 
 
-def exit_at_loss_at_gain(
+def exit_at_loss_and_gain(
     mkt: MarketData,
     sig: Optional[Signal],
     entries: Trades,
