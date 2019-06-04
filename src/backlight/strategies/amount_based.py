@@ -14,7 +14,7 @@ from backlight.strategies.exit import (
     exit_at_max_holding_time,
     exit_at_opposite_signals,
     exit_by_expectation,
-    exit_at_loss_at_gain,
+    exit_at_loss_and_gain,
 )
 
 
