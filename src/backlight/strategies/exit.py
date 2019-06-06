@@ -256,3 +256,30 @@ def exit_by_trailing_stop(
         return is_initial_stop | is_trailing_stop
 
     return exit(mkt, None, entries, _exit_by_trailing_stop)
+
+
+def exit_at_loss_and_gain(
+    mkt: MarketData,
+    sig: Optional[Signal],
+    entries: Trades,
+    max_holding_time: pd.Timedelta,
+    loss_threshold: float,
+    gain_threshold: float,
+) -> Trades:
+
+    df = _concat(mkt, sig)
+
+    def _exit_at_loss_and_gain(df: pd.DataFrame, trade: pd.Series) -> pd.Series:
+        prices = df.mid
+
+        amount = trade.sum()
+        entry_price = prices.iloc[0]
+
+        pl_per_amount = np.sign(amount) * (prices - entry_price)
+        is_stop_loss = pl_per_amount <= -loss_threshold
+        is_take_gain = pl_per_amount >= gain_threshold
+        return is_stop_loss | is_take_gain
+
+    return exit_by_max_holding_time(
+        mkt, None, entries, max_holding_time, _exit_at_loss_and_gain
+    )

@@ -185,3 +185,74 @@ def test_exit_by_trailing_stop(market, signal, entries):
     )
 
     pd.testing.assert_frame_equal(trades, expected)
+
+
+@pytest.mark.parametrize(
+    "gain_threshold,loss_threshold,expected_data",
+    [
+        (
+            100,
+            1,
+            [
+                [1.0],  # U
+                [-1.0],  # D
+                [1.0],  # Hit loss - Sell
+                [0.0],  # (Hit max holding) and U
+                [1.0],  # U
+                [-1.0],  # D
+                [-1.0],  # D
+                [0.0],  # and so on
+                [1.0],  #
+                [1.0],  #
+                [1.0],  #
+                [-2.0],  #
+                [-1],  #
+                [-1],  #
+                [1.0],  #
+                [1.0],  #
+                [1.0],  #
+                [1.0],  #
+                [-3.0],  #
+            ],
+        ),
+        (
+            1,
+            100,
+            [
+                [1.0],
+                [-2.0],
+                [1.0],
+                [1.0],
+                [-2.0],
+                [-1.0],
+                [1.0],
+                [2.0],
+                [0.0],
+                [0.0],
+                [-2.0],
+                [-1.0],
+                [-1.0],
+                [1.0],
+                [1.0],
+                [1.0],
+                [1.0],
+                [0.0],
+                [0.0],
+                [-1.0],
+            ],
+        ),
+    ],
+)
+def test_exit_at_loss_and_gain(
+    market, signal, entries, gain_threshold, loss_threshold, expected_data
+):
+    max_holding_time = pd.Timedelta("3min")
+
+    trades = module.exit_at_loss_and_gain(
+        market, signal, entries, max_holding_time, loss_threshold, gain_threshold
+    )
+
+    expected = pd.DataFrame(
+        index=trades.amount.index, data=expected_data, columns=["amount"]
+    )
+    assert (trades.amount == expected.amount).all()
