@@ -1,5 +1,6 @@
 # Define how to create Portfolio
-
+from typing import List
+from backlight.portfolio.portfolio import Portfolio
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
@@ -16,7 +17,7 @@ def create_simple_portfolio(
     strategy_name: str,
     strategy_params: dict,
     principal: float,
-):
+) -> Portfolio:
     """
     Create portfolio (as a list of positions) from a list of signals of each asset
 
