@@ -25,7 +25,7 @@ class Portfolio:
         return self.pl
 
     #Normalize PL to one asset reference and sum
-    def normalized_total_pl(self, mkt: List[MarketData], type_asset: str = "stock"):
+    def normalized_total_pl(self, mkt: List[MarketData] = [], type_asset: str = "stock"):
         """
         Normalize PL to one asset reference and sum
         args:
