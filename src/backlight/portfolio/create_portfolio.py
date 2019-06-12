@@ -41,7 +41,7 @@ def create_simple_portfolio(
 
     # Apply strategy on each asset and get list of trades
 
-    trades = Parallel(n_jobs=-1)(
+    trades = Parallel(n_jobs=-1, max_nbytes=None)(
         [
             delayed(strategy)(market, asset, **strategy_params)
             for (asset, market) in zip(sig, mkt)
@@ -49,7 +49,7 @@ def create_simple_portfolio(
     )
 
     # Construct positions and return Portfolio
-    positions = Parallel(n_jobs=-1)(
+    positions = Parallel(n_jobs=-1, max_nbytes=None)(
         [
             delayed(calc_positions)(trade, market, principal=principal_per_asset)
             for (trade, market) in zip(trades, mkt)
