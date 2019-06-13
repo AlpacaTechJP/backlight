@@ -6,18 +6,17 @@ from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
 from backlight.datasource.marketdata import MarketData
 from backlight import strategies
-from backlight.positions import calc_positions
 
 from joblib import Parallel, delayed
 
 
-def create_simple_portfolio(
+def simple_portfolio(
     mkt: List[MarketData],
     sig: List[Signal],
     strategy_name: str,
     strategy_params: dict,
     principal: float,
-) -> Portfolio:
+) -> List[Trades]:
     """
     Create portfolio (as a list of positions) from a list of signals of each asset
 
@@ -28,7 +27,7 @@ def create_simple_portfolio(
         principal: initial principal value available for the portfolio
 
     return:
-        Portfolio
+        List of Trades
     """
 
     # Load strategy
@@ -40,7 +39,6 @@ def create_simple_portfolio(
         assert m.symbol == s.symbol
 
     # Apply strategy on each asset and get list of trades
-
     trades = Parallel(n_jobs=-1, max_nbytes=None)(
         [
             delayed(strategy)(market, asset, **strategy_params)
@@ -48,12 +46,4 @@ def create_simple_portfolio(
         ]
     )
 
-    # Construct positions and return Portfolio
-    positions = Parallel(n_jobs=-1, max_nbytes=None)(
-        [
-            delayed(calc_positions)(trade, market, principal=principal_per_asset)
-            for (trade, market) in zip(trades, mkt)
-        ]
-    )
-
-    return Portfolio(positions)
+    return trades

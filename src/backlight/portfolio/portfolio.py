@@ -5,6 +5,26 @@ from typing import List
 from backlight.positions.positions import Positions
 from backlight.datasource.marketdata import MarketData
 from backlight.metrics.position_metrics import calc_pl
+from backlight.positions import calc_positions
+from backlight.trades.trades import Trades
+from joblib import Parallel, delayed
+
+
+def construct_portfolio(
+    trades: List[Trades], mkt: List[MarketData], principal_per_asset: float
+) -> Portfolio:
+    """
+    Take a list of Trades and MarketData and return aq portfolio
+    """
+
+    # Construct positions and return Portfolio
+    positions = Parallel(n_jobs=-1, max_nbytes=None)(
+        [
+            delayed(calc_positions)(trade, market, principal=principal_per_asset)
+            for (trade, market) in zip(trades, mkt)
+        ]
+    )
+    return Portfolio(positions)
 
 
 class Portfolio:
