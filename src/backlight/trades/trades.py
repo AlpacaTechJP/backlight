@@ -41,6 +41,10 @@ class Trades(pd.DataFrame):
         a = self["amount"]
         return a.groupby(a.index).sum().sort_index()
 
+    @property.setter
+    def amount(self, value: int) -> None:
+        self.amount *= value
+
     def get_trade(self, trade_id: int) -> pd.Series:
         """Get trade.
 

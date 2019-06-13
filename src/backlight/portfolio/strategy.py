@@ -10,21 +10,16 @@ from backlight import strategies
 from joblib import Parallel, delayed
 
 
-def simple_portfolio(
-    mkt: List[MarketData],
-    sig: List[Signal],
-    strategy_name: str,
-    strategy_params: dict,
-    principal: float,
+def generate_simple_trades(
+    mkt: List[MarketData], sig: List[Signal], strategy_name: str, strategy_params: dict
 ) -> List[Trades]:
     """
-    Create portfolio (as a list of positions) from a list of signals of each asset
+    Create a list of trades from a list of signals of each asset
 
     Args:
         mkt: list of marketdata of each asset
         sig: list of signals to be used to construct the porfolio
         strategy_name: a simple strategy from module strategies
-        principal: initial principal value available for the portfolio
 
     return:
         List of Trades
@@ -32,7 +27,6 @@ def simple_portfolio(
 
     # Load strategy
     strategy = getattr(strategies, strategy_name)
-    principal_per_asset = principal / len(mkt)
 
     # check markets and signals given in order
     for (m, s) in zip(mkt, sig):
