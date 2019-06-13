@@ -80,7 +80,7 @@ def normalized_total_pl(
                       to JPY using USDJPY market
 
     """
-    
+
     # Compute pl per asset in the portfolio
     pl = portfolio.value()
 
