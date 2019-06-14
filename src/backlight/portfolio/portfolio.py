@@ -17,16 +17,24 @@ class Portfolio:
     """
 
     def __init__(self, positions: List[Positions]):
-        self.portfolio = positions
+        self.positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
         pl = pd.DataFrame()
-        for asset_positions in self.portfolio:
+        for asset_positions in self.positions:
             # Compute PL of positions of each asset
             pl[asset_positions.symbol] = calc_pl(asset_positions)
         return pl
 
+    def get_amount(self,symbol: str) -> pd.Series:
+        """ Return amounts of each asset in the portfolio at each time step"""
+        for p in self.positions:
+            if(p.symbol == symbol):
+                return p.amount
+        raise ValueError(
+            "Passed symbol not found in portfolio"
+        )
 
 def construct_portfolio(
     trades: List[Trades],
@@ -45,6 +53,11 @@ def construct_portfolio(
     return:
         Portfolio
     """
+
+    symbols2mkt = {m.symbol: m for m in mkt}
+    symbols = [t.symbol for t in trades]
+    assert set(symbols) == set(symbols2mkt.keys())
+
     # Transform trades following the lot_size
     for (trade, lot) in zip(trades, lot_size):
         trade.amount(lot)
@@ -92,7 +105,7 @@ def normalized_total_pl(
         # check if in case all currecnies have same suffix, use last 3 chars as reference
         reference_to_check = pl.columns[0][-3:]
 
-        if sum(pl.columns.str.endswith(reference_to_check)) == len(portfolio.portfolio):
+        if sum(pl.columns.str.endswith(reference_to_check)) == len(portfolio.positions):
             return pl.sum(1)
         else:
             # Fix me : add support of different assets
