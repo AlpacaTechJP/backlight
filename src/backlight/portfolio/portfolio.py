@@ -27,14 +27,13 @@ class Portfolio:
             pl[asset_positions.symbol] = calc_pl(asset_positions)
         return pl
 
-    def get_amount(self,symbol: str) -> pd.Series:
+    def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
         for p in self.positions:
-            if(p.symbol == symbol):
+            if p.symbol == symbol:
                 return p.amount
-        raise ValueError(
-            "Passed symbol not found in portfolio"
-        )
+        raise ValueError("Passed symbol not found in portfolio")
+
 
 def construct_portfolio(
     trades: List[Trades],
@@ -60,7 +59,7 @@ def construct_portfolio(
 
     # Transform trades following the lot_size
     for (trade, lot) in zip(trades, lot_size):
-        trade.amount(lot)
+        trade["amount"] *= lot
 
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
