@@ -35,6 +35,20 @@ class Portfolio:
         raise ValueError("Passed symbol not found in portfolio")
 
 
+def lots_size(
+    mkt: List[MarketData], principal: List[float], max_amount: List[int]
+) -> List[int]:
+    """
+    Compute lot_size based on the principal, max_amount and the makrtdata.
+    lot = (Principal/max_amount) / (market_price_at_0)
+
+    """
+    lots = []
+    for (m, p, amount) in zip(mkt, principal, max_amount):
+        lots.append(int((p / amount) / m.mid[0]))
+    return lots
+
+
 def construct_portfolio(
     trades: List[Trades],
     mkt: List[MarketData],
