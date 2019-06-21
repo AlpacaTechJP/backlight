@@ -1,6 +1,9 @@
-from backlight.portfolio.portfolio import Portfolio
+import pandas as pd
 from typing import List
+
+from backlight.portfolio.portfolio import Portfolio
 from backlight.datasource.marketdata import MarketData
+
 
 
 def homogenize_portfolio(
