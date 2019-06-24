@@ -17,19 +17,19 @@ class Portfolio:
     """
 
     def __init__(self, positions: List[Positions]):
-        self._positions = positions
+        self.positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
         pl = pd.DataFrame()
-        for p in self._positions:
+        for p in self.positions:
             # Compute PL of positions of each asset
             pl[p.symbol] = calc_pl(p)
         return pl
 
     def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
-        for p in self._positions:
+        for p in self.positions:
             if p.symbol == symbol:
                 return p.amount
         raise ValueError("Passed symbol not found in portfolio")
