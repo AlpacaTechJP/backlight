@@ -5,7 +5,7 @@ from backlight.portfolio.portfolio import Portfolio
 from backlight.datasource.marketdata import MarketData
 
 
-def homogenize_portfolio(
+def calculate_pl(
     pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
 ) -> Portfolio:
 

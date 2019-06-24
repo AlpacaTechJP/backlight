@@ -17,19 +17,19 @@ class Portfolio:
     """
 
     def __init__(self, positions: List[Positions]):
-        self.positions = positions
+        self._positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
         pl = pd.DataFrame()
-        for p in self.positions:
+        for p in self._positions:
             # Compute PL of positions of each asset
             pl[p.symbol] = calc_pl(p)
         return pl
 
     def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
-        for p in self.positions:
+        for p in self._positions:
             if p.symbol == symbol:
                 return p.amount
         raise ValueError("Passed symbol not found in portfolio")
@@ -85,42 +85,102 @@ def construct_portfolio(
     return Portfolio(positions)
 
 
-def normalized_total_pl(
-    portfolio: Portfolio, mkt: List[MarketData] = [], type_asset: str = "stock"
-) -> pd.DataFrame:
-    """
-    Normalize PL to one asset reference and sum
-    args:
-        - portfolio : a defined portfolio
-        - mkt : list of marketdata for each asset
-        - type_asset: FX or same (same are asset that supposed to have pl in the same currency, like stocks or USDJPY and EURJPY)
+# def normalized_total_pl(
+#     portfolio: Portfolio, mkt: List[MarketData] = [], type_asset: str = "stock"
+# ) -> pd.DataFrame:
+#     """
+#     Normalize PL to one asset reference and sum
+#     args:
+#         - portfolio : a defined portfolio
+#         - mkt : list of marketdata for each asset
+#         - type_asset: FX or same (same are asset that supposed to have pl in the same currency, like stocks or USDJPY and EURJPY)
 
-        # To add when supporting cross assets
-        - reference : asset of reference
-                      for FX, one should pay attention to the family of asset that
-                      share the same base (for example EURJPY, USDJPY, GBPJPY)
-                      then an auto reference would be JPY
+#         # To add when supporting cross assets
+#         - reference : asset of reference
+#                       for FX, one should pay attention to the family of asset that
+#                       share the same base (for example EURJPY, USDJPY, GBPJPY)
+#                       then an auto reference would be JPY
 
-                      in case of cross FX (EURUSD, USDJPY) we should convert USD pl from first asset
-                      to JPY using USDJPY market
+#                       in case of cross FX (EURUSD, USDJPY) we should convert USD pl from first asset
+#                       to JPY using USDJPY market
 
-    """
+#     """
 
-    # Compute pl per asset in the portfolio
-    pl = portfolio.value()
+#     # Compute pl per asset in the portfolio
+#     pl = portfolio.value()
 
-    # If not FX, just add all pl
-    if type_asset != "FX":
-        return pl.sum(1)
+#     # If not FX, just add all pl
+#     if type_asset != "FX":
+#         return pl.sum(1)
 
-    if type_asset == "FX":
-        # check if in case all currecnies have same suffix, use last 3 chars as reference
-        reference_to_check = pl.columns[0][-3:]
+#     if type_asset == "FX":
+#         # check if in case all currecnies have same suffix, use last 3 chars as reference
+#         reference_to_check = pl.columns[0][-3:]
 
-        if sum(pl.columns.str.endswith(reference_to_check)) == len(portfolio.positions):
-            return pl.sum(1)
+#         if sum(pl.columns.str.endswith(reference_to_check)) == len(portfolio.positions):
+#             return pl.sum(1)
+#         else:
+#             # Fix me : add support of different assets
+#             raise ValueError(
+#                 "Cross FX is not supported, specify FX with same base  e.g. USDJPY, GBPJPY"
+#             )
+
+
+
+def calculate_pl(
+    pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
+) -> Portfolio:
+
+    new_positions = []
+
+    # We compute the intersection of index between market datas and portfolio positions for later use
+    mkt_pos_intersection = mkt[0].index.intersection(pt._positions[0].index)
+
+    for position in pt._positions:
+        # ccy is the currency wich in which are expressed the element of the position, e.g. JPY for USDJPY
+        ccy = position.symbol[-3:]
+
+        if ccy == base_ccy:
+            # The ccy is the base currency, no need to convert
+            new_positions.append(position.loc[mkt_pos_intersection].copy())
         else:
-            # Fix me : add support of different assets
-            raise ValueError(
-                "Cross FX is not supported, specify FX with same base  e.g. USDJPY, GBPJPY"
-            )
+            for market in mkt:
+                # Looking for the ratio for converting in the base currency
+                if ccy + base_ccy == market.symbol:
+                    # We buy base_ccy at the bid price of the ccybase_ccy market
+                    ratios = pd.Series(
+                        market.bid.values, index=market.index, dtype=float
+                    )
+                elif base_ccy + ccy == market.symbol:
+                    # We sell ccy at 1 / ask price of the base_ccyccy market
+                    ratios = pd.Series(
+                        market.ask.values, index=market.index, dtype=float
+                    )
+                    ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+
+            try:
+                ratios
+            except NameError:
+                print(
+                    "The currency "
+                    + ccy
+                    + " can't be convert to "
+                    + base_ccy
+                    + " because data is not on the market."
+                )
+            else:
+                idx = pd.to_datetime(mkt_pos_intersection)
+                pos_values = position.loc[idx].values
+                ratios_values = ratios.loc[idx].values.reshape(
+                    ratios.loc[idx].values.size, 1
+                )
+
+                # Depending of the ratios array previously computed, we get the value of the portfolio in the base_ccy
+                new_p = pd.DataFrame(
+                    pos_values * ratios_values, columns=position.columns, index=idx
+                )
+
+                new_positions.append(new_p)
+
+    return Portfolio(new_positions)
+
