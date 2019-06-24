@@ -17,25 +17,25 @@ class Portfolio:
     """
 
     def __init__(self, positions: List[Positions]):
-        self.positions = positions
+        self._positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
         pl = pd.DataFrame()
-        for asset_positions in self.positions:
+        for p in self._positions:
             # Compute PL of positions of each asset
-            pl[asset_positions.symbol] = calc_pl(asset_positions)
+            pl[p.symbol] = calc_pl(p)
         return pl
 
     def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
-        for p in self.positions:
+        for p in self._positions:
             if p.symbol == symbol:
                 return p.amount
         raise ValueError("Passed symbol not found in portfolio")
 
 
-def lots_size(
+def calculate_lots_size(
     mkt: List[MarketData], principal: List[float], max_amount: List[int]
 ) -> List[int]:
     """
@@ -85,7 +85,6 @@ def construct_portfolio(
     return Portfolio(positions)
 
 
-# Normalize PL to one asset reference and sum
 def normalized_total_pl(
     portfolio: Portfolio, mkt: List[MarketData] = [], type_asset: str = "stock"
 ) -> pd.DataFrame:
