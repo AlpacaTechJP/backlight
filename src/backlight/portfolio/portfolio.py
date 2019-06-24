@@ -18,6 +18,9 @@ class Portfolio:
 
     def __init__(self, positions: List[Positions]):
         self._positions = positions
+        symbols = [position.symbol for position in positions]
+        if len(symbols) > len(set(symbols)):
+            ValueError("Two positions have the same symbols")
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
