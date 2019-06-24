@@ -120,7 +120,7 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
 
     data = [data1, data2]
 
-    for (position, d) in zip(portfolio.positions, data):
+    for (position, d) in zip(portfolio._positions, data):
 
         expected = pd.DataFrame(
             index=pd.to_datetime(index),
