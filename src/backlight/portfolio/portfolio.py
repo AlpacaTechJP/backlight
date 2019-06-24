@@ -126,7 +126,6 @@ def construct_portfolio(
 #             )
 
 
-
 def calculate_pl(
     pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
 ) -> Portfolio:
@@ -183,4 +182,3 @@ def calculate_pl(
                 new_positions.append(new_p)
 
     return Portfolio(new_positions)
-
