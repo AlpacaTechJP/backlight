@@ -17,10 +17,34 @@ class Portfolio:
     """
 
     def __init__(self, positions: List[Positions]):
-        self._positions = positions
+        """
+        If there is positions with the same symbol, their value are sum
+        """
         symbols = [position.symbol for position in positions]
         if len(symbols) > len(set(symbols)):
-            ValueError("Two positions have the same symbols")
+            unique_positions = []
+            for position in positions:
+                s = position.symbol
+                if symbols.count(s) > 1:
+                    df = pd.DataFrame(
+                        data=np.array(
+                            [p.values for p in positions if p.symbol == s]
+                        ).sum(axis=0),
+                        index=position.index,
+                        columns=position.columns,
+                    )
+                    pos = Positions(df)
+                    pos.symbol = s
+                    unique_positions.append(pos)
+
+                    for _ in range(symbols.count(s)):
+                        symbols.remove(s)
+
+                elif symbols.count(position.symbol) == 1:
+                    unique_positions.append(position)
+            self._positions = unique_positions
+        else:
+            self._positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
