@@ -1,9 +1,10 @@
 import pytest
 import pandas as pd
 import numpy as np
-from backlight.portfolio.portfolio import calculate_pl as module
+from backlight.portfolio.portfolio import homogenize_pl as module
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio
+from backlight.portfolio.portfolio import calculate_pl
 
 import backlight
 
@@ -42,8 +43,8 @@ def portfolio():
     return Portfolio(ptf)
 
 
-def test_calculate_pl(portfolio, markets):
-    calculated_portfolio = module(portfolio, markets, base_ccy="usd")
+def test_homogenize_pl(portfolio, markets):
+    homogenized_portfolio = module(portfolio, markets, base_ccy="usd")
 
     index = ["2018-06-06 00:00:00", "2018-06-06 00:01:00", "2018-06-06 00:02:00"]
 
@@ -63,3 +64,14 @@ def test_calculate_pl(portfolio, markets):
             columns=["amount", "price", "principal"],
         )
         assert ((expected == position).all()).all()
+
+
+def test_calculate_pl(portfolio, markets):
+    calculated_portfolio = calculate_pl(portfolio, markets, base_ccy="usd")
+
+    expected = pd.DataFrame(
+        index=["2018-06-06 00:00:00", "2018-06-06 00:01:00", "2018-06-06 00:02:00"],
+        data=[[0.0, 3.0, 6.0], [6.0, 8.0, 10.0], [9.0, 10.5, 12.0]],
+        columns=["amount", "price", "principal"],
+    )
+    assert ((expected == calculated_portfolio).all()).all()
