@@ -132,6 +132,22 @@ def construct_portfolio(
 def calculate_pl(
     pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
 ) -> Portfolio:
+    """
+    Normalize PL to one asset reference and sum
+    args:
+        - portfolio : a defined portfolio
+        - mkt : list of marketdata for each asset
+        - base_ccy : asset of reference
+                      for FX, one should pay attention to the family of asset that
+                      share the same base (for example EURJPY, USDJPY, GBPJPY)
+                      then an auto reference would be JPY
+
+                      in case of cross FX (EURUSD, USDJPY) we should convert USD pl from first asset
+                      to JPY using USDJPY market
+                      -> Job done a bit different : all assets are converted to base_ccy. The sum is still not done.
+
+    """
+
 
     new_positions = []
 
@@ -178,9 +194,10 @@ def calculate_pl(
                 )
 
                 # Depending of the ratios array previously computed, we get the value of the portfolio in the base_ccy
-                new_p = pd.DataFrame(
+                new_p = Positions(pd.DataFrame(
                     pos_values * ratios_values, columns=position.columns, index=idx
-                )
+                ))
+                new_p.symbol = position.symbol
 
                 new_positions.append(new_p)
 
