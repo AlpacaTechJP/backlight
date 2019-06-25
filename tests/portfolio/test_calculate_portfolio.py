@@ -56,7 +56,7 @@ def test_homogenize_pl(portfolio, markets):
 
     data = [data1, data2, data3]
 
-    for (position, d) in zip(calculated_portfolio._positions, data):
+    for (position, d) in zip(homogenized_portfolio._positions, data):
 
         expected = pd.DataFrame(
             index=pd.to_datetime(index),
