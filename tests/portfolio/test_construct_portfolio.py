@@ -2,8 +2,11 @@ import pytest
 import pandas as pd
 import numpy as np
 from backlight.portfolio.portfolio import calculate_pl as module
+from backlight.positions.positions import Positions
+from backlight.portfolio.portfolio import Portfolio
 
 import backlight
+
 
 @pytest.fixture
 def markets():

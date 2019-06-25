@@ -128,4 +128,3 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
             columns=["amount", "price", "principal"],
         )
         assert ((expected == position).all()).all()
-
