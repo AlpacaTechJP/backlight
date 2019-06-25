@@ -42,7 +42,7 @@ def portfolio():
     return Portfolio(ptf)
 
 
-def test_calculate_pl():
+def test_calculate_pl(portfolio, markets):
     calculated_portfolio = module(portfolio, markets, base_ccy="usd")
 
     index = ["2018-06-06 00:00:00", "2018-06-06 00:01:00", "2018-06-06 00:02:00"]
