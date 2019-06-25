@@ -148,7 +148,6 @@ def calculate_pl(
 
     """
 
-
     new_positions = []
 
     # We compute the intersection of index between market datas and portfolio positions for later use
@@ -194,9 +193,11 @@ def calculate_pl(
                 )
 
                 # Depending of the ratios array previously computed, we get the value of the portfolio in the base_ccy
-                new_p = Positions(pd.DataFrame(
-                    pos_values * ratios_values, columns=position.columns, index=idx
-                ))
+                new_p = Positions(
+                    pd.DataFrame(
+                        pos_values * ratios_values, columns=position.columns, index=idx
+                    )
+                )
                 new_p.symbol = position.symbol
 
                 new_positions.append(new_p)
