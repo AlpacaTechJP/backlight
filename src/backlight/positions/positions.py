@@ -77,7 +77,8 @@ def calc_positions(
     """
     assert trades.symbol == mkt.symbol
     assert trades.index.isin(mkt.index).all()
-
+    
+    a = 0
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
