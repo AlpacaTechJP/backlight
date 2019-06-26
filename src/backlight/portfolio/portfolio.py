@@ -22,6 +22,7 @@ class Portfolio:
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
+        self._positions = positions
 
     def value(self) -> pd.DataFrame:
         """ DataFrame of the portfolio valuation of each asset"""
