@@ -99,5 +99,5 @@ def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
         - base_ccy : asset of reference
     
     """
-    pl = portfolio.value()
+    pl = pt.value()
     return pl.sum(axis=1)
