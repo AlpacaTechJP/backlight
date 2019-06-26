@@ -173,8 +173,6 @@ def make_trades(
     current = 0
     for i, t in zip(_ids, trades):
         l = len(t.index)
-        #         for k in range(current, current + l):
-        #             df.iat[k, 1] = i
         df.iloc[current : current + l, 1] = i
         current += l
 
