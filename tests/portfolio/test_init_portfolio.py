@@ -1,6 +1,7 @@
+import pytest
+
 import pandas as pd
 import numpy as np
-import pytest
 
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio
