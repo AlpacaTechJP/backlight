@@ -119,7 +119,9 @@ def homogenize_pl(
                       -> Job done a bit different : all assets are converted to base_ccy. The sum is still not done.    """
     new_positions = (
         []
-    )  # We compute the intersection of index between market datas and portfolio positions for later use
+    )  
+    
+    # We compute the intersection of index between market datas and portfolio positions for later use
     mkt_pos_intersection = mkt[0].index.intersection(pt._positions[0].index)
     for position in pt._positions:
         # ccy is the currency wich in which are expressed the element of the position, e.g. JPY for USDJPY
