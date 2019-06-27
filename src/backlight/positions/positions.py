@@ -48,18 +48,21 @@ def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
 
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
-    positions = pd.DataFrame(index=idx)
-    positions.loc[:, "amount"] = trade.cumsum()
-    positions.loc[:, "price"] = mkt.mid.loc[idx]
     fee = mkt.fee(trade)
-    positions.loc[:, "principal"] = -fee.cumsum() + principal
+    positions = pd.DataFrame(
+        index=idx,
+        data={
+            "amount": trade.cumsum(),
+            "price": mkt.mid.loc[idx],
+            "principal": -fee.cumsum() + principal,
+        },
+        columns=["amount", "price", "principal"],
+    )
     positions = positions.ffill()
 
     # add initial data
     initial_idx = idx[0] - _freq(idx)
-    positions.loc[initial_idx, "amount"] = 0.0
-    positions.loc[initial_idx, "price"] = 0.0
-    positions.loc[initial_idx, "principal"] = principal
+    positions.at[initial_idx, :] = [0.0, 0.0, principal]
 
     return positions.sort_index()
 
@@ -77,8 +80,7 @@ def calc_positions(
     """
     assert trades.symbol == mkt.symbol
     assert trades.index.isin(mkt.index).all()
-    
-    a = 0
+
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
