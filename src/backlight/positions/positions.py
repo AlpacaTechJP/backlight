@@ -16,6 +16,7 @@ def _freq(idx: pd.Index) -> pd.Timedelta:
 
 class Positions(pd.DataFrame):
     """Positions container which inherits pd.DataFrame.
+    
     They have following columns:
         - `amount`: Amount of the asset you are holding at that moment.
         - `price`: Price per unit of the asset at that moment.
@@ -68,6 +69,7 @@ def calc_positions(
 ) -> Positions:
     """Create Positions from Trades and MarketData.
     Positions' frequency is determined by MarketData's frequency.
+    
     Args:
         trades: Tuple of trades.
         mkt: Market data.
@@ -79,5 +81,4 @@ def calc_positions(
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
-
     return pos
