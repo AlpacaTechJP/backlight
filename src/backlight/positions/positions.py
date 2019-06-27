@@ -79,4 +79,5 @@ def calc_positions(
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
-return pos
+
+    return pos
