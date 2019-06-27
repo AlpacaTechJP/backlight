@@ -117,10 +117,8 @@ def homogenize_pl(
                      then an auto reference would be JPY in case of cross FX (EURUSD, USDJPY) we should convert USD pl from first asset
                      to JPY using USDJPY market
                       -> Job done a bit different : all assets are converted to base_ccy. The sum is still not done.    """
-    new_positions = (
-        []
-    )  
-    
+    new_positions = []
+
     # We compute the intersection of index between market datas and portfolio positions for later use
     mkt_pos_intersection = mkt[0].index.intersection(pt._positions[0].index)
     for position in pt._positions:
