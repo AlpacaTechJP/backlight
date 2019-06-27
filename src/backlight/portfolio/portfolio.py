@@ -90,14 +90,99 @@ def construct_portfolio(
     return Portfolio(positions)
 
 
-def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
+# def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
+#     """
+#     Apply the sum on the homogenized portfolio
+#     args:
+#         - portfolio : a defined portfolio
+#         - mkt : list of marketdata for each asset
+#         - base_ccy : asset of reference
+
+#     """
+#     pl = pt.value()
+#     return pl.sum(axis=1)
+
+
+def homogenize_pl(
+    pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
+) -> Portfolio:
+    """
+    Normalize PL to one asset reference and sum
+    args:
+       - portfolio : a defined portfolio
+       - mkt : list of marketdata for each asset
+       - base_ccy : asset of reference
+                     for FX, one should pay attention to the family of asset that
+                     share the same base (for example EURJPY, USDJPY, GBPJPY)
+                     then an auto reference would be JPY in case of cross FX (EURUSD, USDJPY) we should convert USD pl from first asset
+                     to JPY using USDJPY market
+                      -> Job done a bit different : all assets are converted to base_ccy. The sum is still not done.    """
+    new_positions = (
+        []
+    )  # We compute the intersection of index between market datas and portfolio positions for later use
+    mkt_pos_intersection = mkt[0].index.intersection(pt._positions[0].index)
+    for position in pt._positions:
+        # ccy is the currency wich in which are expressed the element of the position, e.g. JPY for USDJPY
+        ccy = position.symbol[-3:]
+        if ccy == base_ccy:
+            # The ccy is the base currency, no need to convert
+            new_positions.append(position.loc[mkt_pos_intersection].copy())
+        else:
+            for market in mkt:
+                # Looking for the ratio for converting in the base currency
+                if ccy + base_ccy == market.symbol:
+                    # We buy base_ccy at the bid price of the ccybase_ccy market
+                    ratios = pd.Series(
+                        market.bid.values, index=market.index, dtype=float
+                    )
+                elif base_ccy + ccy == market.symbol:
+                    # We sell ccy at 1 / ask price of the base_ccyccy market
+                    ratios = pd.Series(
+                        market.ask.values, index=market.index, dtype=float
+                    )
+                    ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+                try:
+                    ratios
+                except NameError:
+                    print(
+                        "The currency "
+                        + ccy
+                        + " can't be convert to "
+                        + base_ccy
+                        + " because data is not on the market."
+                    )
+                else:
+                    idx = pd.to_datetime(mkt_pos_intersection)
+                    pos_values = position.loc[idx].values
+                    ratios_values = ratios.loc[idx].values.reshape(
+                        ratios.loc[idx].values.size, 1
+                    )
+
+                    # Depending of the ratios array previously computed, we get the value of the portfolio in the base_ccy
+                    new_p = Positions(
+                        pd.DataFrame(
+                            pos_values * ratios_values,
+                            columns=position.columns,
+                            index=idx,
+                        )
+                    )
+                    new_p.symbol = position.symbol
+                    new_positions.append(new_p)
+
+    return Portfolio(new_positions)
+
+
+def calculate_pl(
+    pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
+) -> pd.DataFrame:
     """
     Apply the sum on the homogenized portfolio
     args:
         - portfolio : a defined portfolio
         - mkt : list of marketdata for each asset
-        - base_ccy : asset of reference
-    
-    """
-    pl = pt.value()
-    return pl.sum(axis=1)
+        - base_ccy : asset of reference    """
+    hpt = homogenize_pl(pt, mkt, base_ccy)
+    df = hpt._positions[0].copy()
+    for position in hpt._positions[1:]:
+        df = df + position
+    return df
