@@ -80,19 +80,6 @@ def construct_portfolio(
     for (trade, lot) in zip(trades, lot_size):
         trade["amount"] *= lot
 
-    """
-    There is an issue here :
-    - We have two solutions : we fusion the trades of same symbols before calculating the positions or
-    we calculate the positions and then fusion them for same symbols.
-    - In the first case, the problem of the _id column risks to be heavy to solve as much in term of code as
-    in term of computation time. Morever, here, the trades and the market datas are assumed to be ranked in 
-    the same order (regarding of the symbols). If its not the case its impossible to know it. Same for principal.
-    - In the second case, we need to duplicate the market and principal columns to fit the size of the trades. 
-    It will be time and memory consuming.
-    
-    I implemented the 2nd one at the moment.
-    """
-
     new_mkt = [symbols2mkt.get(t.symbol) for t in trades]
     assert len(principal) == len(trades)
     assert len(lot_size) == len(trades)
@@ -105,30 +92,41 @@ def construct_portfolio(
         ]
     )
 
-    # Here are the modifications done on positions after treatment.
     symbols = [p.symbol for p in positions]
     if len(set(symbols)) != len(symbols):
-        unique_positions = []
-        for position in positions:
-            s = position.symbol
-            if symbols.count(s) > 1:
-                df = pd.DataFrame(
-                    data=np.array([p.values for p in positions if p.symbol == s]).sum(
-                        axis=0
-                    ),
-                    index=position.index,
-                    columns=position.columns,
-                )
-                pos = Positions(df)
-                pos.symbol = s
-                unique_positions.append(pos)
-                for _ in range(symbols.count(s)):
-                    symbols.remove(s)
-            elif symbols.count(position.symbol) == 1:
-                unique_positions.append(position)
-        positions = unique_positions
+        positions = fusion_positions(positions)
 
     return Portfolio(positions)
+
+
+def fusion_positions(positions: List[Positions]) -> List[Positions]:
+    """
+    Take a list of Positions and sum those with the same symbols
+    args :
+        - positions : a list of Positions to fusion
+    """
+
+    unique_positions = []
+    symbols = [p.symbol for p in positions]
+    for position in positions:
+        s = position.symbol
+        if symbols.count(s) > 1:
+            df = pd.DataFrame(
+                data=np.array([p.values for p in positions if p.symbol == s]).sum(
+                    axis=0
+                ),
+                index=position.index,
+                columns=position.columns,
+            )
+            pos = Positions(df)
+            pos.symbol = s
+            unique_positions.append(pos)
+            for _ in range(symbols.count(s)):
+                symbols.remove(s)
+        elif symbols.count(position.symbol) == 1:
+            unique_positions.append(position)
+
+    return unique_positions
 
 
 def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
