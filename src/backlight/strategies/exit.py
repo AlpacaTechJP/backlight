@@ -125,11 +125,29 @@ def exit_by_max_holding_time(
                 continue
 
             idx = trade.index[0]
-            df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
-            transaction = _exit_transaction(df_exit, trade, exit_condition)
+            #             df_exit = df[(idx <= df.index) & (df.index <= idx + max_holding_time)]
+            #             transaction = _exit_transaction(df_exit, trade, exit_condition)
 
-            indices.append(transaction.timestamp)
-            exits.append((transaction.amount, i))
+            #             indices.append(transaction.timestamp)
+            #             exits.append((transaction.amount, i))
+
+            freq = df.index[1] - df.index[0]
+            start = max(idx, df.index[0])
+            end = min(idx + max_holding_time, df.index[-1])
+
+            for indx in pd.date_range(start=start, end=end, freq=freq):
+                # Here is the line which will not work for other functions. I suggest to replace it by something like :
+                # if exit_condition(df, trade, indx) :
+                # And modifying all the funtions accordingly.
+                if (
+                    TernaryDirection(df["pred"].at[start]).value
+                    * (df["up"].at[indx] - df["down"].at[indx])
+                    <= 0.0
+                ):
+                    break
+
+            indices.append(indx)
+            exits.append((-trade.sum(), i))
 
         df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
         return from_dataframe(df, symbol)
