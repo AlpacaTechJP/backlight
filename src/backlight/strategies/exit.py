@@ -28,13 +28,13 @@ def _exit_transaction(
     trade: pd.Series,
     exit_condition: Callable[[pd.DataFrame, pd.Series, pd.Timestamp], bool],
 ) -> Transaction:
-    for indx in df.index:
-        if exit_condition(df, trade, indx):
-            return Transaction(timestamp=indx, amount=-trade.sum())
+    for index in df.index:
+        if exit_condition(df, trade, index):
+            return Transaction(timestamp=index, amount=-trade.sum())
     return Transaction(timestamp=df.index[-1], amount=-trade.sum())
 
 
-def _no_exit_condition(df: pd.DataFrame, trade: pd.Series, indx: pd.Timestamp) -> bool:
+def _no_exit_condition(df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp) -> bool:
     return False
 
 
@@ -179,13 +179,13 @@ def exit_at_opposite_signals(
     """
 
     def _exit_at_opposite_signals_condition(
-        df: pd.DataFrame, opposite_signals_dict: dict, indx: pd.Timestamp
+        df: pd.DataFrame, opposite_signals_dict: dict, index: pd.Timestamp
     ) -> bool:
         opposite_signals = opposite_signals_dict[TernaryDirection(df["pred"][0])]
-        return df["pred"].at[indx] in opposite_signals
+        return df["pred"].at[index] in opposite_signals
 
-    def _exit_condition(df: pd.DataFrame, trade: pd.Series, indx: pd.Timestamp) -> bool:
-        return _exit_at_opposite_signals_condition(df, opposite_signals_dict, indx)
+    def _exit_condition(df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp) -> bool:
+        return _exit_at_opposite_signals_condition(df, opposite_signals_dict, index)
 
     return exit_by_max_holding_time(
         mkt, sig, entries, max_holding_time, _exit_condition
@@ -207,11 +207,11 @@ def exit_by_expectation(
     """
 
     def _exit_by_expectation_condition(
-        df: pd.DataFrame, trade: pd.Series, indx: pd.Timestamp
+        df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
     ) -> bool:
         return (
             TernaryDirection(df["pred"].at[df.index[0]]).value
-            * (df["up"].at[indx] - df["down"].at[indx])
+            * (df["up"].at[index] - df["down"].at[index])
             < 0.0
         )
 
@@ -243,13 +243,13 @@ def exit_by_trailing_stop(
     assert trailing_stop >= 0.0
 
     def _exit_by_trailing_stop(
-        df: pd.DataFrame, trade: pd.Series, indx: pd.Timestamp
+        df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
     ) -> bool:
 
         amount = trade.sum()
         entry_price = df.mid.iat[0]
 
-        if np.sign(amount) * (df.mid.at[indx] - entry_price) <= -initial_stop:
+        if np.sign(amount) * (df.mid.at[index] - entry_price) <= -initial_stop:
             return True
 
         prices = df.mid
@@ -258,8 +258,8 @@ def exit_by_trailing_stop(
         drawdown = historical_max_pl - pl_per_amount
 
         if (
-            historical_max_pl.at[indx] >= trailing_stop
-            and drawdown.at[indx] >= trailing_stop
+            historical_max_pl.at[index] >= trailing_stop
+            and drawdown.at[index] >= trailing_stop
         ):
             return True
 
@@ -280,12 +280,12 @@ def exit_at_loss_and_gain(
     df = _concat(mkt, sig)
 
     def _exit_at_loss_and_gain(
-        df: pd.DataFrame, trade: pd.Series, indx: pd.Timestamp
+        df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
     ) -> bool:
 
         amount = trade.sum()
         entry_price = df.mid.iat[0]
-        value = np.sign(amount) * (df.mid.at[indx] - entry_price)
+        value = np.sign(amount) * (df.mid.at[index] - entry_price)
 
         if value <= -loss_threshold or value >= gain_threshold:
             return True
