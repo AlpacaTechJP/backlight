@@ -184,7 +184,9 @@ def exit_at_opposite_signals(
         opposite_signals = opposite_signals_dict[TernaryDirection(df["pred"][0])]
         return df["pred"].at[index] in opposite_signals
 
-    def _exit_condition(df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp) -> bool:
+    def _exit_condition(
+        df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
+    ) -> bool:
         return _exit_at_opposite_signals_condition(df, opposite_signals_dict, index)
 
     return exit_by_max_holding_time(
