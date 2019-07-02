@@ -37,6 +37,7 @@ def trades():
 
     trades.append(make_trades("usdjpy", [trade], [ids]))
     trades.append(make_trades("eurjpy", [trade], [ids]))
+    trades.append(make_trades("usdjpy", [trade], [ids]))
     return trades
 
 
@@ -60,17 +61,26 @@ def markets():
         columns=["mid"],
     )
     markets.append(backlight.datasource.from_dataframe(df, symbol))
+
+    symbol = "usdjpy"
+    periods = 10
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+        data=np.arange(periods)[:, None],
+        columns=["mid"],
+    )
+    markets.append(backlight.datasource.from_dataframe(df, symbol))
     return markets
 
 
 @pytest.fixture
 def principal():
-    return [10, 10]
+    return [10, 10, 10]
 
 
 @pytest.fixture
 def lot_size():
-    return [2, 2]
+    return [2, 2, 2]
 
 
 def test_construct_portfolio(trades, markets, principal, lot_size):
@@ -92,20 +102,6 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
 
     data1 = [
         [0.0, 0.0, 10.0],
-        [2.0, 0.0, 10.0],
-        [0.0, 1.0, 12.0],
-        [-2.0, 2.0, 16.0],
-        [2.0, 3.0, 4.0],
-        [4.0, 4.0, -4.0],
-        [0.0, 5.0, 16.0],
-        [-4.0, 6.0, 40.0],
-        [-2.0, 7.0, 26.0],
-        [0.0, 8.0, 10.0],
-        [0.0, 9.0, 10.0],
-    ]
-
-    data2 = [
-        [0.0, 0.0, 10.0],
         [2.0, 10.0, -10.0],
         [0.0, 9.0, 8.0],
         [-2.0, 8.0, 24.0],
@@ -116,6 +112,20 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
         [-2.0, 3.0, 14.0],
         [0.0, 2.0, 10.0],
         [0.0, 1.0, 10.0],
+    ]
+
+    data2 = [
+        [0.0, 0.0, 20.0],
+        [4.0, 0.0, 20.0],
+        [0.0, 2.0, 24.0],
+        [-4.0, 4.0, 32.0],
+        [4.0, 6.0, 8.0],
+        [8.0, 8.0, -8.0],
+        [0.0, 10.0, 32.0],
+        [-8.0, 12.0, 80.0],
+        [-4.0, 14.0, 52.0],
+        [0.0, 16.0, 20.0],
+        [0.0, 18.0, 20.0],
     ]
 
     data = [data1, data2]

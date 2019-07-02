@@ -6,7 +6,7 @@ from backlight.positions.positions import Positions
 from backlight.datasource.marketdata import MarketData
 from backlight.metrics.position_metrics import calc_pl
 from backlight.positions import calc_positions
-from backlight.trades.trades import Trades
+from backlight.trades.trades import Trades, from_dataframe
 from joblib import Parallel, delayed
 
 
@@ -72,34 +72,44 @@ def construct_portfolio(
         Portfolio
     """
 
+    assert len(principal) == len(trades)
+    assert len(lot_size) == len(trades)
+
     symbols2mkt = {m.symbol: m for m in mkt}
     symbols = [t.symbol for t in trades]
     assert set(symbols) == set(symbols2mkt.keys())
 
     # Transform trades following the lot_size
-    for (trade, lot) in zip(trades, lot_size):
-        trade["amount"] *= lot
-
-    new_mkt = [symbols2mkt.get(t.symbol) for t in trades]
-    assert len(principal) == len(trades)
-    assert len(lot_size) == len(trades)
+    multiplicated_trades = [
+        from_dataframe(
+            pd.DataFrame(
+                data=np.array(t.values).dot(np.array([[lot, 0], [0, 1]])),
+                index=t.index,
+                columns=t.columns,
+            ),
+            t.symbol,
+        )
+        for t, lot in zip(trades, lot_size)
+    ]
 
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
         [
-            delayed(calc_positions)(trade, market, principal=principal_per_asset)
-            for (trade, market, principal_per_asset) in zip(trades, new_mkt, principal)
+            delayed(calc_positions)(
+                trade, symbols2mkt[trade.symbol], principal=principal_per_asset
+            )
+            for (trade, principal_per_asset) in zip(multiplicated_trades, principal)
         ]
     )
 
     symbols = [p.symbol for p in positions]
     if len(set(symbols)) != len(symbols):
-        positions = fusion_positions(positions)
+        positions = _fusion_positions(positions)
 
     return Portfolio(positions)
 
 
-def fusion_positions(positions: List[Positions]) -> List[Positions]:
+def _fusion_positions(positions: List[Positions]) -> List[Positions]:
     """
     Take a list of Positions and sum those with the same symbols
     args :
@@ -108,23 +118,20 @@ def fusion_positions(positions: List[Positions]) -> List[Positions]:
 
     unique_positions = []
     symbols = [p.symbol for p in positions]
-    for position in positions:
-        s = position.symbol
-        if symbols.count(s) > 1:
-            df = pd.DataFrame(
-                data=np.array([p.values for p in positions if p.symbol == s]).sum(
-                    axis=0
-                ),
-                index=position.index,
-                columns=position.columns,
-            )
-            pos = Positions(df)
-            pos.symbol = s
-            unique_positions.append(pos)
-            for _ in range(symbols.count(s)):
-                symbols.remove(s)
-        elif symbols.count(position.symbol) == 1:
-            unique_positions.append(position)
+    index = positions[0].index
+    columns = positions[0].columns
+
+    for symbol in sorted(set(symbols)):
+        df = pd.DataFrame(
+            data=np.array([p.values for p in positions if p.symbol == symbol]).sum(
+                axis=0
+            ),
+            index=index,
+            columns=columns,
+        )
+        position = Positions(df)
+        position.symbol = symbol
+        unique_positions.append(position)
 
     return unique_positions
 
