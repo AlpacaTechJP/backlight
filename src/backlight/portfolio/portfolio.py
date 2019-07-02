@@ -90,33 +90,9 @@ def construct_portfolio(
     return Portfolio(positions)
 
 
-def homogenize_pl(
-    pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
-) -> Portfolio:
-    """
-    Normalize PL to one asset reference and sum
-    args:
-       - portfolio : a defined portfolio
-       - mkt : list of marketdata for each asset
-       - base_ccy : asset of reference, all assets are converted this one
-    """
-    new_positions = []
-
-    for position in pt._positions:
-        ccy = position.symbol[-3:]
-        if ccy == base_ccy:
-            new_positions.append(
-                position.loc[mkt[0].index.intersection(pt._positions[0].index)].copy()
-            )
-        else:
-            new_positions.append(convert_positions(position, mkt, ccy, base_ccy))
-
-    return Portfolio(new_positions)
-
-
-def convert_positions(
-    position: Positions, mkt: List[MarketData], ccy: str, base_ccy: str
-) -> Positions:
+def _convert_currency_unit(
+    pl: pd.Series, mkt: List[MarketData], ccy: str, base_ccy: str
+) -> pd.Series:
     """
     Convert the values of a position in a different currency from MarketData
     args:
@@ -125,22 +101,18 @@ def convert_positions(
         - ccy : the currency of the position
         - base_ccy : the currency to express the position in
     """
+    ratios = _get_forex_ratios(mkt, ccy, base_ccy)
+    idx = pd.to_datetime(mkt[0].index.intersection(pl.index))
 
-    ratios = get_ratios(mkt, ccy, base_ccy)
-    idx = pd.to_datetime(mkt[0].index.intersection(position.index))
-    pos_values = position.loc[idx].values
+    pl_values = pl.loc[idx].values
     ratios_values = ratios.loc[idx].values.reshape(ratios.loc[idx].values.size, 1)
 
-    new_p = Positions(
-        pd.DataFrame(
-            data=pos_values * ratios_values, columns=position.columns, index=idx
-        )
-    )
-    new_p.symbol = position.symbol
-    return new_p
+    new_pl = pd.DataFrame(data=np.multiply(pl_values, ratios_values.T).T, index=idx)
+
+    return new_pl
 
 
-def get_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
+def _get_forex_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
     """
     Get the ratios of ccy expressed in base_ccy depending on market datas
     args:
@@ -150,25 +122,34 @@ def get_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
     """
     for market in mkt:
         if ccy + base_ccy == market.symbol:
-            ratios = pd.Series(market.bid.values, index=market.index, dtype=float)
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
         elif base_ccy + ccy == market.symbol:
-            ratios = pd.Series(market.ask.values, index=market.index, dtype=float)
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
             ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
 
     return ratios
 
 
 def calculate_pl(
-    pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
-) -> pd.DataFrame:
+    portfolio: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
+) -> pd.Series:
     """
     Apply the sum on the homogenized portfolio
     args:
         - portfolio : a defined portfolio
         - mkt : list of marketdata for each asset
-        - base_ccy : asset of reference    """
-    hpt = homogenize_pl(pt, mkt, base_ccy)
-    df = hpt._positions[0].copy()
-    for position in hpt._positions[1:]:
-        df = df + position
-    return df
+        - base_ccy : asset of reference 
+        """
+
+    symbols = [p.symbol for p in portfolio._positions]
+    pl = portfolio.value()
+
+    for symbol in symbols:
+        if symbol[-3:] != base_ccy:
+            pl.loc[:, symbol] = _convert_currency_unit(
+                pl.loc[:, symbol], mkt, symbol[-3:], base_ccy
+            )
+
+    # If the index of pl aren't in the market, it can result to NaN in the pl. Should we care about it?
+
+    return pl.sum(axis=1)
