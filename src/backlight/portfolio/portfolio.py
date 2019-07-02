@@ -90,19 +90,6 @@ def construct_portfolio(
     return Portfolio(positions)
 
 
-# def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
-#     """
-#     Apply the sum on the homogenized portfolio
-#     args:
-#         - portfolio : a defined portfolio
-#         - mkt : list of marketdata for each asset
-#         - base_ccy : asset of reference
-
-#     """
-#     pl = pt.value()
-#     return pl.sum(axis=1)
-
-
 def homogenize_pl(
     pt: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
 ) -> Portfolio:
