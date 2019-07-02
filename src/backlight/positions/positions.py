@@ -23,7 +23,7 @@ class Positions(pd.DataFrame):
         - `principal`: Principal in your bank account at that moment.
     """
 
-    _metadata = ["symbol"]
+    _metadata = ["symbol", "unit"]
 
     _target_columns = ["amount", "price", "principal"]
 
