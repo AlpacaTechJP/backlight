@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import List
 
-from backlight.positions.positions import Positions
+from backlight.positions.positions import Positions, position_from_dataframe
 from backlight.datasource.marketdata import MarketData
 from backlight.metrics.position_metrics import calc_pl
 from backlight.positions import calc_positions
@@ -80,17 +80,11 @@ def construct_portfolio(
     assert set(symbols) == set(symbols2mkt.keys())
 
     # Transform trades following the lot_size
-    multiplicated_trades = [
-        from_dataframe(
-            pd.DataFrame(
-                data=np.array(t.values).dot(np.array([[lot, 0], [0, 1]])),
-                index=t.index,
-                columns=t.columns,
-            ),
-            t.symbol,
-        )
-        for t, lot in zip(trades, lot_size)
-    ]
+    mult_trades = []
+    for (trade, lot) in zip(trades, lot_size):
+        mult_trade = trade.copy()
+        mult_trade["amount"] *= lot
+        mult_trades.append(mult_trade)
 
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
@@ -98,7 +92,7 @@ def construct_portfolio(
             delayed(calc_positions)(
                 trade, symbols2mkt[trade.symbol], principal=principal_per_asset
             )
-            for (trade, principal_per_asset) in zip(multiplicated_trades, principal)
+            for (trade, principal_per_asset) in zip(mult_trades, principal)
         ]
     )
 
@@ -118,19 +112,28 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
 
     unique_positions = []
     symbols = [p.symbol for p in positions]
-    index = positions[0].index
     columns = positions[0].columns
 
     for symbol in sorted(set(symbols)):
+        positions_of_symbol = [p for p in positions if p.symbol == symbol]
+        cross_index = positions_of_symbol[0].index.copy()
+        for p in positions_of_symbol:
+            cross_index = pd.DatetimeIndex.union(cross_index, p.index)
+
         df = pd.DataFrame(
-            data=np.array([p.values for p in positions if p.symbol == symbol]).sum(
-                axis=0
-            ),
-            index=index,
+            np.array(
+                [
+                    [
+                        (p.loc[idx, :].values if idx in p.index else [0] * len(columns))
+                        for idx in cross_index
+                    ]
+                    for p in positions_of_symbol
+                ]
+            ).sum(axis=0),
+            index=cross_index,
             columns=columns,
         )
-        position = Positions(df)
-        position.symbol = symbol
+        position = position_from_dataframe(df, symbol)
         unique_positions.append(position)
 
     return unique_positions

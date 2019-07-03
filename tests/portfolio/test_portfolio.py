@@ -2,6 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 from backlight.portfolio.portfolio import construct_portfolio as module
+from backlight.portfolio.portfolio import _fusion_positions
+from backlight.positions.positions import position_from_dataframe
 
 import backlight
 
@@ -138,3 +140,56 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
             columns=["amount", "price", "principal"],
         )
         assert ((expected == position).all()).all()
+
+
+def test_fusion_positions():
+
+    periods = 3
+    data = np.arange(periods * 3).reshape((periods, 3))
+    columns = ["amount", "price", "principal"]
+
+    positions_list = []
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-1", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "usdjpy"
+    positions_list.append(position_from_dataframe(df, symbol))
+
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-2", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "usdjpy"
+    positions_list.append(position_from_dataframe(df, symbol))
+
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-4", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "eurjpy"
+    positions_list.append(position_from_dataframe(df, symbol))
+
+    fusioned = _fusion_positions(positions_list)
+
+    data1 = np.arange(periods * 3).reshape((periods, 3))
+    data2 = [[0, 1, 2], [3, 5, 7], [9, 11, 13], [6, 7, 8]]
+
+    df1 = pd.DataFrame(
+        data=data1,
+        index=pd.date_range("2012-1-1", periods=periods, freq="D"),
+        columns=columns,
+    )
+    df2 = pd.DataFrame(
+        data=data2,
+        index=pd.date_range("2012-1-1", periods=periods + 1, freq="D"),
+        columns=columns,
+    )
+
+    expected = [df1, df2]
+
+    for exp, fus in zip(expected, fusioned):
+        assert exp.all().all() == fus.all().all()
