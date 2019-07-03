@@ -169,3 +169,10 @@ def test_calculate_pl(simple_portfolio, mid_markets):
         data=[45.0, 66.0, 76.5],
     )
     assert ((expected == calculated_portfolio).all()).all()
+
+    calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="jpy")
+    expected = pd.Series(
+        index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
+        data=[45.0, 132.0, 306.0],
+    )
+    assert ((expected == calculated_portfolio).all()).all()

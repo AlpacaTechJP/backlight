@@ -94,22 +94,18 @@ def _convert_currency_unit(
     pl: pd.Series, mkt: List[MarketData], ccy: str, base_ccy: str
 ) -> pd.Series:
     """
-    Convert the values of a position in a different currency from MarketData
+    Convert the values of profit-loss series in a different currency from MarketData
     args:
         - position : the position to convert
         - mkt : market forex datas
         - ccy : the currency of the position
         - base_ccy : the currency to express the position in
     """
+    assert pl.index.isin(mkt[0].index).all()
+
+    idx = pl.index
     ratios = _get_forex_ratios(mkt, ccy, base_ccy)
-    idx = pd.to_datetime(mkt[0].index.intersection(pl.index))
-
-    pl_values = pl.loc[idx].values
-    ratios_values = ratios.loc[idx].values.reshape(ratios.loc[idx].values.size, 1)
-
-    new_pl = pd.DataFrame(data=np.multiply(pl_values, ratios_values.T).T, index=idx)
-
-    return new_pl
+    return pl * ratios
 
 
 def _get_forex_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
@@ -134,7 +130,7 @@ def calculate_pl(
     portfolio: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
 ) -> pd.Series:
     """
-    Apply the sum on the homogenized portfolio
+    Convert all the positions of the portfolio to a base currency and sum each column.
     args:
         - portfolio : a defined portfolio
         - mkt : list of marketdata for each asset
