@@ -96,10 +96,10 @@ def _convert_currency_unit(
     """
     Convert the values of profit-loss series in a different currency from MarketData
     args:
-        - position : the position to convert
+        - pl : the profit-loss to convert
         - mkt : market forex datas
-        - ccy : the currency of the position
-        - base_ccy : the currency to express the position in
+        - ccy : the currency of the profit-loss
+        - base_ccy : the currency to express the profit-loss in
     """
     assert pl.index.isin(mkt[0].index).all()
 
@@ -145,7 +145,5 @@ def calculate_pl(
             pl.loc[:, symbol] = _convert_currency_unit(
                 pl.loc[:, symbol], mkt, symbol[-3:], base_ccy
             )
-
-    # If the index of pl aren't in the market, it can result to NaN in the pl. Should we care about it?
 
     return pl.sum(axis=1)
