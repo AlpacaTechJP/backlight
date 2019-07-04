@@ -7,7 +7,6 @@ import backlight.positions.positions
 
 
 import backlight
-from backlight.portfolio.portfolio import construct_portfolio as module
 from backlight.trades.trades import make_trades
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio, calculate_pl
@@ -144,6 +143,7 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
         )
         assert ((expected == position).all()).all()
 
+
 def test_fusion_positions():
 
     periods = 3
@@ -195,6 +195,7 @@ def test_fusion_positions():
 
     for exp, fus in zip(expected, fusioned):
         assert exp.all().all() == fus.all().all()
+
 
 @pytest.fixture
 def mid_markets():
