@@ -1,11 +1,13 @@
 import pytest
 import pandas as pd
 import numpy as np
-from backlight.portfolio.portfolio import construct_portfolio as module
+
 
 import backlight
-
+from backlight.portfolio.portfolio import construct_portfolio as module
 from backlight.trades.trades import make_trades
+from backlight.positions.positions import Positions
+from backlight.portfolio.portfolio import Portfolio, calculate_pl
 
 
 @pytest.fixture
@@ -128,3 +130,49 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
             columns=["amount", "price", "principal"],
         )
         assert ((expected == position).all()).all()
+
+
+@pytest.fixture
+def mid_markets():
+    markets = []
+    symbol = "usdjpy"
+    periods = 4
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+        data=np.array([0, 1, 2, 4]),
+        columns=["mid"],
+    )
+    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    return markets
+
+
+@pytest.fixture
+def simple_portfolio():
+    ptf = []
+    periods = 4
+    for symbol in ["usdjpy", "eurjpy", "eurusd"]:
+        df = pd.DataFrame(
+            index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+            data=np.arange(3 * periods).reshape((periods, 3)),
+            columns=["amount", "price", "principal"],
+        )
+        p = Positions(df)
+        p.symbol = symbol
+        ptf.append(p)
+    return Portfolio(ptf)
+
+
+def test_calculate_pl(simple_portfolio, mid_markets):
+    calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="usd")
+    expected = pd.Series(
+        index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
+        data=[45.0, 66.0, 76.5],
+    )
+    assert ((expected == calculated_portfolio).all()).all()
+
+    calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="jpy")
+    expected = pd.Series(
+        index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
+        data=[45.0, 132.0, 306.0],
+    )
+    assert ((expected == calculated_portfolio).all()).all()
