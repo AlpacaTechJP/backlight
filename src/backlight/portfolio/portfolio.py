@@ -131,14 +131,60 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
     return unique_positions
 
 
-def calculate_pl(pt: Portfolio, mkt: List[MarketData]) -> pd.DataFrame:
+def _convert_currency_unit(
+    pl: pd.Series, mkt: List[MarketData], ccy: str, base_ccy: str
+) -> pd.Series:
     """
-    Apply the sum on the homogenized portfolio
+    Convert the values of profit-loss series in a different currency from MarketData
+    args:
+        - pl : the profit-loss to convert
+        - mkt : market forex datas
+        - ccy : the currency of the profit-loss
+        - base_ccy : the currency to express the profit-loss in
+    """
+    assert pl.index.isin(mkt[0].index).all()
+
+    idx = pl.index
+    ratios = _get_forex_ratios(mkt, ccy, base_ccy)
+    return pl * ratios
+
+
+def _get_forex_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
+    """
+    Get the ratios of ccy expressed in base_ccy depending on market datas
+    args:
+        - market : market forex datas
+        - ccy : the currency to convert from
+        - base_ccy : the currency to convert to
+    """
+    for market in mkt:
+        if ccy + base_ccy == market.symbol:
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+        elif base_ccy + ccy == market.symbol:
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+            ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+
+    return ratios
+
+
+def calculate_pl(
+    portfolio: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
+) -> pd.Series:
+    """
+    Convert all the positions of the portfolio to a base currency and sum each column.
     args:
         - portfolio : a defined portfolio
         - mkt : list of marketdata for each asset
-        - base_ccy : asset of reference
-    
-    """
-    pl = pt.value()
+        - base_ccy : asset of reference 
+        """
+
+    symbols = [p.symbol for p in portfolio._positions]
+    pl = portfolio.value()
+
+    for symbol in symbols:
+        if symbol[-3:] != base_ccy:
+            pl.loc[:, symbol] = _convert_currency_unit(
+                pl.loc[:, symbol], mkt, symbol[-3:], base_ccy
+            )
+
     return pl.sum(axis=1)
