@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from backlight.portfolio.portfolio import construct_portfolio as module
 from backlight.portfolio.portfolio import _fusion_positions
-from backlight.positions.positions import position_from_dataframe
+import backlight.positions.positions
 
 import backlight
 
@@ -155,7 +155,7 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "usdjpy"
-    positions_list.append(position_from_dataframe(df, symbol))
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
 
     df = pd.DataFrame(
         data=data,
@@ -163,7 +163,7 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "usdjpy"
-    positions_list.append(position_from_dataframe(df, symbol))
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
 
     df = pd.DataFrame(
         data=data,
@@ -171,7 +171,7 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "eurjpy"
-    positions_list.append(position_from_dataframe(df, symbol))
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
 
     fusioned = _fusion_positions(positions_list)
 

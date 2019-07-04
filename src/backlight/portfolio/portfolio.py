@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 from typing import List
+from functools import reduce
 
-from backlight.positions.positions import Positions, position_from_dataframe
+from backlight.positions.positions import Positions
+import backlight.positions.positions
 from backlight.datasource.marketdata import MarketData
 from backlight.metrics.position_metrics import calc_pl
 from backlight.positions import calc_positions
@@ -116,24 +118,14 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
 
     for symbol in sorted(set(symbols)):
         positions_of_symbol = [p for p in positions if p.symbol == symbol]
-        cross_index = positions_of_symbol[0].index.copy()
-        for p in positions_of_symbol:
-            cross_index = pd.DatetimeIndex.union(cross_index, p.index)
 
-        df = pd.DataFrame(
-            np.array(
-                [
-                    [
-                        (p.loc[idx, :].values if idx in p.index else [0] * len(columns))
-                        for idx in cross_index
-                    ]
-                    for p in positions_of_symbol
-                ]
-            ).sum(axis=0),
-            index=cross_index,
-            columns=columns,
-        )
-        position = position_from_dataframe(df, symbol)
+        indices = [p.index for p in positions if p.symbol == symbol]
+        union_index = indices[0].union_many(indices)
+
+        dfs = [p for p in positions if p.symbol == symbol]
+        df = reduce(lambda x, y: x.add(y, fill_value=0), dfs)
+
+        position = backlight.positions.positions.from_dataframe(df, symbol)
         unique_positions.append(position)
 
     return unique_positions

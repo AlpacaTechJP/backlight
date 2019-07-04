@@ -84,7 +84,7 @@ def calc_positions(
     return pos
 
 
-def position_from_dataframe(df: pd.DataFrame, symbol: str) -> Positions:
+def from_dataframe(df: pd.DataFrame, symbol: str) -> Positions:
     """
     Create Positions from dataframe and symbol.
     
