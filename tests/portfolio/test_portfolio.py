@@ -1,10 +1,12 @@
 import pytest
 import pandas as pd
 import numpy as np
+from backlight.portfolio.portfolio import construct_portfolio as module
+from backlight.portfolio.portfolio import _fusion_positions
+import backlight.positions.positions
 
 
 import backlight
-from backlight.portfolio.portfolio import construct_portfolio as module
 from backlight.trades.trades import make_trades
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio, calculate_pl
@@ -39,6 +41,7 @@ def trades():
 
     trades.append(make_trades("usdjpy", [trade], [ids]))
     trades.append(make_trades("eurjpy", [trade], [ids]))
+    trades.append(make_trades("usdjpy", [trade], [ids]))
     return trades
 
 
@@ -62,17 +65,26 @@ def markets():
         columns=["mid"],
     )
     markets.append(backlight.datasource.from_dataframe(df, symbol))
+
+    symbol = "usdjpy"
+    periods = 10
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+        data=np.arange(periods)[:, None],
+        columns=["mid"],
+    )
+    markets.append(backlight.datasource.from_dataframe(df, symbol))
     return markets
 
 
 @pytest.fixture
 def principal():
-    return [10, 10]
+    return [10, 10, 10]
 
 
 @pytest.fixture
 def lot_size():
-    return [2, 2]
+    return [2, 2, 2]
 
 
 def test_construct_portfolio(trades, markets, principal, lot_size):
@@ -94,20 +106,6 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
 
     data1 = [
         [0.0, 0.0, 10.0],
-        [2.0, 0.0, 10.0],
-        [0.0, 1.0, 12.0],
-        [-2.0, 2.0, 16.0],
-        [2.0, 3.0, 4.0],
-        [4.0, 4.0, -4.0],
-        [0.0, 5.0, 16.0],
-        [-4.0, 6.0, 40.0],
-        [-2.0, 7.0, 26.0],
-        [0.0, 8.0, 10.0],
-        [0.0, 9.0, 10.0],
-    ]
-
-    data2 = [
-        [0.0, 0.0, 10.0],
         [2.0, 10.0, -10.0],
         [0.0, 9.0, 8.0],
         [-2.0, 8.0, 24.0],
@@ -120,6 +118,20 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
         [0.0, 1.0, 10.0],
     ]
 
+    data2 = [
+        [0.0, 0.0, 20.0],
+        [4.0, 0.0, 20.0],
+        [0.0, 2.0, 24.0],
+        [-4.0, 4.0, 32.0],
+        [4.0, 6.0, 8.0],
+        [8.0, 8.0, -8.0],
+        [0.0, 10.0, 32.0],
+        [-8.0, 12.0, 80.0],
+        [-4.0, 14.0, 52.0],
+        [0.0, 16.0, 20.0],
+        [0.0, 18.0, 20.0],
+    ]
+
     data = [data1, data2]
 
     for (position, d) in zip(portfolio._positions, data):
@@ -130,6 +142,59 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
             columns=["amount", "price", "principal"],
         )
         assert ((expected == position).all()).all()
+
+
+def test_fusion_positions():
+
+    periods = 3
+    data = np.arange(periods * 3).reshape((periods, 3))
+    columns = ["amount", "price", "principal"]
+
+    positions_list = []
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-1", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "usdjpy"
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-2", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "usdjpy"
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+
+    df = pd.DataFrame(
+        data=data,
+        index=pd.date_range("2012-1-4", periods=periods, freq="D"),
+        columns=columns,
+    )
+    symbol = "eurjpy"
+    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+
+    fusioned = _fusion_positions(positions_list)
+
+    data1 = np.arange(periods * 3).reshape((periods, 3))
+    data2 = [[0, 1, 2], [3, 5, 7], [9, 11, 13], [6, 7, 8]]
+
+    df1 = pd.DataFrame(
+        data=data1,
+        index=pd.date_range("2012-1-1", periods=periods, freq="D"),
+        columns=columns,
+    )
+    df2 = pd.DataFrame(
+        data=data2,
+        index=pd.date_range("2012-1-1", periods=periods + 1, freq="D"),
+        columns=columns,
+    )
+
+    expected = [df1, df2]
+
+    for exp, fus in zip(expected, fusioned):
+        assert exp.all().all() == fus.all().all()
 
 
 @pytest.fixture

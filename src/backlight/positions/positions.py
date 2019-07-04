@@ -82,3 +82,17 @@ def calc_positions(
     pos.reset_cols()
     pos.symbol = trades.symbol
     return pos
+
+
+def from_dataframe(df: pd.DataFrame, symbol: str) -> Positions:
+    """
+    Create Positions from dataframe and symbol.
+    
+    Args:
+        df: DataFrame with the content of the future Positions.
+        symbol: The Positions symbol.
+    """
+    pos = Positions(df)
+    pos.reset_cols()
+    pos.symbol = symbol
+    return pos
