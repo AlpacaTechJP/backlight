@@ -2,6 +2,7 @@ import pandas as pd
 from collections import namedtuple
 from functools import lru_cache
 from typing import Any, Type, List, Iterable, Optional  # noqa
+from backlight.asset.currency import Currency
 
 from backlight.datasource.marketdata import MarketData
 
@@ -24,7 +25,7 @@ class Trades(pd.DataFrame):
     2. Filter the trades.
     """
 
-    _metadata = ["symbol"]
+    _metadata = ["symbol", "currency_unit"]
 
     _target_columns = ["amount", "_id"]
 
@@ -63,7 +64,7 @@ class Trades(pd.DataFrame):
         """
         filterd_ids = self[key].ids
         trades = [self.get_trade(i) for i in filterd_ids]
-        return make_trades(self.symbol, trades, filterd_ids)
+        return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
 
     def get_all(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions for all elements.
@@ -82,7 +83,7 @@ class Trades(pd.DataFrame):
             if t.equals(filterd.get_trade(i)):
                 ids.append(i)
                 trades.append(t)
-        return make_trades(self.symbol, trades, ids)
+        return make_trades(self.symbol, trades, self.currency_unit, ids)
 
     def reset_cols(self) -> None:
         """Keep only _target_columns"""
@@ -114,7 +115,7 @@ def make_trade(transactions: Iterable[Transaction]) -> pd.Series:
     return sr.groupby(sr.index).sum().sort_index()
 
 
-def from_dataframe(df: pd.DataFrame, symbol: str) -> Trades:
+def from_dataframe(df: pd.DataFrame, symbol: str, currency_unit: Currency) -> Trades:
     """Create a Trades instance out of a DataFrame object
 
     Args:
@@ -127,6 +128,7 @@ def from_dataframe(df: pd.DataFrame, symbol: str) -> Trades:
 
     trades = Trades(df.copy())
     trades.symbol = symbol
+    trades.currency_unit = currency_unit
     trades.reset_cols()
 
     return _sort(trades)
@@ -154,11 +156,15 @@ def concat(trades: List[Trades], refresh_id: bool = False) -> Trades:
 
     t = Trades(pd.concat(trades, axis=0))
     t.symbol = trades[0].symbol
+    t.currency_unit = trades[0].currency_unit
     return _sort(t)
 
 
 def make_trades(
-    symbol: str, trades: List[pd.Series], ids: Optional[List[int]] = None
+    symbol: str,
+    trades: List[pd.Series],
+    currency_unit: Currency,
+    ids: Optional[List[int]] = None,
 ) -> Trades:
     """Create Trades from some of trades"""
     if ids is None:
@@ -176,4 +182,4 @@ def make_trades(
         df.iloc[current : current + l, 1] = i
         current += l
 
-    return from_dataframe(df, symbol)
+    return from_dataframe(df, symbol, currency_unit)

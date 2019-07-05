@@ -5,6 +5,7 @@ import pytest
 import backlight.datasource
 import backlight.positions
 from backlight.trades.trades import make_trades
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
@@ -13,18 +14,23 @@ def symbol():
 
 
 @pytest.fixture
-def mid(symbol):
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def mid(symbol, currency_unit):
     data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
         data=data,
         columns=["mid"],
     )
-    return backlight.datasource.from_dataframe(df, symbol)
+    return backlight.datasource.from_dataframe(df, symbol, currency_unit)
 
 
 @pytest.fixture
-def askbid(symbol):
+def askbid(symbol, currency_unit):
     data = [
         [1.5, 0.5],
         [2.5, 1.5],
@@ -42,11 +48,11 @@ def askbid(symbol):
         data=data,
         columns=["ask", "bid"],
     )
-    return backlight.datasource.from_dataframe(df, symbol)
+    return backlight.datasource.from_dataframe(df, symbol, currency_unit)
 
 
 @pytest.fixture
-def trades(symbol):
+def trades(symbol, currency_unit):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     sr = pd.Series(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=len(data)),
@@ -54,7 +60,7 @@ def trades(symbol):
         name="amount",
     )
     trade = sr
-    trades = make_trades(symbol, [trade])
+    trades = make_trades(symbol, [trade], currency_unit)
     return trades
 
 

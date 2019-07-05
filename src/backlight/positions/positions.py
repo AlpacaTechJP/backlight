@@ -4,6 +4,7 @@ from typing import Type, Callable
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
 from backlight.trades.trades import Trades
+from backlight.asset.currency import Currency
 
 
 def _freq(idx: pd.Index) -> pd.Timedelta:
@@ -23,7 +24,7 @@ class Positions(pd.DataFrame):
         - `principal`: Principal in your bank account at that moment.
     """
 
-    _metadata = ["symbol", "unit"]
+    _metadata = ["symbol", "currency_unit"]
 
     _target_columns = ["amount", "price", "principal"]
 
@@ -79,9 +80,11 @@ def calc_positions(
         principal: The initial principal value.
     """
     assert trades.symbol == mkt.symbol
+    assert trades.currency_unit == mkt.currency_unit
     assert trades.index.isin(mkt.index).all()
 
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
+    pos.currency_unit = trades.currency_unit
     return pos
