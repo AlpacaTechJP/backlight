@@ -113,10 +113,10 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
     """
 
     unique_positions = []
-    symbols = [p.symbol for p in positions]
+    symbols_and_units = [(p.symbol, p.currency_unit) for p in positions]
     columns = positions[0].columns
 
-    for symbol in sorted(set(symbols)):
+    for symbol, currency_unit in sorted(set(symbols_and_units)):
         positions_of_symbol = [p for p in positions if p.symbol == symbol]
 
         indices = [p.index for p in positions if p.symbol == symbol]
@@ -125,7 +125,9 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
         dfs = [p for p in positions if p.symbol == symbol]
         df = reduce(lambda x, y: x.add(y, fill_value=0), dfs)
 
-        position = backlight.positions.positions.from_dataframe(df, symbol)
+        position = backlight.positions.positions.from_dataframe(
+            df, symbol, currency_unit
+        )
         unique_positions.append(position)
 
     return unique_positions

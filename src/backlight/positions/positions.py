@@ -87,15 +87,17 @@ def calc_positions(
     return pos
 
 
-def from_dataframe(df: pd.DataFrame, symbol: str) -> Positions:
+def from_dataframe(df: pd.DataFrame, symbol: str, currency_unit: Currency) -> Positions:
     """
     Create Positions from dataframe and symbol.
     
     Args:
         df: DataFrame with the content of the future Positions.
         symbol: The Positions symbol.
+        currency_unit: The Positions currency unit.
     """
     pos = Positions(df)
     pos.reset_cols()
     pos.symbol = symbol
+    pos.currency_unit = currency_unit
     return pos

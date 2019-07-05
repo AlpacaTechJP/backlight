@@ -3,6 +3,7 @@ from typing import Optional
 
 from backlight.query import query
 from backlight.signal.signal import BinarySignal, Signal, TernarySignal
+from backlight.asset.currency import Currency
 
 
 def load_signal(
@@ -10,14 +11,18 @@ def load_signal(
     url: str,
     start_dt: pd.Timestamp,
     end_dt: pd.Timestamp,
+    currency_unit: Currency,
     threshold: float = 0.0,
 ) -> Signal:
     df = query(symbol, start_dt, end_dt, url)
-    return from_dataframe(df, symbol, col_mapping=None)
+    return from_dataframe(df, symbol, currency_unit, col_mapping=None)
 
 
 def from_dataframe(
-    df: pd.DataFrame, symbol: str, col_mapping: Optional[dict] = None
+    df: pd.DataFrame,
+    symbol: str,
+    currency_unit: Currency,
+    col_mapping: Optional[dict] = None,
 ) -> Signal:
     """Create a MarketData instance out of a DataFrame object
 
@@ -25,6 +30,7 @@ def from_dataframe(
         df (pd.DataFrame):  DataFrame
         symbol (str): symbol to query
         col_mapping (dict):  A dictionary to map columns.
+        currency_unit: currency unit of the dataframe
 
     Returns:
         Signal
@@ -47,6 +53,7 @@ def from_dataframe(
         raise ValueError("Unsupported signal")
 
     sig.symbol = symbol
+    sig.currency_unit = currency_unit
     sig.reset_cols()
     sig.reset_pred()
 

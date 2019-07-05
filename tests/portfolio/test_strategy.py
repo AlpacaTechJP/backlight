@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 import backlight
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
@@ -21,6 +22,7 @@ def signals():
     signals = []
 
     symbol = "usdjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -38,9 +40,10 @@ def signals():
         ],
         columns=["up", "neutral", "down"],
     )
-    signals.append(backlight.signal.from_dataframe(df, symbol))
+    signals.append(backlight.signal.from_dataframe(df, symbol, currency_unit))
 
     symbol = "eurjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -58,7 +61,7 @@ def signals():
         ],
         columns=["up", "neutral", "down"],
     )
-    signals.append(backlight.signal.from_dataframe(df, symbol))
+    signals.append(backlight.signal.from_dataframe(df, symbol, currency_unit))
 
     return signals
 
@@ -67,22 +70,24 @@ def signals():
 def markets():
     markets = []
     symbol = "usdjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.arange(periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
 
     symbol = "eurjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=10 - np.arange(periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
     return markets
 
 

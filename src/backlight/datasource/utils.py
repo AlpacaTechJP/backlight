@@ -24,7 +24,7 @@ def load_marketdata(
     Returns:
         MarketData
     """
-    df = query(symbol, start_dt, end_dt, url, currency_unit)
+    df = query(symbol, start_dt, end_dt, url)
     return from_dataframe(df, symbol, currency_unit, col_mapping=None)
 
 

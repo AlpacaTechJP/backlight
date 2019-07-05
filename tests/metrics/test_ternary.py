@@ -4,6 +4,7 @@ import pytest
 
 import backlight.datasource
 import backlight.labelizer
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
@@ -12,7 +13,12 @@ def symbol():
 
 
 @pytest.fixture
-def signal(symbol):
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def signal(symbol, currency_unit):
     periods = 18
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -38,12 +44,12 @@ def signal(symbol):
         ],
         columns=["up", "neutral", "down"],
     )
-    signal = backlight.signal.from_dataframe(df, symbol)
+    signal = backlight.signal.from_dataframe(df, symbol, currency_unit)
     return signal
 
 
 @pytest.fixture
-def label():
+def label(currency_unit):
     periods = 18
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -69,7 +75,7 @@ def label():
         ],
         columns=["label_diff", "label", "neutral_range"],
     )
-    label = backlight.labelizer.from_dataframe(df)
+    label = backlight.labelizer.from_dataframe(df, currency_unit)
     return label
 
 
