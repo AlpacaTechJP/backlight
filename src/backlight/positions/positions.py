@@ -17,7 +17,7 @@ def _freq(idx: pd.Index) -> pd.Timedelta:
 
 class Positions(pd.DataFrame):
     """Positions container which inherits pd.DataFrame.
-
+    
     They have following columns:
         - `amount`: Amount of the asset you are holding at that moment.
         - `price`: Price per unit of the asset at that moment.
@@ -49,21 +49,18 @@ def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
 
     # historical data
     idx = mkt.index[trade.index[0] <= mkt.index]  # only after first trades
+    positions = pd.DataFrame(index=idx)
+    positions.loc[:, "amount"] = trade.cumsum()
+    positions.loc[:, "price"] = mkt.mid.loc[idx]
     fee = mkt.fee(trade)
-    positions = pd.DataFrame(
-        index=idx,
-        data={
-            "amount": trade.cumsum(),
-            "price": mkt.mid.loc[idx],
-            "principal": -fee.cumsum() + principal,
-        },
-        columns=["amount", "price", "principal"],
-    )
+    positions.loc[:, "principal"] = -fee.cumsum() + principal
     positions = positions.ffill()
 
     # add initial data
     initial_idx = idx[0] - _freq(idx)
-    positions.at[initial_idx, :] = [0.0, 0.0, principal]
+    positions.loc[initial_idx, "amount"] = 0.0
+    positions.loc[initial_idx, "price"] = 0.0
+    positions.loc[initial_idx, "principal"] = principal
 
     return positions.sort_index()
 
@@ -73,7 +70,7 @@ def calc_positions(
 ) -> Positions:
     """Create Positions from Trades and MarketData.
     Positions' frequency is determined by MarketData's frequency.
-
+    
     Args:
         trades: Tuple of trades.
         mkt: Market data.
@@ -87,4 +84,18 @@ def calc_positions(
     pos.reset_cols()
     pos.symbol = trades.symbol
     pos.currency_unit = trades.currency_unit
+    return pos
+
+
+def from_dataframe(df: pd.DataFrame, symbol: str) -> Positions:
+    """
+    Create Positions from dataframe and symbol.
+    
+    Args:
+        df: DataFrame with the content of the future Positions.
+        symbol: The Positions symbol.
+    """
+    pos = Positions(df)
+    pos.reset_cols()
+    pos.symbol = symbol
     return pos
