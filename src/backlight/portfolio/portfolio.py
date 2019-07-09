@@ -188,3 +188,70 @@ def calculate_pl(
             )
 
     return pl.sum(axis=1)
+
+def calc_sharpe_portfolio(pl, freq: pd.Timedelta):
+    """
+    This function needs a pl extracted from the positions.value and not the calc_pl(positions)
+    """
+    value = pl.resample(freq).first().dropna()
+    previous_value = value.shift(periods=1)
+    log_return = np.log((value.values / np.nan_to_num(previous_value.values))[1:])
+    
+    days_in_year = pd.Timedelta("252D")
+    annual_factor = math.sqrt(days_in_year / freq)
+    
+    return annual_factor * np.mean(log_return) / np.std(log_return)
+
+
+def calc_drawdown_portfolio(pl):
+    """
+    This function needs a pl extracted from the positions.value and not the calc_pl(positions)
+    """
+    return pl.cummax() - pl
+
+def calc_portfolio_performance(
+    portfolio: Portfolio,
+    mkt: List[MarketData], 
+    window: pd.Timedelta = pd.Timedelta("1D")
+) -> pd.DataFrame:
+    
+    """
+    Naming question :
+    Maybe here there is some naming ambiuities : calc_pl is doing the same as calculate_pl, but takes 
+    a Positions and not a Portfolio. Should we rename it?
+    
+    Here is the problem :
+    For this function, we need two different values of pl (in my understanding). One comes from
+    the positions.value function, the other from the calc_pl(positions) function. 
+    
+    The probelem is that currently the calculate_pl function is only based on the calc_pl function, so
+    we can't compute sharpe values and drawdown. 
+    
+    Here is a draft using two calculate_pl functions but its not a good solution for final use. 
+    
+    I'm currently working on creating a function which takes a pl and do the job of the current 
+    calculate_pl to use it in the function.
+    """
+    pl = calculate_pl_from_value(portfolio, mkt)
+    pl1 = calculate_pl(portfolio, mkt)
+    
+    total_pl = _sum(pl1)
+    win_pl = _sum(pl1[pl1 > 0.0])
+    lose_pl = _sum(pl1[pl1 < 0.0])
+    sharpe = calc_sharpe_portfolio(pl, window)
+    drawdown = calc_drawdown_portfolio(pl)
+
+    m = pd.DataFrame.from_records(
+        [
+            ("total_pl", total_pl),
+            ("total_win_pl", win_pl),
+            ("total_lose_pl", lose_pl),
+            ("sharpe", sharpe),
+            ("max_drawdown", drawdown.max()),
+        ]
+    ).set_index(0)
+
+    del m.index.name
+    m.columns = ["metrics"]
+
+    return m.T
