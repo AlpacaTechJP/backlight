@@ -1,11 +1,12 @@
 import pandas as pd
 from typing import Type
+from backlight.asset.currency import Currency
 
 
 class MarketData(pd.DataFrame):
     """MarketData container which inherits pd.DataFrame."""
 
-    _metadata = ["symbol", "_target_columns"]
+    _metadata = ["symbol", "_target_columns", "currency_unit"]
 
     def reset_cols(self) -> None:
         for col in self.columns:

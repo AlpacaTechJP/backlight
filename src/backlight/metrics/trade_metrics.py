@@ -19,7 +19,7 @@ def _sum(a: pd.Series) -> float:
 
 def _calc_pl(trade: pd.Series, mkt: MarketData) -> float:
     mkt = mkt.loc[trade.index, :]
-    trades = make_trades(mkt.symbol, [trade])
+    trades = make_trades(mkt.symbol, [trade], mkt.currency_unit)
     positions = backlight.positions.calc_positions(trades, mkt)
     pl = calc_pl(positions)
     return _sum(pl)

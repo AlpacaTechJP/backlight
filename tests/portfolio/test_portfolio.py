@@ -8,6 +8,7 @@ import backlight.positions.positions
 
 import backlight
 from backlight.trades.trades import make_trades
+from backlight.asset.currency import Currency
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio, calculate_pl
 
@@ -38,10 +39,11 @@ def trades():
         name="amount",
     )
     ids = [0, 1, 0, 1, 2, 3, 2, 4, 3, 5, 4, 5, 6, 6]
+    currency_unit = Currency.JPY
 
-    trades.append(make_trades("usdjpy", [trade], [ids]))
-    trades.append(make_trades("eurjpy", [trade], [ids]))
-    trades.append(make_trades("usdjpy", [trade], [ids]))
+    trades.append(make_trades("usdjpy", [trade], currency_unit, [ids]))
+    trades.append(make_trades("eurjpy", [trade], currency_unit, [ids]))
+    trades.append(make_trades("usdjpy", [trade], currency_unit, [ids]))
     return trades
 
 
@@ -49,31 +51,34 @@ def trades():
 def markets():
     markets = []
     symbol = "usdjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.arange(periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
 
     symbol = "eurjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=10 - np.arange(periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
 
     symbol = "usdjpy"
+    currency_unit = Currency.JPY
     periods = 10
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.arange(periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
     return markets
 
 
@@ -149,6 +154,7 @@ def test_fusion_positions():
     periods = 3
     data = np.arange(periods * 3).reshape((periods, 3))
     columns = ["amount", "price", "principal"]
+    currency_unit = Currency.JPY
 
     positions_list = []
     df = pd.DataFrame(
@@ -157,7 +163,9 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "usdjpy"
-    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+    positions_list.append(
+        backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
+    )
 
     df = pd.DataFrame(
         data=data,
@@ -165,7 +173,9 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "usdjpy"
-    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+    positions_list.append(
+        backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
+    )
 
     df = pd.DataFrame(
         data=data,
@@ -173,7 +183,9 @@ def test_fusion_positions():
         columns=columns,
     )
     symbol = "eurjpy"
-    positions_list.append(backlight.positions.positions.from_dataframe(df, symbol))
+    positions_list.append(
+        backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
+    )
 
     fusioned = _fusion_positions(positions_list)
 
@@ -201,13 +213,14 @@ def test_fusion_positions():
 def mid_markets():
     markets = []
     symbol = "usdjpy"
+    currency_unit = Currency.JPY
     periods = 4
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.array([0, 1, 2, 4]),
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol))
+    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
     return markets
 
 
@@ -215,7 +228,9 @@ def mid_markets():
 def simple_portfolio():
     ptf = []
     periods = 4
-    for symbol in ["usdjpy", "eurjpy", "eurusd"]:
+    for symbol, currency_unit in zip(
+        ["usdjpy", "eurjpy", "eurusd"], [Currency.JPY, Currency.JPY, Currency.USD]
+    ):
         df = pd.DataFrame(
             index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
             data=np.arange(3 * periods).reshape((periods, 3)),
@@ -223,6 +238,7 @@ def simple_portfolio():
         )
         p = Positions(df)
         p.symbol = symbol
+        p.currency_unit = currency_unit
         ptf.append(p)
     return Portfolio(ptf)
 

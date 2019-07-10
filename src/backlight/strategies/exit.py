@@ -80,9 +80,10 @@ def exit(
 
         df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
 
-        return from_dataframe(df, symbol)
+        return from_dataframe(df, symbol, currency_unit)
 
     symbol = entries.symbol
+    currency_unit = entries.currency_unit
     exits = _exit(entries, df, exit_condition)
     return concat([entries, exits])
 
@@ -134,9 +135,10 @@ def exit_by_max_holding_time(
             exits.append((transaction.amount, i))
 
         df = pd.DataFrame(index=indices, data=exits, columns=["amount", "_id"])
-        return from_dataframe(df, symbol)
+        return from_dataframe(df, symbol, currency_unit)
 
     symbol = entries.symbol
+    currency_unit = entries.currency_unit
     exits = _exit_by_max_holding_time(entries, df, max_holding_time, exit_condition)
     return concat([entries, exits])
 

@@ -4,6 +4,7 @@ import pytest
 
 import backlight.datasource
 from backlight.trades import trades as tr
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
@@ -12,45 +13,47 @@ def symbol():
 
 
 @pytest.fixture
-def market(symbol):
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def market(symbol, currency_unit):
     data = [[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0], [9.0], [9.0]]
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1D", periods=len(data)),
         data=data,
         columns=["mid"],
     )
-    return backlight.datasource.from_dataframe(df, symbol)
+    return backlight.datasource.from_dataframe(df, symbol, currency_unit)
 
 
 @pytest.fixture
-def trades(symbol):
-    symbol = "usdjpy"
+def trades(symbol, currency_unit):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1D", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
         trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
-    trades = tr.make_trades(symbol, trades)
+    trades = tr.make_trades(symbol, trades, currency_unit)
     return trades
 
 
 @pytest.fixture
-def closed_trades(symbol):
-    symbol = "usdjpy"
+def closed_trades(symbol, currency_unit):
     data = [1.0, -1.0, 2.0, -2.0, -4.0, 4.0, 1.0, -1.0, 1.0, -1.0]
     index = pd.date_range(start="2018-06-06", freq="1D", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
         trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
-    trades = module.make_trades(symbol, trades)
+    trades = module.make_trades(symbol, trades, currency_unit)
     return trades
 
 
-def test__calc_pl():
+def test__calc_pl(symbol, currency_unit):
     periods = 3
-    symbol = "usdjpy"
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = [1.0, -1.0]
 
@@ -61,7 +64,9 @@ def test__calc_pl():
     t20 = tr.Transaction(timestamp=dates[2], amount=amounts[0])
 
     mkt = backlight.datasource.from_dataframe(
-        pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]), symbol
+        pd.DataFrame(index=dates, data=[[0], [1], [2]], columns=["mid"]),
+        symbol,
+        currency_unit,
     )
 
     trade = tr.make_trade([t00, t11])
@@ -158,5 +163,5 @@ def test_calc_trade_performance_with_closed_trades(closed_trades, market):
 )
 def test_count_trades(a_trades, total_count, win_count, lose_count, market):
     assert (total_count, win_count, lose_count) == module.count_trades(
-        a_trades(symbol()), market
+        a_trades(symbol(), currency_unit()), market
     )

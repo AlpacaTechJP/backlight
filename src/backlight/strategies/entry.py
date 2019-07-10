@@ -42,5 +42,5 @@ def direction_based_entry(
     df_trades = pd.concat(trades, axis=0).sort_index()
     df_trades.loc[:, "_id"] = range(len(df_trades.index))
 
-    t = from_dataframe(df_trades, df.symbol)
+    t = from_dataframe(df_trades, df.symbol, df.currency_unit)
     return t

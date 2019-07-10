@@ -19,7 +19,7 @@ def _argmax(a: np.ndarray, axis: int) -> np.ndarray:
 
 class Signal(pd.DataFrame):
 
-    _metadata = ["symbol", "_target_columns"]
+    _metadata = ["symbol", "_target_columns", "currency_unit"]
 
     def reset_cols(self) -> None:
         for col in self.columns:

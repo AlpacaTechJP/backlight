@@ -6,7 +6,7 @@ from backlight.datasource.marketdata import MarketData
 
 class Label(pd.DataFrame):
 
-    _metadata = ["label_type"]
+    _metadata = ["label_type", "currency_unit"]
 
     def stats(self) -> pd.DataFrame:
         return self.label.describe()

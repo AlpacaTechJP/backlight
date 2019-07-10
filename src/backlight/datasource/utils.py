@@ -3,10 +3,15 @@ from typing import Optional
 
 from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
 from backlight.query import query
+from backlight.asset.currency import Currency
 
 
 def load_marketdata(
-    symbol: str, start_dt: pd.Timestamp, end_dt: pd.Timestamp, url: str
+    symbol: str,
+    start_dt: pd.Timestamp,
+    end_dt: pd.Timestamp,
+    url: str,
+    currency_unit: Currency,
 ) -> MarketData:
     """An abstraction interface for loading the market data.
 
@@ -20,11 +25,14 @@ def load_marketdata(
         MarketData
     """
     df = query(symbol, start_dt, end_dt, url)
-    return from_dataframe(df, symbol, col_mapping=None)
+    return from_dataframe(df, symbol, currency_unit, col_mapping=None)
 
 
 def from_dataframe(
-    df: pd.DataFrame, symbol: str, col_mapping: Optional[dict] = None
+    df: pd.DataFrame,
+    symbol: str,
+    currency_unit: Currency,
+    col_mapping: Optional[dict] = None,
 ) -> MarketData:
     """Create a MarketData instance out of a DataFrame object
 
@@ -56,6 +64,7 @@ def from_dataframe(
         raise ValueError("Unsupported marketdata")
 
     mkt.symbol = symbol
+    mkt.currency_unit = currency_unit
     mkt.reset_cols()
 
     return mkt
@@ -70,4 +79,4 @@ def mid2askbid(mkt: MidMarketData, spread: float) -> AskBidMarketData:
     """
     mkt.loc[:, "ask"] = mkt.mid + spread
     mkt.loc[:, "bid"] = mkt.mid - spread
-    return from_dataframe(mkt, mkt.symbol)
+    return from_dataframe(mkt, mkt.symbol, mkt.currency_unit)

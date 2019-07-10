@@ -5,11 +5,21 @@ import numpy as np
 
 import backlight
 from backlight.strategies.amount_based import simple_entry_and_exit
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
-def signal():
-    symbol = "usdjpy"
+def symbol():
+    return "usdjpy"
+
+
+@pytest.fixture
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def signal(symbol, currency_unit):
     periods = 22
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -39,20 +49,19 @@ def signal():
         ],
         columns=["up", "neutral", "down"],
     )
-    signal = backlight.signal.from_dataframe(df, symbol)
+    signal = backlight.signal.from_dataframe(df, symbol, currency_unit)
     return signal
 
 
 @pytest.fixture
-def market():
-    symbol = "usdjpy"
+def market(symbol, currency_unit):
     periods = 22
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.arange(periods)[:, None],
         columns=["mid"],
     )
-    market = backlight.datasource.from_dataframe(df, symbol)
+    market = backlight.datasource.from_dataframe(df, symbol, currency_unit)
     return market
 
 

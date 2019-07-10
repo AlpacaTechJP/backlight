@@ -3,6 +3,7 @@ from backlight.trades import trades as module
 import pytest
 
 import pandas as pd
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
@@ -11,14 +12,19 @@ def symbol():
 
 
 @pytest.fixture
-def trades(symbol):
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def trades(symbol, currency_unit):
     data = [1.0, -2.0, 1.0, 2.0, -4.0, 2.0, 1.0, 0.0, 1.0, 0.0]
     index = pd.date_range(start="2018-06-06", freq="1min", periods=len(data))
     trades = []
     for i in range(0, len(data), 2):
         trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
         trades.append(trade)
-    trades = module.make_trades(symbol, trades)
+    trades = module.make_trades(symbol, trades, currency_unit)
     return trades
 
 

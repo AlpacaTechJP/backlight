@@ -8,11 +8,21 @@ from backlight.labelizer.common import TernaryDirection
 from backlight.strategies.common import Action
 from backlight.strategies.entry import direction_based_entry
 from backlight.trades.trades import Transaction, make_trades, make_trade
+from backlight.asset.currency import Currency
 
 
 @pytest.fixture
-def signal():
-    symbol = "usdjpy"
+def symbol():
+    return "usdjpy"
+
+
+@pytest.fixture
+def currency_unit():
+    return Currency.JPY
+
+
+@pytest.fixture
+def signal(symbol, currency_unit):
     periods = 22
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -42,20 +52,19 @@ def signal():
         ],
         columns=["up", "neutral", "down"],
     )
-    signal = backlight.signal.from_dataframe(df, symbol)
+    signal = backlight.signal.from_dataframe(df, symbol, currency_unit)
     return signal
 
 
 @pytest.fixture
-def market():
-    symbol = "usdjpy"
+def market(symbol, currency_unit):
     periods = 22
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=np.arange(periods)[:, None],
         columns=["mid"],
     )
-    market = backlight.datasource.from_dataframe(df, symbol)
+    market = backlight.datasource.from_dataframe(df, symbol, currency_unit)
     return market
 
 
@@ -104,8 +113,7 @@ def test_exit_at_max_holding_time(market, signal, entries):
     assert (trades.amount == expected.amount[expected.exist]).all()
 
 
-def test_exit_by_trailing_stop(market, signal, entries):
-    symbol = "usdjpy"
+def test_exit_by_trailing_stop(market, signal, entries, symbol, currency_unit):
     data = [
         [1.0],  # 00:00:00
         [2.0],  # 00:01:00
@@ -127,6 +135,7 @@ def test_exit_by_trailing_stop(market, signal, entries):
             columns=["mid"],
         ),
         symbol,
+        currency_unit,
     )
     entries = make_trades(
         symbol,
@@ -138,6 +147,7 @@ def test_exit_by_trailing_stop(market, signal, entries):
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), 0.5)]),
             make_trade([Transaction(pd.Timestamp("2018-06-06 00:03:00"), -1.0)]),
         ),
+        currency_unit,
     )
 
     initial_stop = 2.0
@@ -182,6 +192,7 @@ def test_exit_by_trailing_stop(market, signal, entries):
                 ]
             ),
         ),
+        currency_unit,
     )
 
     pd.testing.assert_frame_equal(trades, expected)
