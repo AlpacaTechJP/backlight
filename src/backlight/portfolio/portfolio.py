@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Optional
 from functools import reduce
 
 from backlight.positions.positions import Positions
@@ -126,9 +126,37 @@ def construct_portfolio(
     if len(set(symbols)) != len(symbols):
         converted_positions = _fusion_positions(converted_positions)
 
-    portfolio = Portfolio(converted_positions, currency_unit)
+    # Ici : ffill avec les principaux de chaque position (nouvelle fonction)
+    filled_positions = []
+    union_indexes = converted_positions[0].index.union_many(
+        [c.index for c in converted_positions]
+    )
+    for p in converted_positions:
+        filled_positions.append(
+            _ffill_from_principal(p, union_indexes, principal.get(p.symbol))
+        )
+
+    portfolio = Portfolio(filled_positions, currency_unit)
 
     return portfolio
+
+
+def _ffill_from_principal(
+    position: Positions, index: pd.DatetimeIndex, principal: Optional[float]
+) -> Positions:
+    if position.index[0] == index[0]:
+        return position
+
+    filled_positions = pd.DataFrame(
+        data=np.zeros((index.size, position.shape[1])),
+        index=index,
+        columns=position.columns,
+    )
+    filled_positions.principal.iloc[:] = principal
+    filled_positions.loc[position.index] = position
+    return backlight.positions.positions.from_dataframe(
+        filled_positions, position.symbol, position.currency_unit
+    )
 
 
 def _fusion_positions(positions: List[Positions]) -> List[Positions]:
