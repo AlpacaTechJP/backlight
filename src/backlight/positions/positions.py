@@ -83,7 +83,11 @@ def calc_positions(
     pos = Positions(_pricer(trades, mkt, principal))
     pos.reset_cols()
     pos.symbol = trades.symbol
-    pos.currency_unit = trades.currency_unit
+    if trades.currency_unit == None:
+        pos.currency_unit = Currency[pos.symbol[-3:]]
+    else:
+        pos.currency_unit = trades.currency_unit
+
     return pos
 
 

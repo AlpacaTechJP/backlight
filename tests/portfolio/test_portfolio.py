@@ -10,7 +10,7 @@ import backlight
 from backlight.trades.trades import make_trades
 from backlight.asset.currency import Currency
 from backlight.positions.positions import Positions
-from backlight.portfolio.portfolio import Portfolio, calculate_pl
+from backlight.portfolio.portfolio import Portfolio
 
 
 @pytest.fixture
@@ -41,41 +41,30 @@ def trades():
     ids = [0, 1, 0, 1, 2, 3, 2, 4, 3, 5, 4, 5, 6, 6]
     currency_unit = Currency.JPY
 
-    trades.append(make_trades("usdjpy", [trade], currency_unit, [ids]))
-    trades.append(make_trades("eurjpy", [trade], currency_unit, [ids]))
-    trades.append(make_trades("usdjpy", [trade], currency_unit, [ids]))
+    trades.append(make_trades("USDJPY", [trade], currency_unit, [ids]))
+    trades.append(make_trades("EURJPY", [trade], currency_unit, [ids]))
+    trades.append(make_trades("USDJPY", [trade], currency_unit, [ids]))
     return trades
 
 
 @pytest.fixture
 def markets():
     markets = []
-    symbol = "usdjpy"
+    symbol = "USDJPY"
     currency_unit = Currency.JPY
-    periods = 10
+    periods = 13
     df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
-        data=np.arange(periods)[:, None],
+        index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
+        data=np.repeat(2, periods)[:, None],
         columns=["mid"],
     )
     markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
 
-    symbol = "eurjpy"
+    symbol = "EURJPY"
     currency_unit = Currency.JPY
-    periods = 10
     df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
-        data=10 - np.arange(periods)[:, None],
-        columns=["mid"],
-    )
-    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
-
-    symbol = "usdjpy"
-    currency_unit = Currency.JPY
-    periods = 10
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
-        data=np.arange(periods)[:, None],
+        index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
+        data=np.repeat(4, periods)[:, None],
         columns=["mid"],
     )
     markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
@@ -84,16 +73,16 @@ def markets():
 
 @pytest.fixture
 def principal():
-    return [10, 10, 10]
+    return {"USDJPY": 10, "EURJPY": 10}
 
 
 @pytest.fixture
 def lot_size():
-    return [2, 2, 2]
+    return {"USDJPY": 2, "EURJPY": 2}
 
 
 def test_construct_portfolio(trades, markets, principal, lot_size):
-    portfolio = module(trades, markets, principal, lot_size)
+    portfolio = module(trades, markets, principal, lot_size, Currency.USD)
 
     index = [
         "2018-06-05 23:59:00",
@@ -110,31 +99,31 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
     ]
 
     data1 = [
-        [0.0, 0.0, 10.0],
-        [2.0, 10.0, -10.0],
-        [0.0, 9.0, 8.0],
-        [-2.0, 8.0, 24.0],
-        [2.0, 7.0, -4.0],
-        [4.0, 6.0, -16.0],
-        [0.0, 5.0, 4.0],
-        [-4.0, 4.0, 20.0],
-        [-2.0, 3.0, 14.0],
-        [0.0, 2.0, 10.0],
-        [0.0, 1.0, 10.0],
+        [0.0, 0.0, 5.0],
+        [2.0, 2.0, 1.0],
+        [0.0, 2.0, 5.0],
+        [-2.0, 2.0, 9.0],
+        [2.0, 2.0, 1.0],
+        [4.0, 2.0, -3.0],
+        [0.0, 2.0, 5.0],
+        [-4.0, 2.0, 13.0],
+        [-2.0, 2.0, 9.0],
+        [0.0, 2.0, 5.0],
+        [0.0, 2.0, 5.0],
     ]
 
     data2 = [
-        [0.0, 0.0, 20.0],
-        [4.0, 0.0, 20.0],
-        [0.0, 2.0, 24.0],
-        [-4.0, 4.0, 32.0],
-        [4.0, 6.0, 8.0],
-        [8.0, 8.0, -8.0],
-        [0.0, 10.0, 32.0],
-        [-8.0, 12.0, 80.0],
-        [-4.0, 14.0, 52.0],
-        [0.0, 16.0, 20.0],
-        [0.0, 18.0, 20.0],
+        [0.0, 0.0, 10.0],
+        [4.0, 2.0, 6.0],
+        [0.0, 2.0, 10.0],
+        [-4.0, 2.0, 14.0],
+        [4.0, 2.0, 6.0],
+        [8.0, 2.0, 2.0],
+        [0.0, 2.0, 10.0],
+        [-8.0, 2.0, 18.0],
+        [-4.0, 2.0, 14.0],
+        [0.0, 2.0, 10.0],
+        [0.0, 2.0, 10.0],
     ]
 
     data = [data1, data2]
@@ -150,7 +139,6 @@ def test_construct_portfolio(trades, markets, principal, lot_size):
 
 
 def test_fusion_positions():
-
     periods = 3
     data = np.arange(periods * 3).reshape((periods, 3))
     columns = ["amount", "price", "principal"]
@@ -162,7 +150,7 @@ def test_fusion_positions():
         index=pd.date_range("2012-1-1", periods=periods, freq="D"),
         columns=columns,
     )
-    symbol = "usdjpy"
+    symbol = "USDJPY"
     positions_list.append(
         backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
     )
@@ -172,7 +160,7 @@ def test_fusion_positions():
         index=pd.date_range("2012-1-2", periods=periods, freq="D"),
         columns=columns,
     )
-    symbol = "usdjpy"
+    symbol = "USDJPY"
     positions_list.append(
         backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
     )
@@ -182,7 +170,7 @@ def test_fusion_positions():
         index=pd.date_range("2012-1-4", periods=periods, freq="D"),
         columns=columns,
     )
-    symbol = "eurjpy"
+    symbol = "EURJPY"
     positions_list.append(
         backlight.positions.positions.from_dataframe(df, symbol, currency_unit)
     )
@@ -212,7 +200,7 @@ def test_fusion_positions():
 @pytest.fixture
 def mid_markets():
     markets = []
-    symbol = "usdjpy"
+    symbol = "USDJPY"
     currency_unit = Currency.JPY
     periods = 4
     df = pd.DataFrame(
@@ -229,7 +217,7 @@ def simple_portfolio():
     ptf = []
     periods = 4
     for symbol, currency_unit in zip(
-        ["usdjpy", "eurjpy", "eurusd"], [Currency.JPY, Currency.JPY, Currency.USD]
+        ["USDJPY", "EURJPY", "EURUSD"], [Currency.JPY, Currency.JPY, Currency.USD]
     ):
         df = pd.DataFrame(
             index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
@@ -243,17 +231,17 @@ def simple_portfolio():
     return Portfolio(ptf)
 
 
-def test_calculate_pl(simple_portfolio, mid_markets):
-    calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="usd")
-    expected = pd.Series(
-        index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
-        data=[45.0, 66.0, 76.5],
-    )
-    assert ((expected == calculated_portfolio).all()).all()
+# def test_calculate_pl(simple_portfolio, mid_markets):
+#     calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="usd")
+#     expected = pd.Series(
+#         index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
+#         data=[45.0, 66.0, 76.5],
+#     )
+#     assert ((expected == calculated_portfolio).all()).all()
 
-    calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="jpy")
-    expected = pd.Series(
-        index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
-        data=[45.0, 132.0, 306.0],
-    )
-    assert ((expected == calculated_portfolio).all()).all()
+#     calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="jpy")
+#     expected = pd.Series(
+#         index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
+#         data=[45.0, 132.0, 306.0],
+#     )
+#     assert ((expected == calculated_portfolio).all()).all()
