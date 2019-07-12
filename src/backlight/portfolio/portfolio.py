@@ -48,9 +48,7 @@ class Portfolio:
 
     @property
     def amount(self) -> pd.DataFrame:
-        return pd.DataFrame([self.get_amount(p.symbol) for p in self._positions]).sum(
-            axis=0
-        )
+        return reduce(lambda x, y: x.add(y, fill_value=0), self._positions)
 
 
 # def calculate_lots_size(
@@ -82,6 +80,7 @@ def construct_portfolio(
         - principal: list of principal per asset
         - lot_size : list of lot sizes per asset
                     (e.g. trade.amount = 1 is equivalent to buying 1*lot_size assets)
+        - currency_unit : the unit type of the future Portfolio
     return:
         Portfolio
     """
@@ -126,24 +125,19 @@ def construct_portfolio(
     if len(set(symbols)) != len(symbols):
         converted_positions = _fusion_positions(converted_positions)
 
-    # Ici : ffill avec les principaux de chaque position (nouvelle fonction)
     filled_positions = []
     union_indexes = converted_positions[0].index.union_many(
         [c.index for c in converted_positions]
     )
     for p in converted_positions:
-        filled_positions.append(
-            _ffill_from_principal(p, union_indexes, principal.get(p.symbol))
-        )
+        filled_positions.append(_bfill_principal(p, union_indexes))
 
     portfolio = Portfolio(filled_positions, currency_unit)
 
     return portfolio
 
 
-def _ffill_from_principal(
-    position: Positions, index: pd.DatetimeIndex, principal: Optional[float]
-) -> Positions:
+def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     if position.index[0] == index[0]:
         return position
 
@@ -152,11 +146,59 @@ def _ffill_from_principal(
         index=index,
         columns=position.columns,
     )
-    filled_positions.principal.iloc[:] = principal
+    filled_positions.principal.iloc[:] = position.principal[
+        position.principal.first_valid_index()
+    ]
     filled_positions.loc[position.index] = position
     return backlight.positions.positions.from_dataframe(
         filled_positions, position.symbol, position.currency_unit
     )
+
+
+def equally_weighted_portfolio(
+    trades: List[Trades],
+    mkt: List[MarketData],
+    principal: float,
+    max_amount: float,
+    currency_unit: Currency = Currency.USD,
+) -> Portfolio:
+    """
+    Create a Portfolio from trades and mkt, given a principal which will be divided equally between the 
+    different currencies.
+    args :
+        - trades : a list of trades for each currencies
+        - mkt : the market datas for at least each trades currencies
+        - principal : the total amount allocated to the Portfolio
+        - max_amount : the max amount
+        - currency_unit : the unit type of the future Portfolio
+    """
+    nb_currencies = len(trades)
+
+    symbols = [t.symbol for t in trades]
+    symbols2mkt = {m.symbol: m for m in mkt}
+    symbols2tds = {t.symbol: t for t in trades}
+
+    principals = {}
+    #     max_amounts = {}
+    lts = {}
+    for trade in trades:
+        symbol = trade.symbol
+        starting_date = trade.index[0]
+        trade_currency = trade.currency_unit
+
+        ratio = 1
+        if trade_currency != currency_unit:
+            # Not very optimal since only the first item is needed, but easier to read. Maybe we can change it if its bottleneck.
+            ratios = _get_forex_ratios(mkt, trade_currency, currency_unit)
+            ratio = ratios.iloc[ratios.index.get_loc(trade.index[0]) - 1]
+
+        principals[symbol] = principal / (nb_currencies * ratio)
+        #         max_amounts[symbol] = max_amount/nb_currencies * ratio
+        lts[symbol] = int(principal / (max_amount))
+
+    #     lts = calculate_lots_size(mkt, principals, max_amounts)
+
+    return construct_portfolio(trades, mkt, principals, lts, currency_unit)
 
 
 def _fusion_positions(positions: List[Positions]) -> List[Positions]:
