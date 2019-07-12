@@ -138,6 +138,14 @@ def construct_portfolio(
 
 
 def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
+    """
+    From a create a Positions with all the indexes of index, and the values of position.
+    If there is nan, amount and price are filled with 0, and principal is filled with the first
+    non-nan principal.
+    args :
+        - position : filled Positions
+        - index : indexes, supposed to contains at least position's indexes
+    """
     if position.index[0] == index[0]:
         return position
 
@@ -188,15 +196,13 @@ def equally_weighted_portfolio(
 
         ratio = 1
         if trade_currency != currency_unit:
-            # Not very optimal since only the first item is needed, but easier to read. Maybe we can change it if its bottleneck.
+            # Not very optimal since only one item is needed, but easier to read. Maybe we can change it if its bottleneck.
             ratios = _get_forex_ratios(mkt, trade_currency, currency_unit)
             ratio = ratios.iloc[ratios.index.get_loc(trade.index[0]) - 1]
 
-        principals[symbol] = principal / (nb_currencies * ratio)
-        #         max_amounts[symbol] = max_amount/nb_currencies * ratio
+        count_symbol = symbols.count(symbol)
+        principals[symbol] = principal / (nb_currencies * ratio * count_symbol)
         lts[symbol] = int(principal / (max_amount))
-
-    #     lts = calculate_lots_size(mkt, principals, max_amounts)
 
     return construct_portfolio(trades, mkt, principals, lts, currency_unit)
 

@@ -1,16 +1,16 @@
 import pytest
 import pandas as pd
 import numpy as np
-from backlight.portfolio.portfolio import construct_portfolio as module
-from backlight.portfolio.portfolio import _fusion_positions
-import backlight.positions.positions
-
 
 import backlight
+from backlight.portfolio.portfolio import construct_portfolio as module
+from backlight.portfolio.portfolio import (
+    _fusion_positions,
+    equally_weighted_portfolio,
+)
+import backlight.positions.positions
 from backlight.trades.trades import make_trades
 from backlight.asset.currency import Currency
-from backlight.positions.positions import Positions
-from backlight.portfolio.portfolio import Portfolio
 
 
 @pytest.fixture
@@ -197,51 +197,60 @@ def test_fusion_positions():
         assert exp.all().all() == fus.all().all()
 
 
-@pytest.fixture
-def mid_markets():
-    markets = []
-    symbol = "USDJPY"
-    currency_unit = Currency.JPY
-    periods = 4
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
-        data=np.array([0, 1, 2, 4]),
-        columns=["mid"],
-    )
-    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
-    return markets
+def test_equally_weighted_portfolio(markets, trades):
+    portfolio = equally_weighted_portfolio(trades, markets, 30, 20, Currency.USD)
 
+    index = [
+        "2018-06-05 23:59:00",
+        "2018-06-06 00:00:00",
+        "2018-06-06 00:01:00",
+        "2018-06-06 00:02:00",
+        "2018-06-06 00:03:00",
+        "2018-06-06 00:04:00 ",
+        "2018-06-06 00:05:00",
+        "2018-06-06 00:06:00 ",
+        "2018-06-06 00:07:00 ",
+        "2018-06-06 00:08:00 ",
+        "2018-06-06 00:09:00 ",
+    ]
 
-@pytest.fixture
-def simple_portfolio():
-    ptf = []
-    periods = 4
-    for symbol, currency_unit in zip(
-        ["USDJPY", "EURJPY", "EURUSD"], [Currency.JPY, Currency.JPY, Currency.USD]
-    ):
-        df = pd.DataFrame(
-            index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
-            data=np.arange(3 * periods).reshape((periods, 3)),
+    data1 = [
+        [0.0, 0.0, 10.0],
+        [1.0, 2.0, 8.0],
+        [0.0, 2.0, 10.0],
+        [-1.0, 2.0, 12.0],
+        [1.0, 2.0, 8.0],
+        [2.0, 2.0, 6.0],
+        [0.0, 2.0, 10.0],
+        [-2.0, 2.0, 14.0],
+        [-1.0, 2.0, 12.0],
+        [0.0, 2.0, 10.0],
+        [0.0, 2.0, 10.0],
+    ]
+
+    data2 = [
+        [0.0, 0.0, 10.0],
+        [2.0, 2.0, 8.0],
+        [0.0, 2.0, 10.0],
+        [-2.0, 2.0, 12.0],
+        [2.0, 2.0, 8.0],
+        [4.0, 2.0, 6.0],
+        [0.0, 2.0, 10.0],
+        [-4.0, 2.0, 14.0],
+        [-2.0, 2.0, 12.0],
+        [0.0, 2.0, 10.0],
+        [0.0, 2.0, 10.0],
+    ]
+
+    data = [data1, data2]
+
+    print(portfolio._positions)
+
+    for (position, d) in zip(portfolio._positions, data):
+
+        expected = pd.DataFrame(
+            index=pd.to_datetime(index),
+            data=d,
             columns=["amount", "price", "principal"],
         )
-        p = Positions(df)
-        p.symbol = symbol
-        p.currency_unit = currency_unit
-        ptf.append(p)
-    return Portfolio(ptf)
-
-
-# def test_calculate_pl(simple_portfolio, mid_markets):
-#     calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="usd")
-#     expected = pd.Series(
-#         index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
-#         data=[45.0, 66.0, 76.5],
-#     )
-#     assert ((expected == calculated_portfolio).all()).all()
-
-#     calculated_portfolio = calculate_pl(simple_portfolio, mid_markets, base_ccy="jpy")
-#     expected = pd.Series(
-#         index=["2018-06-06 00:01:00", "2018-06-06 00:02:00", "2018-06-06 00:03:00"],
-#         data=[45.0, 132.0, 306.0],
-#     )
-#     assert ((expected == calculated_portfolio).all()).all()
+        assert ((expected == position).all()).all()
