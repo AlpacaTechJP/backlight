@@ -4,10 +4,7 @@ import numpy as np
 
 import backlight
 from backlight.portfolio.portfolio import construct_portfolio as module
-from backlight.portfolio.portfolio import (
-    _fusion_positions,
-    equally_weighted_portfolio,
-)
+from backlight.portfolio.portfolio import _fusion_positions, equally_weighted_portfolio
 import backlight.positions.positions
 from backlight.trades.trades import make_trades
 from backlight.asset.currency import Currency
