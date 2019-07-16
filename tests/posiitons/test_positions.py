@@ -135,34 +135,37 @@ def test_calc_positions_with_askbid(trades, askbid):
     pd.testing.assert_frame_equal(positions, expected)
 
 
-def test_calc_positions_bfill(trades, mid):
-    data = [
-        [0.0, 0.0, 0.0],
-        [1.0, 1.0, -1.0],
-        [1.0, 1.0, -1.0],
-        [-1.0, 2.0, 3.0],
-        [-1.0, 2.0, 3.0],
-        [0.0, 3.0, 0.0],
-        [0.0, 3.0, 0.0],
-        [2.0, 4.0, -8.0],
-        [2.0, 4.0, -8.0],
-        [-2.0, 5.0, 12.0],
-        [-2.0, 5.0, 12.0],
-        [0.0, 6.0, 0.0],
-        [0.0, 6.0, 0.0],
-        [1.0, 7.0, -7.0],
-        [1.0, 7.0, -7.0],
-        [1.0, 8.0, -7.0],
-        [1.0, 8.0, -7.0],
-        [2.0, 9.0, -16.0],
-        [2.0, 9.0, -16.0],
-        [2.0, 9.0, -16.0],
-    ]
-    df = pd.DataFrame(
-        index=pd.date_range(start="2018-06-05 23:59:30", freq="30s", periods=len(data)),
-        data=data,
-        columns=["amount", "price", "principal"],
-    )
-    expected = module.Positions(df)
-    positions = module.calc_positions(trades, mid.resample("30s").ffill())
-    pd.testing.assert_frame_equal(positions, expected)
+# def test_calc_positions_bfill(trades, mid):
+#     data = [
+#         [0.0, 0.0, 0.0],
+#         [1.0, 1.0, -1.0],
+#         [1.0, 1.0, -1.0],
+#         [-1.0, 2.0, 3.0],
+#         [-1.0, 2.0, 3.0],
+#         [0.0, 3.0, 0.0],
+#         [0.0, 3.0, 0.0],
+#         [2.0, 4.0, -8.0],
+#         [2.0, 4.0, -8.0],
+#         [-2.0, 5.0, 12.0],
+#         [-2.0, 5.0, 12.0],
+#         [0.0, 6.0, 0.0],
+#         [0.0, 6.0, 0.0],
+#         [1.0, 7.0, -7.0],
+#         [1.0, 7.0, -7.0],
+#         [1.0, 8.0, -7.0],
+#         [1.0, 8.0, -7.0],
+#         [2.0, 9.0, -16.0],
+#         [2.0, 9.0, -16.0],
+#         [2.0, 9.0, -16.0],
+#     ]
+#     df = pd.DataFrame(
+#         index=pd.date_range(
+#             start="2018-06-05 23:59:30",
+#             freq="30s",
+#             periods=len(data)),
+#             data=data,
+#             columns=["amount", "price", "principal"],
+#     )
+#     expected = module.Positions(df)
+#     positions = module.calc_positions(trades, mid.resample("30s").ffill())
+#     pd.testing.assert_frame_equal(positions, expected)
