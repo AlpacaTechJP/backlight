@@ -59,6 +59,7 @@ def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
         },
         columns=["amount", "price", "principal"],
     )
+    positions = positions.ffill()
 
     # add initial data
     initial_idx = idx[0] - _freq(idx)

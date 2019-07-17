@@ -48,7 +48,7 @@ class Portfolio:
 
     @property
     def amount(self) -> pd.DataFrame:
-        return reduce(lambda x, y: x.add(y, fill_value=0), self._positions)
+        return (reduce(lambda x, y: x.add(y, fill_value=0), self._positions)).amount
 
 
 def construct_portfolio(
