@@ -21,9 +21,7 @@ class Portfolio:
 
     _metadata = ["currency_unit"]
 
-    def __init__(
-        self, positions: List[Positions], currency_unit: Currency = Currency.USD
-    ):
+    def __init__(self, positions: List[Positions]):
         """
         If there is positions with the same symbol, their value are sum
         """
@@ -118,14 +116,15 @@ def construct_portfolio(
     for p in converted_positions:
         filled_positions.append(_bfill_principal(p, union_indexes))
 
-    portfolio = Portfolio(filled_positions, currency_unit)
+    portfolio = Portfolio(filled_positions)
+    portfolio.currency_unit = currency_unit
 
     return portfolio
 
 
 def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     """
-    From a create a Positions with all the indexes of index, and the values of position.
+    Create Positions with all the indexes of index, and the values of position.
     If there is nan, amount and price are filled with 0, and principal is filled with the first
     non-nan principal.
     args :
