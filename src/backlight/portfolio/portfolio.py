@@ -27,15 +27,14 @@ class Portfolio:
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
+        self.currency_unit = None
         self._positions = positions
 
     @property
     def value(self) -> pd.Series:
         """ DataFrame of the portfolio valuation of each asset"""
-        pl = pd.DataFrame()
-        for p in self._positions:
-            pl[p.symbol] = p.value
-        return pl.sum(axis=1)
+        values = [p.value for p in self._positions]
+        return sum(values)
 
     def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
@@ -43,10 +42,6 @@ class Portfolio:
             if p.symbol == symbol:
                 return p.amount
         raise ValueError("Passed symbol not found in portfolio")
-
-    @property
-    def amount(self) -> pd.DataFrame:
-        return (reduce(lambda x, y: x.add(y, fill_value=0), self._positions)).amount
 
 
 def construct_portfolio(
@@ -148,50 +143,6 @@ def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     )
 
 
-def equally_weighted_portfolio(
-    trades: List[Trades],
-    mkt: List[MarketData],
-    principal: float,
-    max_amount: float,
-    currency_unit: Currency = Currency.USD,
-) -> Portfolio:
-    """
-    Create a Portfolio from trades and mkt, given a principal which will be divided equally between the 
-    different currencies.
-    args :
-        - trades : a list of trades for each currencies
-        - mkt : the market datas for at least each trades currencies
-        - principal : the total amount allocated to the Portfolio
-        - max_amount : the max amount
-        - currency_unit : the unit type of the future Portfolio
-    """
-    nb_currencies = len(trades)
-
-    symbols = [t.symbol for t in trades]
-    symbols2mkt = {m.symbol: m for m in mkt}
-    symbols2tds = {t.symbol: t for t in trades}
-
-    principals = {}
-    #     max_amounts = {}
-    lts = {}
-    for trade in trades:
-        symbol = trade.symbol
-        starting_date = trade.index[0]
-        trade_currency = trade.currency_unit
-
-        ratio = 1
-        if trade_currency != currency_unit:
-            # Not very optimal since only one item is needed, but easier to read. Maybe we can change it if its bottleneck.
-            ratios = _get_forex_ratios(mkt, trade_currency, currency_unit)
-            ratio = ratios.iloc[ratios.index.get_loc(trade.index[0]) - 1]
-
-        count_symbol = symbols.count(symbol)
-        principals[symbol] = principal / (nb_currencies * ratio * count_symbol)
-        lts[symbol] = int(principal / (max_amount))
-
-    return construct_portfolio(trades, mkt, principals, lts, currency_unit)
-
-
 def _fusion_positions(positions: List[Positions]) -> List[Positions]:
     """
     Take a list of Positions and sum those with the same symbols
@@ -231,7 +182,7 @@ def _convert_currency_unit(
         - ccy : the currency of the profit-loss
         - base_ccy : the currency to express the profit-loss in
     """
-    assert positions.index.isin(mkt[0].index).all()
+    # assert positions.index.isin(mkt[0].index).all()
 
     ratios = _get_forex_ratios(mkt, positions.currency_unit, base_ccy)
 
