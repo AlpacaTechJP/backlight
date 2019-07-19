@@ -184,7 +184,7 @@ def exit_at_opposite_signals(
         df: pd.DataFrame, opposite_signals_dict: dict, index: pd.Timestamp
     ) -> bool:
         opposite_signals = opposite_signals_dict[TernaryDirection(df["pred"][0])]
-        return df["pred"].at[index] in opposite_signals
+        return df.at[index, "pred"] in opposite_signals
 
     def _exit_condition(
         df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
@@ -214,8 +214,8 @@ def exit_by_expectation(
         df: pd.DataFrame, trade: pd.Series, index: pd.Timestamp
     ) -> bool:
         return (
-            TernaryDirection(df["pred"].at[df.index[0]]).value
-            * (df["up"].at[index] - df["down"].at[index])
+            TernaryDirection(df.at[df.index[0], "pred"]).value
+            * (df.at[index, "up"] - df.at[index, "down"])
             < 0.0
         )
 
