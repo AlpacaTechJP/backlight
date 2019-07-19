@@ -64,24 +64,11 @@ def construct_portfolio(
         Portfolio
     """
 
-    # Find an other place to check these or check it by sets
-    #     assert len(principal) == len(trades)
-    #     assert len(lot_size) == len(trades)
-
     symbols2mkt = {m.symbol: m for m in mkt}
     symbols = [t.symbol for t in trades]
 
-    # Here it is a problem that the symbols have to be the same.
-    # It is better that the mkt symbols contains the trades symbols.
-    # assert set(symbols) == set(symbols2mkt.keys())
     assert len(set(symbols).intersection(set(symbols2mkt.keys()))) == len(set(symbols))
-
-    # Transform trades following the lot_size
-    mult_trades = []
-    for trade in trades:
-        mult_trade = trade.copy()
-        mult_trade["amount"] *= lot_size.get(trade.symbol)
-        mult_trades.append(mult_trade)
+    mult_trades = _apply_lot_size(trades, lot_size)
 
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
@@ -93,33 +80,75 @@ def construct_portfolio(
         ]
     )
 
-    converted_positions = []
-    for p in positions:
-        if p.currency_unit != currency_unit:
-            converted_positions.append(_convert_currency_unit(p, mkt, currency_unit))
-        else:
-            converted_positions.append(p.copy())
-
-    symbols = [s.symbol for s in converted_positions]
+    positions = _standardize_currency(positions, mkt, currency_unit)
+    symbols = [s.symbol for s in positions]
     if len(set(symbols)) != len(symbols):
-        converted_positions = _fusion_positions(converted_positions)
+        positions = _fusion_positions(positions)
+    positions = _fill_positions(positions)
 
-    filled_positions = []
-    union_indexes = converted_positions[0].index.union_many(
-        [c.index for c in converted_positions]
-    )
-    for p in converted_positions:
-        filled_positions.append(_bfill_principal(p, union_indexes))
-
-    portfolio = Portfolio(filled_positions)
+    portfolio = Portfolio(positions)
     portfolio.currency_unit = currency_unit
 
     return portfolio
 
 
+def _fill_positions(positions: List[Positions]) -> List[Positions]:
+    """
+    For a given list of positions, return the list of these positions on the union of
+    their indexes. For all new indexes, amount and price are set to 0 and principal is
+    set to the first non nan principal.
+    args :
+        - positions : a list of Positions with different indexes.
+    """
+    filled_positions = []
+    union_indexes = positions[0].index.union_many([c.index for c in positions])
+    for p in positions:
+        filled_positions.append(_bfill_principal(p, union_indexes))
+
+    return filled_positions
+
+
+def _standardize_currency(
+    positions: List[Positions], mkt: List[MarketData], currency_unit: Currency
+) -> List[Positions]:
+    """
+    For a given list of Positions, return the list of these Positions converted to
+    a base currency_unit given market datas.
+    args :
+        - positions : a list of Positions with different currency types.
+        - mkt : the market datas, supposed to cover all indexes of the positions.
+        - currency_unit : a base currency to convert positions to.
+    """
+    standardized_positions = []
+    for p in positions:
+        if p.currency_unit != currency_unit:
+            standardized_positions.append(_convert_currency_unit(p, mkt, currency_unit))
+        else:
+            standardized_positions.append(p.copy())
+
+    return standardized_positions
+
+
+def _apply_lot_size(trades: List[Trades], lot_size: Dict[str, int]) -> List[Trades]:
+    """
+    For a given list of Trades and a lot_size dictionary, multiply all trades amounts by
+    the lot_size of their symbol and return the new list of Trades.
+    args :
+        - trades : a list of Trades.
+        - lot_size : a dictionnary taking a symbol as entry and returning a lot_size.
+    """
+    mult_trades = []
+    for trade in trades:
+        mult_trade = trade.copy()
+        mult_trade["amount"] *= lot_size.get(trade.symbol)
+        mult_trades.append(mult_trade)
+
+    return mult_trades
+
+
 def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     """
-    Create Positions with all the indexes of index, and the values of position.
+    Create Positions with all the indexes of the index parameter, and the values of position.
     If there is nan, amount and price are filled with 0, and principal is filled with the first
     non-nan principal.
     args :
