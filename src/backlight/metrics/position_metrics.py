@@ -6,67 +6,21 @@ from typing import Tuple
 from backlight.datasource.marketdata import MarketData
 from backlight.positions import calc_positions
 from backlight.positions.positions import Positions
+from backlight.metrics.evaluation_metrics import calc_pl, calc_sharpe, calc_drawdown
 
 
 def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0.0
 
 
-def _trade_amount(amount: pd.Series) -> pd.Series:
-    previous_amount = amount.shift(periods=1)
-    amount_diff = (amount - previous_amount)[1:]  # drop first nan
-    return _sum(amount_diff.abs())
-
-
 def _divide(a: float, b: float) -> float:
     return a / b if b != 0.0 else 0.0
 
 
-def calc_pl(positions: Positions) -> pd.Series:
-    """Compute pl of positions.
-
-    Args:
-        positions: Positions to be evaluated.
-
-    Returns:
-        Series of pl.
-    """
-    next_value = positions.value.shift(periods=-1)
-    pl = (next_value - positions.value).shift(periods=1)[1:]  # drop first nan
-    return pl.rename("pl")
-
-
-def calc_sharpe(positions: Positions, freq: pd.Timedelta) -> float:
-    """Compute the yearly Sharpe ratio, a measure of risk adjusted returns.
-
-    Args:
-        positions: Their `value` should always be positive.
-        freq: Frequency to calculate mean and std of returns.
-
-    Returns:
-        sharpe ratio.
-    """
-    value = positions.value.resample(freq).first().dropna()
-    previous_value = value.shift(periods=1)
-    log_return = np.log((value.values / previous_value.values)[1:])
-
-    days_in_year = pd.Timedelta("252D")
-    annual_factor = math.sqrt(days_in_year / freq)
-    return annual_factor * np.mean(log_return) / np.std(log_return)
-
-
-def calc_drawdown(positions: Positions) -> pd.Series:
-    """Compute drawdown c.f. https://en.wikipedia.org/wiki/Drawdown_(economics)
-
-    Args:
-        positions: Positions.
-
-    Returns:
-        Drawdown in the periods.
-    """
-    histrical_max = positions.value.cummax()
-    value = positions.value
-    return histrical_max - value
+def _trade_amount(amount: pd.Series) -> pd.Series:
+    previous_amount = amount.shift(periods=1)
+    amount_diff = (amount - previous_amount)[1:]  # drop first nan
+    return _sum(amount_diff.abs())
 
 
 def calc_position_performance(

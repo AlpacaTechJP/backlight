@@ -6,7 +6,6 @@ from functools import reduce
 from backlight.positions.positions import Positions
 import backlight.positions.positions
 from backlight.datasource.marketdata import MarketData
-from backlight.metrics.position_metrics import calc_pl
 from backlight.positions import calc_positions
 from backlight.trades.trades import Trades, from_dataframe
 from joblib import Parallel, delayed

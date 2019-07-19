@@ -1,4 +1,3 @@
-from backlight.metrics import position_metrics as module
 import pandas as pd
 import pytest
 
@@ -6,6 +5,8 @@ import backlight.datasource
 import backlight.positions
 from backlight.trades import trades as tr
 from backlight.asset.currency import Currency
+from backlight.metrics import evaluation_metrics as module
+from backlight.metrics.position_metrics import _trade_amount, calc_position_performance
 
 
 @pytest.fixture
@@ -67,14 +68,12 @@ def test_calc_pl(positions):
         index=positions.index[1:],
         name="pl",
     )
-    print(expected)
-    print(module.calc_pl(positions))
     assert (module.calc_pl(positions) == expected).all()
 
 
 def test__trade_amount(positions):
     expected = 14.0
-    assert module._trade_amount(positions.amount) == expected
+    assert _trade_amount(positions.amount) == expected
 
 
 def test_calc_sharpe(positions):
@@ -91,7 +90,7 @@ def test_calc_drawdown(positions):
 
 
 def test_calc_position_performance(positions):
-    metrics = module.calc_position_performance(positions)
+    metrics = calc_position_performance(positions)
     expected_total_pl = 2.0
     expected_win_pl = 5.0
     expected_lose_pl = -3.0
