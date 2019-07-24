@@ -12,6 +12,7 @@ def load_marketdata(
     end_dt: pd.Timestamp,
     url: str,
     currency_unit: Currency,
+    currency_entry: Optional[Currency] = None,
 ) -> MarketData:
     """An abstraction interface for loading the market data.
 
@@ -25,7 +26,9 @@ def load_marketdata(
         MarketData
     """
     df = query(symbol, start_dt, end_dt, url)
-    return from_dataframe(df, symbol, currency_unit, col_mapping=None)
+    return from_dataframe(
+        df, symbol, currency_unit, col_mapping=None, currency_entry=currency_entry
+    )
 
 
 def from_dataframe(
@@ -33,6 +36,7 @@ def from_dataframe(
     symbol: str,
     currency_unit: Currency,
     col_mapping: Optional[dict] = None,
+    currency_entry: Optional[Currency] = None,
 ) -> MarketData:
     """Create a MarketData instance out of a DataFrame object
 
@@ -65,6 +69,7 @@ def from_dataframe(
 
     mkt.symbol = symbol
     mkt.currency_unit = currency_unit
+    mkt.currency_entry = currency_entry
     mkt.reset_cols()
 
     return mkt

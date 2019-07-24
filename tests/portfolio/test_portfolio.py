@@ -50,22 +50,32 @@ def markets():
     markets = []
     symbol = "USDJPY"
     currency_unit = Currency.JPY
+    currency_entry = Currency.USD
     periods = 13
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
         data=np.repeat(2, periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
+    markets.append(
+        backlight.datasource.from_dataframe(
+            df, symbol, currency_unit, currency_entry=currency_entry
+        )
+    )
 
     symbol = "EURJPY"
     currency_unit = Currency.JPY
+    currency_entry = Currency.EUR
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
         data=np.repeat(4, periods)[:, None],
         columns=["mid"],
     )
-    markets.append(backlight.datasource.from_dataframe(df, symbol, currency_unit))
+    markets.append(
+        backlight.datasource.from_dataframe(
+            df, symbol, currency_unit, currency_entry=currency_entry
+        )
+    )
     return markets
 
 
