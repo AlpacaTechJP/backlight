@@ -36,10 +36,3 @@ class Currency(Enum):
     CZK = 31
     THB = 32
     HUF = 33
-
-    def to_symbol(self, currency):
-        return self.name + currency.name
-
-
-def from_symbol(symbol: str):
-    return Currency[symbol[-3:]]

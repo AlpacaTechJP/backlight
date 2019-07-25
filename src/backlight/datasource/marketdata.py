@@ -26,7 +26,21 @@ class MarketData(pd.DataFrame):
         return self.index[-1]
 
 
-class MidMarketData(MarketData):
+class ForexMarketData(MarketData):
+    _metadata = [
+        "symbol",
+        "_target_columns",
+        "currency_unit",
+        "quote_currency",
+        "base_currency",
+    ]
+
+    @property
+    def _constructor(self) -> Type["ForexMarketData"]:
+        return ForexMarketData
+
+
+class MidMarketData(ForexMarketData):
     """MarketData container for mid price.
     """
 
@@ -46,7 +60,7 @@ class MidMarketData(MarketData):
         return MidMarketData
 
 
-class AskBidMarketData(MarketData):
+class AskBidMarketData(ForexMarketData):
 
     _target_columns = ["ask", "bid"]
 
