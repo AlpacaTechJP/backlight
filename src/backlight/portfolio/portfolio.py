@@ -240,9 +240,9 @@ def _get_forex_ratios(
         - base_ccy : the currency to convert to
     """
     for market in mkt:
-        if ccy == market.currency_entry and base_ccy == market.currency_unit:
+        if ccy == market.quote_currency and base_ccy == market.base_currency:
             ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-        elif ccy == market.currency_unit and base_ccy == market.currency_entry:
+        elif ccy == market.base_currency and base_ccy == market.quote_currency:
             ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
             ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
 
