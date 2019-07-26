@@ -1,7 +1,12 @@
 import pandas as pd
-from typing import Optional
+from typing import Optional, List
 
-from backlight.datasource.marketdata import MarketData, MidMarketData, AskBidMarketData
+from backlight.datasource.marketdata import (
+    MarketData,
+    MidMarketData,
+    AskBidMarketData,
+    ForexMarketData,
+)
 from backlight.query import query
 from backlight.asset.currency import Currency
 
@@ -93,3 +98,23 @@ def mid2askbid(mkt: MidMarketData, spread: float) -> AskBidMarketData:
     mkt.loc[:, "ask"] = mkt.mid + spread
     mkt.loc[:, "bid"] = mkt.mid - spread
     return from_dataframe(mkt, mkt.symbol, mkt.currency_unit)
+
+
+def get_forex_ratios(
+    mkt: List[ForexMarketData], ccy: Currency, base_ccy: Currency
+) -> pd.Series:
+    """
+    Get the ratios of ccy expressed in base_ccy depending on market datas
+    args:
+        - market : market forex datas
+        - ccy : the currency to convert from
+        - base_ccy : the currency to convert to
+    """
+    for market in mkt:
+        if ccy == market.quote_currency and base_ccy == market.base_currency:
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+        elif ccy == market.base_currency and base_ccy == market.quote_currency:
+            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+            ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+
+    return ratios

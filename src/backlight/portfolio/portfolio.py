@@ -5,7 +5,8 @@ from functools import reduce
 
 from backlight.positions.positions import Positions
 import backlight.positions.positions
-from backlight.datasource.marketdata import MarketData, ForexMarketData
+from backlight.datasource.marketdata import MarketData
+from backlight.datasource.utils import get_forex_ratios
 from backlight.positions import calc_positions
 from backlight.trades.trades import Trades, from_dataframe
 from joblib import Parallel, delayed
@@ -213,7 +214,7 @@ def _convert_currency_unit(
     """
     # assert positions.index.isin(mkt[0].index).all()
 
-    ratios = _get_forex_ratios(mkt, positions.currency_unit, base_ccy)
+    ratios = get_forex_ratios(mkt, positions.currency_unit, base_ccy)
 
     converted_values = pd.DataFrame(
         data=np.zeros(positions.shape), index=positions.index, columns=positions.columns
@@ -228,23 +229,3 @@ def _convert_currency_unit(
     converted_positions.symbol = positions.symbol
 
     return converted_positions
-
-
-def _get_forex_ratios(
-    mkt: List[ForexMarketData], ccy: Currency, base_ccy: Currency
-) -> pd.Series:
-    """
-    Get the ratios of ccy expressed in base_ccy depending on market datas
-    args:
-        - market : market forex datas
-        - ccy : the currency to convert from
-        - base_ccy : the currency to convert to
-    """
-    for market in mkt:
-        if ccy == market.quote_currency and base_ccy == market.base_currency:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-        elif ccy == market.base_currency and base_ccy == market.quote_currency:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-            ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
-
-    return ratios

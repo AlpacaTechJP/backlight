@@ -1,14 +1,11 @@
 # Define how to create Portfolio
 from typing import List
-from backlight.portfolio.portfolio import (
-    Portfolio,
-    _get_forex_ratios,
-    construct_portfolio,
-)
+from backlight.portfolio.portfolio import Portfolio, construct_portfolio
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
 from backlight.datasource.marketdata import MarketData
+from backlight.datasource.utils import get_forex_ratios
 from backlight import strategies
 from backlight.asset.currency import Currency
 
@@ -81,7 +78,7 @@ def equally_weighted_portfolio(
 
         ratio = 1
         if trade_currency != currency_unit:
-            ratios = _get_forex_ratios(mkt, trade_currency, currency_unit)
+            ratios = get_forex_ratios(mkt, trade_currency, currency_unit)
             ratio = ratios.iloc[ratios.index.get_loc(trade.index[0]) - 1]
 
         count_symbol = symbols.count(symbol)
