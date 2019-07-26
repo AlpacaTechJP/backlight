@@ -20,13 +20,15 @@ class Portfolio:
 
     _metadata = ["currency_unit"]
 
-    def __init__(self, positions: List[Positions]):
+    def __init__(
+        self, positions: List[Positions], currency_unit: Currency = Currency.USD
+    ):
         """
         If there is positions with the same symbol, their value are sum
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
-        self.currency_unit = None
+        self.currency_unit = currency_unit
         self._positions = positions
 
     @property
@@ -85,8 +87,7 @@ def construct_portfolio(
         positions = _fusion_positions(positions)
     positions = _fill_positions(positions)
 
-    portfolio = Portfolio(positions)
-    portfolio.currency_unit = currency_unit
+    portfolio = Portfolio(positions, currency_unit)
 
     return portfolio
 
