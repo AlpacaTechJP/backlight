@@ -159,3 +159,4 @@ def make_trades(
         current += l
 
     return from_dataframe(df, symbol)
+
