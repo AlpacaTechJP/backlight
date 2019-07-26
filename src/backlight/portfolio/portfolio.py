@@ -18,8 +18,6 @@ class Portfolio:
     Each element of the list represent the positions of an asset that contribute to the portfolio
     """
 
-    _metadata = ["currency_unit"]
-
     def __init__(
         self, positions: List[Positions], currency_unit: Currency = Currency.USD
     ):
@@ -28,6 +26,8 @@ class Portfolio:
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
+        units = [position.currency_unit for position in positions]
+        assert len(set(units)) == 1
         self.currency_unit = currency_unit
         self._positions = positions
 
