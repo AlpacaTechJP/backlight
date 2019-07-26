@@ -66,6 +66,19 @@ def market(symbol, currency_unit):
 
 
 @pytest.fixture
+def askbid():
+    symbol = "usdjpy"
+    periods = 22
+    df = pd.DataFrame(
+        index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
+        data=[[i + i % 3, i - i % 3] for i in range(periods)],
+        columns=["ask", "bid"],
+    )
+    market = backlight.datasource.from_dataframe(df, symbol)
+    return market
+
+
+@pytest.fixture
 def trades(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = simple_entry_and_exit(market, signal, max_holding_time)
@@ -133,4 +146,39 @@ def test_limit_max_amount(market, trades):
         ],
         columns=["exist", "amount"],
     )
+    assert (limited.amount == expected.amount[expected.exist]).all()
+
+
+def test_skip_entry_by_spread(trades, askbid):
+    spread = 2.0
+    limited = module.skip_entry_by_spread(trades, askbid, spread)
+    expected = pd.DataFrame(
+        index=askbid.index,
+        data=[
+            [True, 1.0],  # 1.0
+            [True, -1.0],  # 0.0
+            [False, 0.0],  # 0.0
+            [True, 0.0],  # 0.0
+            [True, 2.0],  # 2.0
+            [False, 0.0],  # 2.0
+            [True, -2.0],  # 0.0
+            [True, -1.0],  # -1.0
+            [False, 0.0],  # -1.0
+            [True, 2.0],  # 1.0
+            [True, 1.0],  # 2.0
+            [False, 0.0],  # 2.0
+            [True, -2.0],  # 0.0
+            [True, -2.0],  # -2.0
+            [False, 0.0],  # 0.0
+            [True, 1.0],  # -1.0
+            [True, 1.0],  # -2.0
+            [False, 0.0],  # 0.0
+            [True, 1.0],  # 1.0
+            [True, 1.0],  # 2.0
+            [False, 0.0],  # 2.0
+            [True, -2.0],  # 0.0
+        ],
+        columns=["exist", "amount"],
+    )
+    print(limited.amount)
     assert (limited.amount == expected.amount[expected.exist]).all()
