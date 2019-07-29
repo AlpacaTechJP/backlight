@@ -19,9 +19,7 @@ class Portfolio:
     Each element of the list represent the positions of an asset that contribute to the portfolio
     """
 
-    def __init__(
-        self, positions: List[Positions], currency_unit: Currency = Currency.USD
-    ):
+    def __init__(self, positions: List[Positions]):
         """
         If there is positions with the same symbol, their value are sum
         """
@@ -88,7 +86,7 @@ def construct_portfolio(
         positions = _fusion_positions(positions)
     positions = _fill_positions(positions)
 
-    portfolio = Portfolio(positions, currency_unit)
+    portfolio = Portfolio(positions)
 
     return portfolio
 
