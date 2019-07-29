@@ -69,6 +69,11 @@ class AskBidMarketData(ForexMarketData):
         """Mid price"""
         return (self.ask + self.bid) / 2.0
 
+    @property
+    def spread(self) -> pd.Series:
+        """Spread"""
+        return (self.ask - self.bid).abs()
+
     def fee(self, trade_amount: pd.Series) -> pd.Series:
         """Calculate trading fee when trading on ask/bid prices."""
         fee = pd.Series(data=0.0, index=trade_amount.index)
