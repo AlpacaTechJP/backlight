@@ -1,15 +1,16 @@
 import pandas as pd
 import numpy as np
-from typing import List
+from typing import List, Dict, Optional
 from functools import reduce
 
 from backlight.positions.positions import Positions
 import backlight.positions.positions
-from backlight.datasource.marketdata import MarketData
-from backlight.metrics.position_metrics import calc_pl
+from backlight.datasource.marketdata import MarketData, ForexMarketData
+from backlight.datasource.utils import get_forex_ratios
 from backlight.positions import calc_positions
 from backlight.trades.trades import Trades, from_dataframe
 from joblib import Parallel, delayed
+from backlight.asset.currency import Currency
 
 
 class Portfolio:
@@ -24,15 +25,16 @@ class Portfolio:
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
+        units = [position.currency_unit for position in positions]
+        assert len(set(units)) == 1
+        self.currency_unit = units[0]
         self._positions = positions
 
-    def value(self) -> pd.DataFrame:
+    @property
+    def value(self) -> pd.Series:
         """ DataFrame of the portfolio valuation of each asset"""
-        pl = pd.DataFrame()
-        for p in self._positions:
-            # Compute PL of positions of each asset
-            pl[p.symbol] = calc_pl(p)
-        return pl
+        values = [p.value for p in self._positions]
+        return sum(values)
 
     def get_amount(self, symbol: str) -> pd.Series:
         """ Return amounts of each asset in the portfolio at each time step"""
@@ -42,25 +44,12 @@ class Portfolio:
         raise ValueError("Passed symbol not found in portfolio")
 
 
-def calculate_lots_size(
-    mkt: List[MarketData], principal: List[float], max_amount: List[int]
-) -> List[int]:
-    """
-    Compute lot_size based on the principal, max_amount and the makrtdata.
-    lot = (Principal/max_amount) / (market_price_at_0)
-
-    """
-    lots = []
-    for (m, p, amount) in zip(mkt, principal, max_amount):
-        lots.append(int((p / amount) / m.mid[0]))
-    return lots
-
-
 def construct_portfolio(
     trades: List[Trades],
     mkt: List[MarketData],
-    principal: List[float],
-    lot_size: List[int],
+    principal: Dict[str, float],
+    lot_size: Dict[str, int],
+    currency_unit: Currency = Currency.USD,
 ) -> Portfolio:
     """
     Take a list of Trades and MarketData and return a portfolio
@@ -70,39 +59,116 @@ def construct_portfolio(
         - principal: list of principal per asset
         - lot_size : list of lot sizes per asset
                     (e.g. trade.amount = 1 is equivalent to buying 1*lot_size assets)
+        - currency_unit : the unit type of the future Portfolio
     return:
         Portfolio
     """
 
-    assert len(principal) == len(trades)
-    assert len(lot_size) == len(trades)
-
     symbols2mkt = {m.symbol: m for m in mkt}
     symbols = [t.symbol for t in trades]
-    assert set(symbols) == set(symbols2mkt.keys())
 
-    # Transform trades following the lot_size
-    mult_trades = []
-    for (trade, lot) in zip(trades, lot_size):
-        mult_trade = trade.copy()
-        mult_trade["amount"] *= lot
-        mult_trades.append(mult_trade)
+    assert len(set(symbols).intersection(set(symbols2mkt.keys()))) == len(set(symbols))
+    mult_trades = _apply_lot_size(trades, lot_size)
 
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
         [
             delayed(calc_positions)(
-                trade, symbols2mkt[trade.symbol], principal=principal_per_asset
+                trade, symbols2mkt[trade.symbol], principal=principal.get(trade.symbol)
             )
-            for (trade, principal_per_asset) in zip(mult_trades, principal)
+            for trade in mult_trades
         ]
     )
 
-    symbols = [p.symbol for p in positions]
+    positions = _standardize_currency(positions, mkt, currency_unit)
+    symbols = [s.symbol for s in positions]
     if len(set(symbols)) != len(symbols):
         positions = _fusion_positions(positions)
+    positions = _fill_positions(positions)
 
-    return Portfolio(positions)
+    portfolio = Portfolio(positions)
+
+    return portfolio
+
+
+def _fill_positions(positions: List[Positions]) -> List[Positions]:
+    """
+    For a given list of positions, return the list of these positions on the union of
+    their indexes. For all new indexes, amount and price are set to 0 and principal is
+    set to the first non nan principal.
+    args :
+        - positions : a list of Positions with different indexes.
+    """
+    filled_positions = []
+    union_indexes = positions[0].index.union_many([c.index for c in positions])
+    for p in positions:
+        filled_positions.append(_bfill_principal(p, union_indexes))
+
+    return filled_positions
+
+
+def _standardize_currency(
+    positions: List[Positions], mkt: List[ForexMarketData], currency_unit: Currency
+) -> List[Positions]:
+    """
+    For a given list of Positions, return the list of these Positions converted to
+    a base currency_unit given market datas.
+    args :
+        - positions : a list of Positions with different currency types.
+        - mkt : the market datas, supposed to cover all indexes of the positions.
+        - currency_unit : a base currency to convert positions to.
+    """
+    standardized_positions = []
+    for p in positions:
+        if p.currency_unit != currency_unit:
+            standardized_positions.append(_convert_currency_unit(p, mkt, currency_unit))
+        else:
+            standardized_positions.append(p.copy())
+
+    return standardized_positions
+
+
+def _apply_lot_size(trades: List[Trades], lot_size: Dict[str, int]) -> List[Trades]:
+    """
+    For a given list of Trades and a lot_size dictionary, multiply all trades amounts by
+    the lot_size of their symbol and return the new list of Trades.
+    args :
+        - trades : a list of Trades.
+        - lot_size : a dictionnary taking a symbol as entry and returning a lot_size.
+    """
+    mult_trades = []
+    for trade in trades:
+        mult_trade = trade.copy()
+        mult_trade["amount"] *= lot_size.get(trade.symbol)
+        mult_trades.append(mult_trade)
+
+    return mult_trades
+
+
+def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
+    """
+    Create Positions with all the indexes of the index parameter, and the values of position.
+    If there is nan, amount and price are filled with 0, and principal is filled with the first
+    non-nan principal.
+    args :
+        - position : filled Positions
+        - index : indexes, supposed to contains at least position's indexes
+    """
+    if position.index[0] == index[0]:
+        return position
+
+    filled_positions = pd.DataFrame(
+        data=np.zeros((index.size, position.shape[1])),
+        index=index,
+        columns=position.columns,
+    )
+    filled_positions.principal.iloc[:] = position.principal[
+        position.principal.first_valid_index()
+    ]
+    filled_positions.loc[position.index] = position
+    return backlight.positions.positions.from_dataframe(
+        filled_positions, position.symbol, position.currency_unit
+    )
 
 
 def _fusion_positions(positions: List[Positions]) -> List[Positions]:
@@ -134,7 +200,7 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
 
 
 def _convert_currency_unit(
-    pl: pd.Series, mkt: List[MarketData], ccy: str, base_ccy: str
+    positions: Positions, mkt: List[ForexMarketData], base_ccy: Currency
 ) -> pd.Series:
     """
     Convert the values of profit-loss series in a different currency from MarketData
@@ -144,49 +210,19 @@ def _convert_currency_unit(
         - ccy : the currency of the profit-loss
         - base_ccy : the currency to express the profit-loss in
     """
-    assert pl.index.isin(mkt[0].index).all()
 
-    idx = pl.index
-    ratios = _get_forex_ratios(mkt, ccy, base_ccy)
-    return pl * ratios
+    ratios = get_forex_ratios(mkt, positions.currency_unit, base_ccy)
 
+    converted_values = pd.DataFrame(
+        data=np.zeros(positions.shape), index=positions.index, columns=positions.columns
+    )
 
-def _get_forex_ratios(mkt: List[MarketData], ccy: str, base_ccy: str) -> pd.Series:
-    """
-    Get the ratios of ccy expressed in base_ccy depending on market datas
-    args:
-        - market : market forex datas
-        - ccy : the currency to convert from
-        - base_ccy : the currency to convert to
-    """
-    for market in mkt:
-        if ccy + base_ccy == market.symbol:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-        elif base_ccy + ccy == market.symbol:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-            ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+    converted_values.iloc[:, 0] = positions.iloc[:, 0]
+    converted_values.iloc[:, 1] = positions.iloc[:, 1] * ratios
+    converted_values.iloc[:, 2] = positions.iloc[:, 2] * ratios
 
-    return ratios
+    converted_positions = Positions(converted_values)
+    converted_positions.currency_unit = base_ccy
+    converted_positions.symbol = positions.symbol
 
-
-def calculate_pl(
-    portfolio: Portfolio, mkt: List[MarketData], base_ccy: str = "USD"
-) -> pd.Series:
-    """
-    Convert all the positions of the portfolio to a base currency and sum each column.
-    args:
-        - portfolio : a defined portfolio
-        - mkt : list of marketdata for each asset
-        - base_ccy : asset of reference 
-        """
-
-    symbols = [p.symbol for p in portfolio._positions]
-    pl = portfolio.value()
-
-    for symbol in symbols:
-        if symbol[-3:] != base_ccy:
-            pl.loc[:, symbol] = _convert_currency_unit(
-                pl.loc[:, symbol], mkt, symbol[-3:], base_ccy
-            )
-
-    return pl.sum(axis=1)
+    return converted_positions
