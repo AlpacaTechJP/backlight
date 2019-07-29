@@ -66,15 +66,14 @@ def market(symbol, currency_unit):
 
 
 @pytest.fixture
-def askbid():
-    symbol = "usdjpy"
+def askbid(symbol, currency_unit):
     periods = 22
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-06", freq="1min", periods=periods),
         data=[[i + i % 3, i - i % 3] for i in range(periods)],
         columns=["ask", "bid"],
     )
-    market = backlight.datasource.from_dataframe(df, symbol)
+    market = backlight.datasource.from_dataframe(df, symbol, currency_unit)
     return market
 
 
