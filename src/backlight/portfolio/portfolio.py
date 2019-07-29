@@ -5,7 +5,7 @@ from functools import reduce
 
 from backlight.positions.positions import Positions
 import backlight.positions.positions
-from backlight.datasource.marketdata import MarketData
+from backlight.datasource.marketdata import MarketData, ForexMarketData
 from backlight.datasource.utils import get_forex_ratios
 from backlight.positions import calc_positions
 from backlight.trades.trades import Trades, from_dataframe
@@ -29,7 +29,7 @@ class Portfolio:
         assert len(symbols) == len(set(symbols))
         units = [position.currency_unit for position in positions]
         assert len(set(units)) == 1
-        self.currency_unit = currency_unit
+        self.currency_unit = units[0]
         self._positions = positions
 
     @property
@@ -110,7 +110,7 @@ def _fill_positions(positions: List[Positions]) -> List[Positions]:
 
 
 def _standardize_currency(
-    positions: List[Positions], mkt: List[MarketData], currency_unit: Currency
+    positions: List[Positions], mkt: List[ForexMarketData], currency_unit: Currency
 ) -> List[Positions]:
     """
     For a given list of Positions, return the list of these Positions converted to
@@ -202,7 +202,7 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
 
 
 def _convert_currency_unit(
-    positions: Positions, mkt: List[MarketData], base_ccy: Currency
+    positions: Positions, mkt: List[ForexMarketData], base_ccy: Currency
 ) -> pd.Series:
     """
     Convert the values of profit-loss series in a different currency from MarketData
@@ -212,7 +212,6 @@ def _convert_currency_unit(
         - ccy : the currency of the profit-loss
         - base_ccy : the currency to express the profit-loss in
     """
-    # assert positions.index.isin(mkt[0].index).all()
 
     ratios = get_forex_ratios(mkt, positions.currency_unit, base_ccy)
 

@@ -69,7 +69,6 @@ def equally_weighted_portfolio(
     symbols2tds = {t.symbol: t for t in trades}
 
     principals = {}
-    #     max_amounts = {}
     lts = {}
     for trade in trades:
         symbol = trade.symbol
