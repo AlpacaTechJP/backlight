@@ -53,7 +53,7 @@ def skip_entry_by_spread(
     deleted_ids = []  # type: List[int]
     for i in trades.ids:
         entry = trades.get_trade(i).index[0]
-        if spread.loc[entry] > max_spread:
+        if spread.at[entry] > max_spread:
             deleted_ids.append(i)
 
     return trades[~trades["_id"].isin(deleted_ids)]
