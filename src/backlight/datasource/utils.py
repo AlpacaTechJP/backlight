@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Optional, List, Tuple
+from typing import Optional, List, Union
 
 from backlight.datasource.marketdata import (
     MarketData,
@@ -58,21 +58,15 @@ def from_dataframe(
     if col_mapping is not None:
         df = df.rename(columns=col_mapping)
 
-    mkt = None
-
     if ("ask" in df.columns) and ("bid" in df.columns):
-        from backlight.datasource.marketdata import AskBidMarketData
-
-        mkt = AskBidMarketData(df)
+        mkt = AskBidMarketData(df)  # type: ForexMarketData
         mkt.quote_currency = quote_currency
 
     elif "mid" in df.columns:
-        from backlight.datasource.marketdata import MidMarketData
-
         mkt = MidMarketData(df)
         mkt.quote_currency = quote_currency
 
-    if mkt is None:
+    else:
         raise ValueError("Unsupported marketdata")
 
     mkt.symbol = symbol
