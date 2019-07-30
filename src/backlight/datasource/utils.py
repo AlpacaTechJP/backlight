@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Optional, List, Union
+from typing import Optional, List
 
 from backlight.datasource.marketdata import (
     MarketData,
