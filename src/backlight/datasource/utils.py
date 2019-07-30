@@ -118,3 +118,24 @@ def get_forex_ratios(
         ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
 
     return ratios
+
+
+def get_forex_ratio(
+    timestamp: pd.Timestamp,
+    mkts: List[ForexMarketData],
+    ccy: Currency,
+    base_ccy: Currency,
+) -> float:
+    """
+    Get the ratios of ccy expressed in base_ccy depending on market datas
+    args:
+        - market : market forex datas
+        - ccy : the currency to convert from
+        - base_ccy : the currency to convert to
+    """
+    if ccy == base_ccy:
+        return 1.0
+
+    ratios = get_forex_ratios(mkts, ccy, base_ccy)
+
+    return ratios[timestamp]
