@@ -27,13 +27,11 @@ class MarketData(pd.DataFrame):
 
 
 class ForexMarketData(MarketData):
-    _metadata = [
-        "symbol",
-        "_target_columns",
-        "currency_unit",
-        "quote_currency",
-        "base_currency",
-    ]
+    _metadata = MarketData._metadata + ["quote_currency"]
+
+    @property
+    def base_currency(self) -> Currency:
+        return self.currency_unit
 
     @property
     def _constructor(self) -> Type["ForexMarketData"]:

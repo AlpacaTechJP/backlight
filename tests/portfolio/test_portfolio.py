@@ -51,7 +51,6 @@ def markets():
     symbol = "USDJPY"
     currency_unit = Currency.JPY
     quote_currency = Currency.USD
-    base_currency = Currency.JPY
     periods = 13
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
@@ -60,18 +59,13 @@ def markets():
     )
     markets.append(
         backlight.datasource.from_dataframe(
-            df,
-            symbol,
-            currency_unit,
-            quote_currency=quote_currency,
-            base_currency=base_currency,
+            df, symbol, currency_unit, quote_currency=quote_currency
         )
     )
 
     symbol = "EURJPY"
     currency_unit = Currency.JPY
     quote_currency = Currency.EUR
-    base_currency = Currency.JPY
     df = pd.DataFrame(
         index=pd.date_range(start="2018-06-05 23:57:00", freq="1min", periods=periods),
         data=np.repeat(4, periods)[:, None],
@@ -79,11 +73,7 @@ def markets():
     )
     markets.append(
         backlight.datasource.from_dataframe(
-            df,
-            symbol,
-            currency_unit,
-            quote_currency=quote_currency,
-            base_currency=base_currency,
+            df, symbol, currency_unit, quote_currency=quote_currency
         )
     )
     return markets

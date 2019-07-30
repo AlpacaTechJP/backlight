@@ -18,7 +18,6 @@ def load_marketdata(
     url: str,
     currency_unit: Currency,
     quote_currency: Optional[Currency] = None,
-    base_currency: Optional[Currency] = None,
 ) -> MarketData:
     """An abstraction interface for loading the market data.
 
@@ -33,12 +32,7 @@ def load_marketdata(
     """
     df = query(symbol, start_dt, end_dt, url)
     return from_dataframe(
-        df,
-        symbol,
-        currency_unit,
-        col_mapping=None,
-        quote_currency=quote_currency,
-        base_currency=base_currency,
+        df, symbol, currency_unit, col_mapping=None, quote_currency=quote_currency
     )
 
 
@@ -48,7 +42,6 @@ def from_dataframe(
     currency_unit: Currency,
     col_mapping: Optional[dict] = None,
     quote_currency: Optional[Currency] = None,
-    base_currency: Optional[Currency] = None,
 ) -> MarketData:
     """Create a MarketData instance out of a DataFrame object
 
@@ -65,24 +58,19 @@ def from_dataframe(
     if col_mapping is not None:
         df = df.rename(columns=col_mapping)
 
-    mkt = None
-
     if ("ask" in df.columns) and ("bid" in df.columns):
-        from backlight.datasource.marketdata import AskBidMarketData
+        mkt = AskBidMarketData(df)  # type: ForexMarketData
+        mkt.quote_currency = quote_currency
 
-        mkt = AskBidMarketData(df)
     elif "mid" in df.columns:
-        from backlight.datasource.marketdata import MidMarketData
-
         mkt = MidMarketData(df)
+        mkt.quote_currency = quote_currency
 
-    if mkt is None:
+    else:
         raise ValueError("Unsupported marketdata")
 
     mkt.symbol = symbol
     mkt.currency_unit = currency_unit
-    mkt.base_currency = base_currency
-    mkt.quote_currency = quote_currency
     mkt.reset_cols()
 
     return mkt
@@ -101,7 +89,7 @@ def mid2askbid(mkt: MidMarketData, spread: float) -> AskBidMarketData:
 
 
 def get_forex_ratios(
-    mkt: List[ForexMarketData], ccy: Currency, base_ccy: Currency
+    mkts: List[ForexMarketData], ccy: Currency, base_ccy: Currency
 ) -> pd.Series:
     """
     Get the ratios of ccy expressed in base_ccy depending on market datas
@@ -110,11 +98,23 @@ def get_forex_ratios(
         - ccy : the currency to convert from
         - base_ccy : the currency to convert to
     """
-    for market in mkt:
-        if ccy == market.quote_currency and base_ccy == market.base_currency:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-        elif ccy == market.base_currency and base_ccy == market.quote_currency:
-            ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
-            ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
+    filterd_mkts = [
+        m
+        for m in mkts
+        if (m.quote_currency == ccy and m.base_currency == base_ccy)
+        or (m.base_currency == ccy and m.quote_currency == base_ccy)
+    ]
+
+    if len(filterd_mkts) == 0:
+        raise LookupError(
+            "Cannot find marketdata for base_ccy:{} and ccy:{}".format(base_ccy, ccy)
+        )
+
+    market = filterd_mkts[0]
+    if ccy == market.quote_currency and base_ccy == market.base_currency:
+        ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+    elif ccy == market.base_currency and base_ccy == market.quote_currency:
+        ratios = pd.Series(market.mid.values, index=market.index, dtype=float)
+        ratios = ratios.apply(lambda x: 0 if x == 0 else 1.0 / float(x))
 
     return ratios
