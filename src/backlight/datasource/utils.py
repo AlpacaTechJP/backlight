@@ -110,7 +110,7 @@ def get_forex_ratios(
         m
         for m in mkts
         if (m.quote_currency == ccy and m.base_currency == base_ccy)
-        or (m.base_ccy == ccy and m.quote_currency == base_ccy)
+        or (m.base_currency == ccy and m.quote_currency == base_ccy)
     ]
 
     if len(filterd_mkts) == 0:
