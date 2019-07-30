@@ -13,6 +13,7 @@ from joblib import Parallel, delayed
 from backlight.asset.currency import Currency
 
 
+# FIXME: docstring in the file
 class Portfolio:
     """
     An abstract definition of a Portfolio is defined as a list of Positions
@@ -25,8 +26,10 @@ class Portfolio:
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
+
         units = [position.currency_unit for position in positions]
         assert len(set(units)) == 1
+
         self.currency_unit = units[0]
         self._positions = positions
 
@@ -35,13 +38,6 @@ class Portfolio:
         """ DataFrame of the portfolio valuation of each asset"""
         values = [p.value for p in self._positions]
         return sum(values)
-
-    def get_amount(self, symbol: str) -> pd.Series:
-        """ Return amounts of each asset in the portfolio at each time step"""
-        for p in self._positions:
-            if p.symbol == symbol:
-                return p.amount
-        raise ValueError("Passed symbol not found in portfolio")
 
 
 def construct_portfolio(
@@ -147,9 +143,9 @@ def _apply_lot_size(trades: List[Trades], lot_size: Dict[str, int]) -> List[Trad
 
 def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     """
-    Create Positions with all the indexes of the index parameter, and the values of position.
-    If there is nan, amount and price are filled with 0, and principal is filled with the first
-    non-nan principal.
+    Create Positions with all the indexes of the index parameter, and the values of
+    position. If there is nan, amount and price are filled with 0, and principal is
+    filled with the first non-nan principal.
     args :
         - position : filled Positions
         - index : indexes, supposed to contains at least position's indexes
@@ -180,14 +176,8 @@ def _fusion_positions(positions: List[Positions]) -> List[Positions]:
 
     unique_positions = []
     symbols_and_units = [(p.symbol, p.currency_unit) for p in positions]
-    columns = positions[0].columns
 
     for symbol, currency_unit in sorted(set(symbols_and_units)):
-        positions_of_symbol = [p for p in positions if p.symbol == symbol]
-
-        indices = [p.index for p in positions if p.symbol == symbol]
-        union_index = indices[0].union_many(indices)
-
         dfs = [p for p in positions if p.symbol == symbol]
         df = reduce(lambda x, y: x.add(y, fill_value=0), dfs)
 
@@ -213,16 +203,16 @@ def _convert_currency_unit(
 
     ratios = get_forex_ratios(mkt, positions.currency_unit, base_ccy)
 
-    converted_values = pd.DataFrame(
+    df = pd.DataFrame(
         data=np.zeros(positions.shape), index=positions.index, columns=positions.columns
     )
 
-    converted_values.iloc[:, 0] = positions.iloc[:, 0]
-    converted_values.iloc[:, 1] = positions.iloc[:, 1] * ratios
-    converted_values.iloc[:, 2] = positions.iloc[:, 2] * ratios
+    # FIXME: Specify column by string
+    df.iloc[:, 0] = positions.iloc[:, 0]
+    df.iloc[:, 1] = positions.iloc[:, 1] * ratios
+    df.iloc[:, 2] = positions.iloc[:, 2] * ratios
 
-    converted_positions = Positions(converted_values)
-    converted_positions.currency_unit = base_ccy
-    converted_positions.symbol = positions.symbol
-
+    converted_positions = backlight.positions.positions.from_dataframe(
+        df, positions.symbol, base_ccy
+    )
     return converted_positions

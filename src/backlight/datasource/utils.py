@@ -104,8 +104,6 @@ def get_forex_ratios(
         - ccy : the currency to convert from
         - base_ccy : the currency to convert to
     """
-    ratios = None
-
     filterd_mkts = [
         m
         for m in mkts

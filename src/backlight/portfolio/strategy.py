@@ -65,14 +65,11 @@ def equally_weighted_portfolio(
     nb_currencies = len(trades)
 
     symbols = [t.symbol for t in trades]
-    symbols2mkt = {m.symbol: m for m in mkt}
-    symbols2tds = {t.symbol: t for t in trades}
 
     principals = {}
     lts = {}
     for trade in trades:
         symbol = trade.symbol
-        starting_date = trade.index[0]
         trade_currency = trade.currency_unit
 
         ratio = 1
