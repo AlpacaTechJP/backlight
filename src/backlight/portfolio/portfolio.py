@@ -44,7 +44,7 @@ def construct_portfolio(
     trades: List[Trades],
     mkt: List[MarketData],
     principal: Dict[str, float],
-    lot_size: Dict[str, int],
+    lot_size: Dict[str, float],
     currency_unit: Currency = Currency.USD,
 ) -> Portfolio:
     """
@@ -124,7 +124,7 @@ def _standardize_currency(
     return standardized_positions
 
 
-def _apply_lot_size(trades: List[Trades], lot_size: Dict[str, int]) -> List[Trades]:
+def _apply_lot_size(trades: List[Trades], lot_size: Dict[str, float]) -> List[Trades]:
     """
     For a given list of Trades and a lot_size dictionary, multiply all trades amounts by
     the lot_size of their symbol and return the new list of Trades.
