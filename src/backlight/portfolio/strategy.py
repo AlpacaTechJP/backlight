@@ -5,7 +5,7 @@ from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
 from backlight.datasource.marketdata import MarketData
-from backlight.datasource.utils import get_forex_ratios
+from backlight.datasource.utils import get_forex_ratio
 from backlight import strategies
 from backlight.asset.currency import Currency
 
@@ -53,7 +53,7 @@ def equally_weighted_portfolio(
     currency_unit: Currency = Currency.USD,
 ) -> Portfolio:
     """
-    Create a Portfolio from trades and mkt, given a principal which will be divided equally between the 
+    Create a Portfolio from trades and mkt, given a principal which will be divided equally between the
     different currencies.
     args :
         - trades : a list of trades for each currencies
@@ -62,9 +62,7 @@ def equally_weighted_portfolio(
         - max_amount : the max amount
         - currency_unit : the unit type of the future Portfolio
     """
-    nb_currencies = len(trades)
-
-    symbols = [t.symbol for t in trades]
+    nb_trades = len(trades)
 
     principals = {}
     lts = {}
@@ -72,13 +70,9 @@ def equally_weighted_portfolio(
         symbol = trade.symbol
         trade_currency = trade.currency_unit
 
-        ratio = 1
-        if trade_currency != currency_unit:
-            ratios = get_forex_ratios(mkt, trade_currency, currency_unit)
-            ratio = ratios.iloc[ratios.index.get_loc(trade.index[0]) - 1]
+        ratio = get_forex_ratio(trade.index[0], mkt, trade_currency, currency_unit)
 
-        count_symbol = symbols.count(symbol)
-        principals[symbol] = principal / (nb_currencies * ratio * count_symbol)
-        lts[symbol] = int(principal / (max_amount))
+        principals[symbol] = principal / (nb_trades * ratio)
+        lts[symbol] = principals[symbol] / max_amount
 
     return construct_portfolio(trades, mkt, principals, lts, currency_unit)
