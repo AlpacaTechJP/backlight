@@ -94,7 +94,7 @@ def get_forex_ratios(
     """
     Get the ratios of ccy expressed in base_ccy depending on market datas
     args:
-        - market : market forex datas
+        - mkts : market forex datas
         - ccy : the currency to convert from
         - base_ccy : the currency to convert to
     """
