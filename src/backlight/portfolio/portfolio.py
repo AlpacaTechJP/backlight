@@ -13,7 +13,6 @@ from joblib import Parallel, delayed
 from backlight.asset.currency import Currency
 
 
-# FIXME: docstring in the file
 class Portfolio:
     """
     An abstract definition of a Portfolio is defined as a list of Positions
@@ -206,10 +205,9 @@ def _convert_currency_unit(
         data=np.zeros(positions.shape), index=positions.index, columns=positions.columns
     )
 
-    # FIXME: Specify column by string
-    df.iloc[:, 0] = positions.iloc[:, 0]
-    df.iloc[:, 1] = positions.iloc[:, 1] * ratios
-    df.iloc[:, 2] = positions.iloc[:, 2] * ratios
+    df.loc[:, "amount"] = positions.loc[:, "amount"]
+    df.loc[:, "price"] = positions.loc[:, "price"] * ratios
+    df.loc[:, "principal"] = positions.loc[:, "principal"] * ratios
 
     converted_positions = backlight.positions.positions.from_dataframe(
         df, positions.symbol, base_ccy
