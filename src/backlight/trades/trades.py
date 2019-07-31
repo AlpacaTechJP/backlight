@@ -53,17 +53,39 @@ class Trades(pd.DataFrame):
         """
         return self.loc[self._id == trade_id, "amount"]
 
-    def get_any(self, key: Any) -> Type["Trades"]:
+    def get_any(self, interval: tuple, time: str) -> Type["Trades"]:
         """Filter trade which match conditions at least one element.
 
         Args:
-            key: Same arguments with pd.DataFrame.__getitem__.
+            interval: The 
 
         Returns:
             Trades.
         """
+
+        # The function is getting complicated to read, but its way faster.
+        # Also, I had to change the arguments, so it is less flexible. I can work on
+        # it more to think about a just middle.
+
+        key = getattr(self.index, time).isin(interval)
         filterd_ids = self[key].ids
-        trades = [self.get_trade(i) for i in filterd_ids]
+
+        sort = self.sort_values("_id")
+
+        trades = []
+        for i in range(0, sort.index.size, 2):
+            entry_index = sort.index[i]
+            exit_index = sort.index[i + 1]
+            if (
+                getattr(entry_index, time) in interval
+                or getattr(exit_index, time) in interval
+            ):
+                trade = pd.Series(
+                    data=[sort.iat[i, 0], sort.iat[i + 1, 0]],
+                    index=[entry_index, exit_index],
+                )
+                trades.append(trade)
+
         return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
 
     def get_all(self, key: Any) -> Type["Trades"]:
