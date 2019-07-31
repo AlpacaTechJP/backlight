@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 import backlight
-from backlight.portfolio.portfolio import construct_portfolio as module
+from backlight.portfolio.portfolio import create_portfolio as module
 from backlight.portfolio.portfolio import _fusion_positions
 from backlight.portfolio.strategy import equally_weighted_portfolio
 import backlight.positions.positions
@@ -89,7 +89,7 @@ def lot_size():
     return {"USDJPY": 2, "EURJPY": 2}
 
 
-def test_construct_portfolio(trades, markets, principal, lot_size):
+def test_create_portfolio(trades, markets, principal, lot_size):
     portfolio = module(trades, markets, principal, lot_size, Currency.USD)
 
     index = [

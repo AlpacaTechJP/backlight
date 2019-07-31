@@ -19,7 +19,7 @@ class DynamicNeutralLabelizer(Labelizer):
         dnr[dnr < self.neutral_hard_limit] = self.neutral_hard_limit
         return dnr
 
-    def generate(self, mkt: MarketData) -> pd.DataFrame:
+    def create(self, mkt: MarketData) -> pd.DataFrame:
         mid = mkt.mid.copy()
         future_price = mid.shift(freq="-{}".format(self._params["lookahead"]))
         diff = (future_price - mid).reindex(mid.index)

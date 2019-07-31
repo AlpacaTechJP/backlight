@@ -24,5 +24,5 @@ class Labelizer:
     def validate_params(self) -> None:
         pass
 
-    def generate(self, mkt: MarketData) -> pd.DataFrame:
+    def create(self, mkt: MarketData) -> pd.DataFrame:
         raise NotImplementedError
