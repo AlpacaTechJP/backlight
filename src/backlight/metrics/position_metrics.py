@@ -23,6 +23,7 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
     return _sum(amount_diff.abs())
 
 
+# calculate_position_performance?
 def calc_position_performance(
     positions: Positions, window: pd.Timedelta = pd.Timedelta("1D")
 ) -> pd.DataFrame:
