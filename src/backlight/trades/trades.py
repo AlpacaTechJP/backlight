@@ -57,7 +57,8 @@ class Trades(pd.DataFrame):
         """Filter trade which match conditions at least one element.
 
         Args:
-            interval: The 
+            interval: The results will only contain elements of time in this interval
+            time: Can be 'hour', 'minute'... The results.time will be in the interval
 
         Returns:
             Trades.
