@@ -13,7 +13,6 @@ from joblib import Parallel, delayed
 from backlight.asset.currency import Currency
 
 
-# FIXME: docstring in the file
 class Portfolio:
     """
     An abstract definition of a Portfolio is defined as a list of Positions
@@ -22,7 +21,7 @@ class Portfolio:
 
     def __init__(self, positions: List[Positions]):
         """
-        If there is positions with the same symbol, their value are sum
+        Should be called on list of Positions with different symbols and same currency_unit
         """
         symbols = [position.symbol for position in positions]
         assert len(symbols) == len(set(symbols))
@@ -52,8 +51,8 @@ def construct_portfolio(
     args:
         - trades : list of unit trades (1 or -1 for th amount)
         - mkt : list of mkt data
-        - principal: list of principal per asset
-        - lot_size : list of lot sizes per asset
+        - principal: dictionary of principal for each symbol
+        - lot_size : dictionary of lot sizes for each symbol
                     (e.g. trade.amount = 1 is equivalent to buying 1*lot_size assets)
         - currency_unit : the unit type of the future Portfolio
     return:
@@ -148,7 +147,7 @@ def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
     filled with the first non-nan principal.
     args :
         - position : filled Positions
-        - index : indexes, supposed to contains at least position's indexes
+        - index : indexes, supposed to contains at least the position's indexes
     """
     if position.index[0] == index[0]:
         return position
@@ -193,12 +192,11 @@ def _convert_currency_unit(
     positions: Positions, mkt: List[ForexMarketData], base_ccy: Currency
 ) -> pd.Series:
     """
-    Convert the values of profit-loss series in a different currency from MarketData
+    Convert a Postions to a different currency from MarketData
     args:
-        - pl : the profit-loss to convert
+        - positions : the Positions to convert
         - mkt : market forex datas
-        - ccy : the currency of the profit-loss
-        - base_ccy : the currency to express the profit-loss in
+        - base_ccy : the currency to express the positions to
     """
 
     ratios = get_forex_ratios(mkt, positions.currency_unit, base_ccy)
@@ -207,10 +205,9 @@ def _convert_currency_unit(
         data=np.zeros(positions.shape), index=positions.index, columns=positions.columns
     )
 
-    # FIXME: Specify column by string
-    df.iloc[:, 0] = positions.iloc[:, 0]
-    df.iloc[:, 1] = positions.iloc[:, 1] * ratios
-    df.iloc[:, 2] = positions.iloc[:, 2] * ratios
+    df.loc[:, "amount"] = positions.loc[:, "amount"]
+    df.loc[:, "price"] = positions.loc[:, "price"] * ratios
+    df.loc[:, "principal"] = positions.loc[:, "principal"] * ratios
 
     converted_positions = backlight.positions.positions.from_dataframe(
         df, positions.symbol, base_ccy

@@ -166,7 +166,15 @@ def make_trades(
     currency_unit: Currency,
     ids: Optional[List[int]] = None,
 ) -> Trades:
-    """Create Trades from some of trades"""
+    """
+    Create Trades from some of trades
+    
+    Args:
+        symbol: The sumbol of future Trades
+        trades: List of trades
+        currency_unit: The unit of future Trades
+        ids: Optional List of ids for the Trades
+    """
     if ids is None:
         _ids = list(range(len(trades)))
     else:
