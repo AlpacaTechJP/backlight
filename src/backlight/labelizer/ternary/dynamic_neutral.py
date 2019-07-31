@@ -12,7 +12,7 @@ class DynamicNeutralLabelizer(Labelizer):
         assert "neutral_window" in self._params
         assert "neutral_hard_limit" in self._params
 
-    def _calc_dynamic_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
+    def _calculate_dynamic_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
         dnr = diff_abs.rolling(self._params["neutral_window"]).quantile(
             self.neutral_ratio
         )
@@ -24,7 +24,7 @@ class DynamicNeutralLabelizer(Labelizer):
         future_price = mid.shift(freq="-{}".format(self._params["lookahead"]))
         diff = (future_price - mid).reindex(mid.index)
         diff_abs = diff.abs()
-        neutral_range = self._calc_dynamic_neutral_range(diff_abs)
+        neutral_range = self._calculate_dynamic_neutral_range(diff_abs)
         df = mid.to_frame("mid")
         df.loc[:, "label_diff"] = diff
         df.loc[:, "neutral_range"] = neutral_range

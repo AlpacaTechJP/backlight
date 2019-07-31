@@ -4,9 +4,13 @@ import pandas as pd
 from typing import Tuple
 
 from backlight.datasource.marketdata import MarketData
-from backlight.positions import calc_positions
+from backlight.positions import calculate_positions
 from backlight.positions.positions import Positions
-from backlight.metrics.evaluation_metrics import calc_pl, calc_sharpe, calc_drawdown
+from backlight.metrics.evaluation_metrics import (
+    calculate_pl,
+    calculate_sharpe,
+    calculate_drawdown,
+)
 
 
 def _sum(a: pd.Series) -> float:
@@ -23,28 +27,27 @@ def _trade_amount(amount: pd.Series) -> pd.Series:
     return _sum(amount_diff.abs())
 
 
-# calculate_position_performance?
-def calc_position_performance(
+def calculate_position_performance(
     positions: Positions, window: pd.Timedelta = pd.Timedelta("1D")
 ) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions
 
     Args:
         positions: Positions to be evaluated.
-        window: Window for `calc_sharpe`.
+        window: Window for `calculate_sharpe`.
 
     Returns:
         DataFrame of perfomance
     """
-    pl = calc_pl(positions)
+    pl = calculate_pl(positions)
     trade_amount = _trade_amount(positions.amount)
 
     total_pl = _sum(pl)
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
     average_pl = _divide(total_pl, trade_amount)
-    sharpe = calc_sharpe(positions, window)
-    drawdown = calc_drawdown(positions)
+    sharpe = calculate_sharpe(positions, window)
+    drawdown = calculate_drawdown(positions)
 
     m = pd.DataFrame.from_records(
         [

@@ -1,1 +1,1 @@
-from backlight.positions.positions import calc_positions  # noqa
+from backlight.positions.positions import calculate_positions  # noqa
