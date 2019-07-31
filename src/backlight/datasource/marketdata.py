@@ -27,6 +27,8 @@ class MarketData(pd.DataFrame):
 
 
 class ForexMarketData(MarketData):
+    """MarketData container which contains the quote_currency"""
+
     _metadata = MarketData._metadata + ["quote_currency"]
 
     @property
@@ -39,7 +41,7 @@ class ForexMarketData(MarketData):
 
 
 class MidMarketData(ForexMarketData):
-    """MarketData container for mid price.
+    """ForexMarketData container for mid price.
     """
 
     _target_columns = ["mid"]

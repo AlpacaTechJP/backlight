@@ -14,10 +14,10 @@ def _sum(a: pd.Series) -> float:
 
 
 def calculate_pl(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Series:
-    """Compute pl of positions.
+    """Compute pl of a positions or portfolio.
 
     Args:
-        positions: Positions to be evaluated.
+        positions_or_portfolio: Positions or Portfolio to be evaluated.
 
     Returns:
         Series of pl.
@@ -35,7 +35,7 @@ def calculate_sharpe(
     """Compute the yearly Sharpe ratio, a measure of risk adjusted returns.
 
     Args:
-        positions: Their `value` should always be positive.
+        positions_or_portfolio: Their `value` should always be positive.
         freq: Frequency to calculate mean and std of returns.
 
     Returns:
@@ -56,7 +56,7 @@ def calculate_drawdown(
     """Compute drawdown c.f. https://en.wikipedia.org/wiki/Drawdown_(economics)
 
     Args:
-        positions: Positions.
+        positions_or_portfolio: Positions or Portfolio.
 
     Returns:
         Drawdown in the periods.
@@ -73,7 +73,7 @@ def calculate_performance(
     """Evaluate the pl perfomance of positions
 
     Args:
-        positions: Positions to be evaluated.
+        positions_or_portfolio: Positions or Portfolio to be evaluated.
         window: Window for `calculate_sharpe`.
 
     Returns:
