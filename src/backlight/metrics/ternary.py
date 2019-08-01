@@ -9,7 +9,7 @@ def _r(a: int, b: int) -> float:
     return a / b if b != 0 else 0
 
 
-def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
+def calculate_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
     """Compute metrics on ternary signal.
 
     Args:

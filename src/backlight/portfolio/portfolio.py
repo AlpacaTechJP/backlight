@@ -7,7 +7,7 @@ from backlight.positions.positions import Positions
 import backlight.positions.positions
 from backlight.datasource.marketdata import MarketData, ForexMarketData
 from backlight.datasource.utils import get_forex_ratios
-from backlight.positions import calc_positions
+from backlight.positions import calculate_positions
 from backlight.trades.trades import Trades, from_dataframe
 from joblib import Parallel, delayed
 from backlight.asset.currency import Currency
@@ -39,7 +39,7 @@ class Portfolio:
         return sum(values)
 
 
-def construct_portfolio(
+def create_portfolio(
     trades: List[Trades],
     mkt: List[MarketData],
     principal: Dict[str, float],
@@ -68,7 +68,7 @@ def construct_portfolio(
     # Construct positions and return Portfolio
     positions = Parallel(n_jobs=-1, max_nbytes=None)(
         [
-            delayed(calc_positions)(
+            delayed(calculate_positions)(
                 trade, symbols2mkt[trade.symbol], principal=principal.get(trade.symbol)
             )
             for trade in mult_trades

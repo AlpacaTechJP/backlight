@@ -1,6 +1,6 @@
 # Define how to create Portfolio
 from typing import List
-from backlight.portfolio.portfolio import Portfolio, construct_portfolio
+from backlight.portfolio.portfolio import Portfolio, create_portfolio
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
@@ -12,7 +12,7 @@ from backlight.asset.currency import Currency
 from joblib import Parallel, delayed
 
 
-def generate_simple_trades(
+def create_simple_trades(
     mkt: List[MarketData], sig: List[Signal], strategy_name: str, strategy_params: dict
 ) -> List[Trades]:
     """
@@ -20,7 +20,7 @@ def generate_simple_trades(
 
     Args:
         mkt: list of marketdata of each asset
-        sig: list of signals to be used to construct the porfolio
+        sig: list of signals to be used to create the porfolio
         strategy_name: a simple strategy from module strategies
 
     return:
@@ -81,4 +81,4 @@ def equally_weighted_portfolio(
         principals[symbol] = principal / (nb_currencies * ratio * count_symbol)
         lts[symbol] = int(principal / (max_amount))
 
-    return construct_portfolio(trades, mkt, principals, lts, currency_unit)
+    return create_portfolio(trades, mkt, principals, lts, currency_unit)

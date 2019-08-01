@@ -68,7 +68,7 @@ def _pricer(trades: Trades, mkt: MarketData, principal: float) -> pd.DataFrame:
     return positions.sort_index()
 
 
-def calc_positions(
+def calculate_positions(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> Positions:
     """Create Positions from Trades and MarketData.

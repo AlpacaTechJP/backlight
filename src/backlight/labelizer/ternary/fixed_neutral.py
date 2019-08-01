@@ -12,7 +12,7 @@ class FixedNeutralLabelizer(Labelizer):
         assert "neutral_atol" in self._params
         assert "neutral_rtol" in self._params
 
-    def generate(self, mkt: MarketData) -> pd.DataFrame:
+    def create(self, mkt: MarketData) -> pd.DataFrame:
         mid = mkt.mid.copy()
         future_price = mid.shift(freq="-{}".format(self._params["lookahead"]))
         diff = (future_price - mid).reindex(mid.index)
