@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from collections import namedtuple
 from functools import lru_cache
 from typing import Any, Type, List, Iterable, Optional  # noqa
@@ -68,12 +69,14 @@ class Trades(pd.DataFrame):
         # Also, I had to change the arguments, so it is less flexible. I can work on
         # it more to think about a just middle.
 
-        key = getattr(self.index, time).isin(interval)
-        filterd_ids = self[key].ids
-
         sort = self.sort_values("_id")
 
-        trades = []
+        df = pd.DataFrame(
+            data=np.zeros((sort.shape[0], 3)), columns=["amount", "_id", "index"]
+        )
+
+        j = 0
+
         for i in range(0, sort.index.size, 2):
             entry_index = sort.index[i]
             exit_index = sort.index[i + 1]
@@ -81,13 +84,20 @@ class Trades(pd.DataFrame):
                 getattr(entry_index, time) in interval
                 or getattr(exit_index, time) in interval
             ):
-                trade = pd.Series(
-                    data=[sort.iat[i, 0], sort.iat[i + 1, 0]],
-                    index=[entry_index, exit_index],
-                )
-                trades.append(trade)
+                # This looks ugly but iloc is very slow compare to that. I don't get why.
+                df.at[j, "amount"] = sort.iat[i, 0]
+                df.at[j + 1, "amount"] = sort.iat[i + 1, 0]
+                df.at[j, "_id"] = sort.iat[i, 1]
+                df.at[j + 1, "_id"] = sort.iat[i + 1, 1]
+                df.at[j, "index"] = entry_index
+                df.at[j + 1, "index"] = exit_index
 
-        return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
+                j += 2
+
+        df = df.iloc[0:j, :].sort_values("index").set_index("index")
+        df.index.name = None
+
+        return from_dataframe(df, self.symbol, self.currency_unit)
 
     def get_all(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions for all elements.
