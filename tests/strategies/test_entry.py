@@ -11,7 +11,7 @@ from backlight.asset.currency import Currency
 
 @pytest.fixture
 def symbol():
-    return "usdjpy"
+    return "USDJPY"
 
 
 @pytest.fixture

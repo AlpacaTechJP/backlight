@@ -11,7 +11,7 @@ from backlight.metrics.position_metrics import _trade_amount, calc_position_perf
 
 @pytest.fixture
 def symbol():
-    return "usdjpy"
+    return "USDJPY"
 
 
 @pytest.fixture

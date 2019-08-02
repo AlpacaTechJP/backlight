@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 
 import backlight
-from backlight.portfolio.portfolio import construct_portfolio as module
+from backlight.portfolio.portfolio import create_portfolio as module
 from backlight.portfolio.portfolio import _fusion_positions
-from backlight.portfolio.strategy import equally_weighted_portfolio
 import backlight.positions.positions
 from backlight.trades.trades import make_trades
 from backlight.asset.currency import Currency
@@ -89,7 +88,7 @@ def lot_size():
     return {"USDJPY": 2, "EURJPY": 2}
 
 
-def test_construct_portfolio(trades, markets, principal, lot_size):
+def test_create_portfolio(trades, markets, principal, lot_size):
     portfolio = module(trades, markets, principal, lot_size, Currency.USD)
 
     index = [
@@ -203,62 +202,3 @@ def test_fusion_positions():
 
     for exp, fus in zip(expected, fusioned):
         assert exp.all().all() == fus.all().all()
-
-
-def test_equally_weighted_portfolio(markets, trades):
-    portfolio = equally_weighted_portfolio(trades, markets, 30, 20, Currency.USD)
-
-    index = [
-        "2018-06-05 23:59:00",
-        "2018-06-06 00:00:00",
-        "2018-06-06 00:01:00",
-        "2018-06-06 00:02:00",
-        "2018-06-06 00:03:00",
-        "2018-06-06 00:04:00 ",
-        "2018-06-06 00:05:00",
-        "2018-06-06 00:06:00 ",
-        "2018-06-06 00:07:00 ",
-        "2018-06-06 00:08:00 ",
-        "2018-06-06 00:09:00 ",
-    ]
-
-    data1 = [
-        [0.0, 0.0, 10.0],
-        [1.0, 2.0, 8.0],
-        [0.0, 2.0, 10.0],
-        [-1.0, 2.0, 12.0],
-        [1.0, 2.0, 8.0],
-        [2.0, 2.0, 6.0],
-        [0.0, 2.0, 10.0],
-        [-2.0, 2.0, 14.0],
-        [-1.0, 2.0, 12.0],
-        [0.0, 2.0, 10.0],
-        [0.0, 2.0, 10.0],
-    ]
-
-    data2 = [
-        [0.0, 0.0, 20.0],
-        [2.0, 2.0, 18.0],
-        [0.0, 2.0, 20.0],
-        [-2.0, 2.0, 22.0],
-        [2.0, 2.0, 18.0],
-        [4.0, 2.0, 16.0],
-        [0.0, 2.0, 20.0],
-        [-4.0, 2.0, 24.0],
-        [-2.0, 2.0, 22.0],
-        [0.0, 2.0, 20.0],
-        [0.0, 2.0, 20.0],
-    ]
-
-    data = [data1, data2]
-
-    print(portfolio._positions)
-
-    for (position, d) in zip(portfolio._positions, data):
-
-        expected = pd.DataFrame(
-            index=pd.to_datetime(index),
-            data=d,
-            columns=["amount", "price", "principal"],
-        )
-        assert ((expected == position).all()).all()

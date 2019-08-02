@@ -1,11 +1,14 @@
 # Define how to create Portfolio
-from typing import List
-from backlight.portfolio.portfolio import Portfolio, construct_portfolio
+from typing import List, Dict, Tuple
+import pandas as pd
+import numpy as np
+
+from backlight.portfolio.portfolio import Portfolio, create_portfolio
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
 from backlight.signal.signal import Signal
 from backlight.datasource.marketdata import MarketData
-from backlight.datasource.utils import get_forex_ratio
+from backlight.datasource.utils import get_forex_ratio, get_forex_ratios
 from backlight import strategies
 from backlight.asset.currency import Currency
 
@@ -20,7 +23,7 @@ def generate_simple_trades(
 
     Args:
         mkt: list of marketdata of each asset
-        sig: list of signals to be used to construct the porfolio
+        sig: list of signals to be used to create the porfolio
         strategy_name: a simple strategy from module strategies
 
     return:
@@ -62,17 +65,37 @@ def equally_weighted_portfolio(
         - max_amount : the max amount
         - currency_unit : the unit type of the future Portfolio
     """
+    principals, lot_sizes = _calculate_principals_lot_sizes(
+        trades, mkt, principal, max_amount, currency_unit=Currency.USD
+    )
+
+    return create_portfolio(trades, mkt, principals, lot_sizes, currency_unit)
+
+
+def _calculate_principals_lot_sizes(
+    trades: List[Trades],
+    mkt: List[MarketData],
+    principal: float,
+    max_amount: float,
+    currency_unit: Currency = Currency.USD,
+) -> Tuple[Dict[str, float], Dict[str, float]]:
     nb_trades = len(trades)
 
     principals = {}
-    lts = {}
+    lot_sizes = {}
     for trade in trades:
         symbol = trade.symbol
         trade_currency = trade.currency_unit
 
         ratio = get_forex_ratio(trade.index[0], mkt, trade_currency, currency_unit)
+        #         if currency_unit == Currency[symbol[:3]]:
+        #             ratio2 = pd.Series(data=np.ones(trade.index.size), index=trade.index)
+        #         else:
+        #             ratio2 = get_forex_ratios(mkt, currency_unit,
+        #                     Currency[symbol[:3]]).loc[trade.index]
 
         principals[symbol] = principal / (nb_trades * ratio)
-        lts[symbol] = principals[symbol] / max_amount
+        lot_sizes[symbol] = principal / (nb_trades * max_amount)
+    #         lot_sizes[symbol] = principal * ratio2 / (nb_trades * max_amount)
 
-    return construct_portfolio(trades, mkt, principals, lts, currency_unit)
+    return principals, lot_sizes

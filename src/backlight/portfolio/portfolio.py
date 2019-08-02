@@ -40,7 +40,7 @@ class Portfolio:
         return sum(values)
 
 
-def construct_portfolio(
+def create_portfolio(
     trades: List[Trades],
     mkt: List[MarketData],
     principal: Dict[str, float],
