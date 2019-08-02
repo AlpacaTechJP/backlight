@@ -79,9 +79,9 @@ def label(currency_unit):
     return label
 
 
-def test_calc_ternary_metrics(signal, label):
+def test_calculate_ternary_metrics(signal, label):
     total = len(signal)
-    m = module.calc_ternary_metrics(signal, label)
+    m = module.calculate_ternary_metrics(signal, label)
     uu = 3
     un = 3
     ud = 3

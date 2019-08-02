@@ -6,7 +6,10 @@ from typing import Tuple
 import backlight.positions
 from backlight.datasource.marketdata import MarketData
 from backlight.trades.trades import Trades, make_trades
-from backlight.metrics.position_metrics import calc_pl, calc_position_performance
+from backlight.metrics.position_metrics import (
+    calculate_pl,
+    calculate_position_performance,
+)
 
 
 def _divide(a: float, b: float) -> float:
@@ -17,11 +20,11 @@ def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0.0
 
 
-def _calc_pl(trade: pd.Series, mkt: MarketData) -> float:
+def _calculate_pl(trade: pd.Series, mkt: MarketData) -> float:
     mkt = mkt.loc[trade.index, :]
     trades = make_trades(mkt.symbol, [trade], mkt.currency_unit)
-    positions = backlight.positions.calc_positions(trades, mkt)
-    pl = calc_pl(positions)
+    positions = backlight.positions.calculate_positions(trades, mkt)
+    pl = calculate_pl(positions)
     return _sum(pl)
 
 
@@ -38,7 +41,7 @@ def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
         total count, win count, lose count
     """
     pls = [
-        _calc_pl(trades.get_trade(i), mkt)
+        _calculate_pl(trades.get_trade(i), mkt)
         for i in trades.ids
         if len(trades.get_trade(i).index) > 1
     ]
@@ -48,7 +51,7 @@ def count_trades(trades: Trades, mkt: MarketData) -> Tuple[int, int, int]:
     return total, win, lose
 
 
-def calc_trade_performance(
+def calculate_trade_performance(
     trades: Trades, mkt: MarketData, principal: float = 0.0
 ) -> pd.DataFrame:
     """Evaluate the pl perfomance of trades and positions.
@@ -75,8 +78,10 @@ def calc_trade_performance(
     del m.index.name
     m.columns = ["metrics"]
 
-    positions = backlight.positions.calc_positions(trades, mkt, principal=principal)
-    m = pd.concat([m.T, calc_position_performance(positions)], axis=1)
+    positions = backlight.positions.calculate_positions(
+        trades, mkt, principal=principal
+    )
+    m = pd.concat([m.T, calculate_position_performance(positions)], axis=1)
 
     m.loc[:, "avg_win_pl"] = _divide(
         m.loc["metrics", "total_win_pl"], m.loc["metrics", "cnt_win"]

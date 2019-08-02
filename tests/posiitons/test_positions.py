@@ -80,10 +80,10 @@ def positions(trades, mid):
     #     [2.0, 9.0, -16.0],  # value = 2.0, pl = 0.0
     # ]
     # columns = ["amount", "price", "principal"]
-    return backlight.positions.calc_positions(trades, mid)
+    return backlight.positions.calculate_positions(trades, mid)
 
 
-def test_calc_positions(trades, mid):
+def test_calculate_positions(trades, mid):
     data = [
         [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.0],
@@ -105,11 +105,11 @@ def test_calc_positions(trades, mid):
         columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
-    positions = module.calc_positions(trades, mid)
+    positions = module.calculate_positions(trades, mid)
     pd.testing.assert_frame_equal(positions, expected)
 
 
-def test_calc_positions_with_askbid(trades, askbid):
+def test_calculate_positions_with_askbid(trades, askbid):
     data = [
         [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.5],
@@ -131,11 +131,11 @@ def test_calc_positions_with_askbid(trades, askbid):
         columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
-    positions = module.calc_positions(trades, askbid)
+    positions = module.calculate_positions(trades, askbid)
     pd.testing.assert_frame_equal(positions, expected)
 
 
-def test_calc_positions_bfill(trades, mid):
+def test_calculate_positions_bfill(trades, mid):
     data = [
         [0.0, 0.0, 0.0],
         [1.0, 1.0, -1.0],
@@ -164,5 +164,5 @@ def test_calc_positions_bfill(trades, mid):
         columns=["amount", "price", "principal"],
     )
     expected = module.Positions(df)
-    positions = module.calc_positions(trades, mid.resample("30s").ffill())
+    positions = module.calculate_positions(trades, mid.resample("30s").ffill())
     pd.testing.assert_frame_equal(positions, expected)

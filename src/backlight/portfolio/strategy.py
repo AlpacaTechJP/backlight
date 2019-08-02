@@ -2,7 +2,6 @@
 from typing import List, Dict, Tuple
 import pandas as pd
 import numpy as np
-
 from backlight.portfolio.portfolio import Portfolio, create_portfolio
 from backlight.positions.positions import Positions
 from backlight.trades.trades import Trades
@@ -15,7 +14,7 @@ from backlight.asset.currency import Currency
 from joblib import Parallel, delayed
 
 
-def generate_simple_trades(
+def create_simple_trades(
     mkt: List[MarketData], sig: List[Signal], strategy_name: str, strategy_params: dict
 ) -> List[Trades]:
     """

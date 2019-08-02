@@ -31,7 +31,7 @@ def positions():
         trades.append(trade)
     trades = make_trades(symbol, trades, currency_unit)
 
-    return backlight.positions.calc_positions(trades, market)
+    return backlight.positions.calculate_positions(trades, market)
 
 
 def test_plot_pl(positions):

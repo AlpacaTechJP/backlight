@@ -9,7 +9,7 @@ def _r(a: int, b: int) -> float:
     return a / b if b != 0 else 0
 
 
-def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
+def calculate_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
     """Compute metrics on ternary signal.
 
     Args:
@@ -57,6 +57,8 @@ def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
     pl.loc[sig.pred == TD.D.value] *= -1
 
     avg_pl = pl.mean()
+    avg_win_pl = pl[pl > 0.0].mean()
+    avg_lose_pl = pl[pl < 0.0].mean()
     total_pl = pl.sum()
 
     m = pd.DataFrame.from_records(
@@ -82,7 +84,11 @@ def calc_ternary_metrics(sig: Signal, lbl: Label) -> pd.DataFrame:
             ("coverage_u", coverage_u),
             ("coverage_d", coverage_d),
             ("avg_pl", avg_pl),
+            ("avg_win_pl", avg_win_pl),
+            ("avg_lose_pl", avg_lose_pl),
+            ("risk_reward", -avg_win_pl / avg_lose_pl),
             ("total_pl", total_pl),
+            ("sharpe", avg_pl / pl.std()),
         ]
     ).set_index(0)
 

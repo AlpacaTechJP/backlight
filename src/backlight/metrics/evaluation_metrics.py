@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Tuple, Union
 
 from backlight.datasource.marketdata import MarketData
-from backlight.positions import calc_positions
+from backlight.positions import calculate_positions
 from backlight.positions.positions import Positions
 from backlight.portfolio.portfolio import Portfolio
 
@@ -13,11 +13,11 @@ def _sum(a: pd.Series) -> float:
     return a.sum() if len(a) != 0 else 0.0
 
 
-def calc_pl(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Series:
-    """Compute pl of positions.
+def calculate_pl(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Series:
+    """Compute pl of a positions or portfolio.
 
     Args:
-        positions: Positions to be evaluated.
+        positions_or_portfolio: Positions or Portfolio to be evaluated.
 
     Returns:
         Series of pl.
@@ -29,13 +29,13 @@ def calc_pl(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Series:
     return pl.rename("pl")
 
 
-def calc_sharpe(
+def calculate_sharpe(
     positions_or_portfolio: Union[Positions, Portfolio], freq: pd.Timedelta
 ) -> float:
     """Compute the yearly Sharpe ratio, a measure of risk adjusted returns.
 
     Args:
-        positions: Their `value` should always be positive.
+        positions_or_portfolio: Their `value` should always be positive.
         freq: Frequency to calculate mean and std of returns.
 
     Returns:
@@ -50,11 +50,13 @@ def calc_sharpe(
     return annual_factor * np.mean(log_return) / np.std(log_return)
 
 
-def calc_drawdown(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Series:
+def calculate_drawdown(
+    positions_or_portfolio: Union[Positions, Portfolio]
+) -> pd.Series:
     """Compute drawdown c.f. https://en.wikipedia.org/wiki/Drawdown_(economics)
 
     Args:
-        positions: Positions.
+        positions_or_portfolio: Positions or Portfolio.
 
     Returns:
         Drawdown in the periods.
@@ -64,26 +66,26 @@ def calc_drawdown(positions_or_portfolio: Union[Positions, Portfolio]) -> pd.Ser
     return histrical_max - value
 
 
-def calc_performance(
+def calculate_performance(
     positions_or_portfolio: Union[Positions, Portfolio],
     window: pd.Timedelta = pd.Timedelta("1D"),
 ) -> pd.DataFrame:
     """Evaluate the pl perfomance of positions
 
     Args:
-        positions: Positions to be evaluated.
-        window: Window for `calc_sharpe`.
+        positions_or_portfolio: Positions or Portfolio to be evaluated.
+        window: Window for `calculate_sharpe`.
 
     Returns:
         DataFrame of perfomance
     """
-    pl = calc_pl(positions_or_portfolio)
+    pl = calculate_pl(positions_or_portfolio)
 
     total_pl = _sum(pl)
     win_pl = _sum(pl[pl > 0.0])
     lose_pl = _sum(pl[pl < 0.0])
-    sharpe = calc_sharpe(positions_or_portfolio, window)
-    drawdown = calc_drawdown(positions_or_portfolio)
+    sharpe = calculate_sharpe(positions_or_portfolio, window)
+    drawdown = calculate_drawdown(positions_or_portfolio)
 
     m = pd.DataFrame.from_records(
         [

@@ -6,7 +6,10 @@ import backlight.positions
 from backlight.trades import trades as tr
 from backlight.asset.currency import Currency
 from backlight.metrics import evaluation_metrics as module
-from backlight.metrics.position_metrics import _trade_amount, calc_position_performance
+from backlight.metrics.position_metrics import (
+    _trade_amount,
+    calculate_position_performance,
+)
 
 
 @pytest.fixture
@@ -59,16 +62,16 @@ def positions(trades, market):
     # ]
     # columns = ["amount", "price", "principal"]
     principal = 100.0
-    return backlight.positions.calc_positions(trades, market, principal=principal)
+    return backlight.positions.calculate_positions(trades, market, principal=principal)
 
 
-def test_calc_pl(positions):
+def test_calculate_pl(positions):
     expected = pd.Series(
         data=[0.0, 1.0, -1.0, 0.0, 2.0, -2.0, 0.0, 1.0, 1.0, 0.0],
         index=positions.index[1:],
         name="pl",
     )
-    assert (module.calc_pl(positions) == expected).all()
+    assert (module.calculate_pl(positions) == expected).all()
 
 
 def test__trade_amount(positions):
@@ -76,21 +79,21 @@ def test__trade_amount(positions):
     assert _trade_amount(positions.amount) == expected
 
 
-def test_calc_sharpe(positions):
+def test_calculate_sharpe(positions):
     expected = 2.9452967928116256
-    assert module.calc_sharpe(positions, freq=pd.Timedelta("1D")) == expected
+    assert module.calculate_sharpe(positions, freq=pd.Timedelta("1D")) == expected
 
 
-def test_calc_drawdown(positions):
+def test_calculate_drawdown(positions):
     expected = pd.Series(
         data=[0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0],
         index=positions.index,
     )
-    assert (module.calc_drawdown(positions) == expected).all()
+    assert (module.calculate_drawdown(positions) == expected).all()
 
 
-def test_calc_position_performance(positions):
-    metrics = calc_position_performance(positions)
+def test_calculate_position_performance(positions):
+    metrics = calculate_position_performance(positions)
     expected_total_pl = 2.0
     expected_win_pl = 5.0
     expected_lose_pl = -3.0

@@ -52,7 +52,7 @@ def closed_trades(symbol, currency_unit):
     return trades
 
 
-def test__calc_pl(symbol, currency_unit):
+def test__calculate_pl(symbol, currency_unit):
     periods = 3
     dates = pd.date_range(start="2018-12-01", periods=periods)
     amounts = [1.0, -1.0]
@@ -70,21 +70,21 @@ def test__calc_pl(symbol, currency_unit):
     )
 
     trade = tr.make_trade([t00, t11])
-    assert module._calc_pl(trade, mkt) == 1.0
+    assert module._calculate_pl(trade, mkt) == 1.0
 
     trade = tr.make_trade([t00, t01])
-    assert module._calc_pl(trade, mkt) == 0.0
+    assert module._calculate_pl(trade, mkt) == 0.0
 
     trade = tr.make_trade([t11, t20])
-    assert module._calc_pl(trade, mkt) == -1.0
+    assert module._calculate_pl(trade, mkt) == -1.0
 
     trade = tr.make_trade([t00, t10, t20])
-    assert module._calc_pl(trade, mkt) == 3.0
+    assert module._calculate_pl(trade, mkt) == 3.0
 
 
-def test_calc_trade_performance(trades, market):
+def test_calculate_trade_performance(trades, market):
     principal = 100.0
-    metrics = module.calc_trade_performance(trades, market, principal=principal)
+    metrics = module.calculate_trade_performance(trades, market, principal=principal)
 
     expected_cnt_trade = 5
     expected_cnt_win = 3
@@ -120,9 +120,11 @@ def test_calc_trade_performance(trades, market):
     assert metrics.loc["metrics", "lose_ratio"] == expected_lose_ratio
 
 
-def test_calc_trade_performance_with_closed_trades(closed_trades, market):
+def test_calculate_trade_performance_with_closed_trades(closed_trades, market):
     principal = 100.0
-    metrics = module.calc_trade_performance(closed_trades, market, principal=principal)
+    metrics = module.calculate_trade_performance(
+        closed_trades, market, principal=principal
+    )
 
     expected_cnt_trade = 5
     expected_cnt_win = 3

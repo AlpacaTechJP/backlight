@@ -62,13 +62,13 @@ def from_dataframe(
     raise ValueError("Unsupported label format")
 
 
-def generate_labels(mkt: MarketData, labelizer: Labelizer) -> Label:
+def create_labels(mkt: MarketData, labelizer: Labelizer) -> Label:
     """Generate label with specified marketdata and labelizer
 
     Args:
         mkt : market data to be used
         labelizer : labelzier instance
     """
-    lbl = labelizer.generate(mkt)
+    lbl = labelizer.create(mkt)
 
     return lbl

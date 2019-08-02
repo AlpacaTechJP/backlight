@@ -1,4 +1,4 @@
-from backlight.portfolio.strategy import generate_simple_trades as module
+from backlight.portfolio.strategy import create_simple_trades as module
 import pytest
 import pandas as pd
 import numpy as np
@@ -96,8 +96,8 @@ def markets():
     return markets
 
 
-def test_generate_simple_trades(markets, signals, strategy_name, strategy_params):
-    generated_trades = module(markets, signals, strategy_name, strategy_params)
+def test_create_simple_trades(markets, signals, strategy_name, strategy_params):
+    created_trades = module(markets, signals, strategy_name, strategy_params)
 
     expected = pd.DataFrame(
         index=markets[0].index,
@@ -105,7 +105,7 @@ def test_generate_simple_trades(markets, signals, strategy_name, strategy_params
         columns=["amount"],
     )
 
-    for trades in generated_trades:
+    for trades in created_trades:
         assert (trades.amount == expected.amount).all()
 
 
