@@ -252,8 +252,6 @@ def test_equally_weighted_portfolio(markets, trades):
 
     data = [data1, data2]
 
-    print(portfolio._positions)
-
     for (position, d) in zip(portfolio._positions, data):
 
         expected = pd.DataFrame(
