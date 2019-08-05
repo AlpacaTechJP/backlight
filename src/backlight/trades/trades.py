@@ -53,13 +53,30 @@ class Trades(pd.DataFrame):
             Trade of pd.Series.
         """
         return self.loc[self._id == trade_id, "amount"]
-
-    def get_any(self, interval: tuple = None, gap: str = None) -> Type["Trades"]:
+    
+    
+    def get_any(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions at least one element.
 
         Args:
-            interval: The results will only contain elements of time in this interval
-            time: Can be 'hour', 'minute'... The results.time will be in the interval
+            key: Same arguments with pd.DataFrame.__getitem__.
+
+        Returns:
+            Trades.
+        """
+        filterd_ids = self[key].ids
+        trades = [self.get_trade(i) for i in filterd_ids]
+        return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
+
+
+    def get_any(self, key: Any = None, container_set: tuple = None, gap: str = None) -> Type["Trades"]:
+        """Filter trade which match conditions at least one element. Using container_set and gap
+        makes function way faster than using key.
+
+        Args:
+            key: Same arguments with pd.DataFrame.__getitem__.
+            container_set: The results will only contain elements of time in this set
+            time: Can be 'hour', 'minute'... The results.time will be in the set
 
         Returns:
             Trades.
@@ -68,36 +85,48 @@ class Trades(pd.DataFrame):
         # The function is getting complicated to read, but its way faster.
         # Also, I had to change the arguments, so it is less flexible. I can work on
         # it more to think about a just middle.
+        
+        
+        if container_set != None and gap != None:
+            sort = self.sort_values("_id")
 
-        sort = self.sort_values("_id")
+            df = pd.DataFrame(
+                data=np.zeros((sort.shape[0], 3)), columns=["amount", "_id", "index"]
+            )
 
-        df = pd.DataFrame(
-            data=np.zeros((sort.shape[0], 3)), columns=["amount", "_id", "index"]
-        )
+            j = 0
 
-        j = 0
+            for i in range(0, sort.index.size, 2):
+                entry_index = sort.index[i]
+                exit_index = sort.index[i + 1]
+                if (
+                    getattr(entry_index, gap) in container_set
+                    or getattr(exit_index, gap) in container_set
+                ):
+                    # This looks ugly but iloc is very slow compare to that. I don't get why.
+                    df.at[j, "amount"] = sort.iat[i, 0]
+                    df.at[j + 1, "amount"] = sort.iat[i + 1, 0]
+                    df.at[j, "_id"] = sort.iat[i, 1]
+                    df.at[j + 1, "_id"] = sort.iat[i + 1, 1]
+                    df.at[j, "index"] = entry_index
+                    df.at[j + 1, "index"] = exit_index
 
-        for i in range(0, sort.index.size, 2):
-            entry_index = sort.index[i]
-            exit_index = sort.index[i + 1]
-            if (
-                getattr(entry_index, gap) in interval
-                or getattr(exit_index, gap) in interval
-            ):
-                # This looks ugly but iloc is very slow compare to that. I don't get why.
-                df.at[j, "amount"] = sort.iat[i, 0]
-                df.at[j + 1, "amount"] = sort.iat[i + 1, 0]
-                df.at[j, "_id"] = sort.iat[i, 1]
-                df.at[j + 1, "_id"] = sort.iat[i + 1, 1]
-                df.at[j, "index"] = entry_index
-                df.at[j + 1, "index"] = exit_index
+                    j += 2
 
-                j += 2
+            df = df.iloc[0:j, :].sort_values("index").set_index("index")
+            df.index.name = None
 
-        df = df.iloc[0:j, :].sort_values("index").set_index("index")
-        df.index.name = None
+            return from_dataframe(df, self.symbol, self.currency_unit)
 
-        return from_dataframe(df, self.symbol, self.currency_unit)
+        elif key != None:
+            filterd_ids = self[key].ids
+            trades = [self.get_trade(i) for i in filterd_ids]
+            return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
+        
+        else:
+            raise("At least key or interval and gap have to be set to a value")
+            return None
+        
 
     def get_all(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions for all elements.
