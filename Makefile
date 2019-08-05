@@ -73,3 +73,21 @@ sphinx_autobuild:
 
 jupyter:
 	bash -c "PYTHONPATH=`pwd`/src:${PYTHONPATH} jupyter notebook"
+
+clean:
+	rm -rf dist/*
+
+dev:
+	pip install -r dev-requirements.txt
+	pip install -e .
+
+docs:
+	$(MAKE) -C docs html
+
+package:
+	python setup.py sdist
+	python setup.py bdist_wheel
+
+test:
+	coverage run -m unittest discover
+	coverage html
