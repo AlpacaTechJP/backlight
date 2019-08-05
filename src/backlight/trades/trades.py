@@ -54,7 +54,7 @@ class Trades(pd.DataFrame):
         """
         return self.loc[self._id == trade_id, "amount"]
 
-    def get_any(self, interval: tuple, time: str) -> Type["Trades"]:
+    def get_any(self, interval: tuple = None, gap: str = None) -> Type["Trades"]:
         """Filter trade which match conditions at least one element.
 
         Args:
@@ -81,8 +81,8 @@ class Trades(pd.DataFrame):
             entry_index = sort.index[i]
             exit_index = sort.index[i + 1]
             if (
-                getattr(entry_index, time) in interval
-                or getattr(exit_index, time) in interval
+                getattr(entry_index, gap) in interval
+                or getattr(exit_index, gap) in interval
             ):
                 # This looks ugly but iloc is very slow compare to that. I don't get why.
                 df.at[j, "amount"] = sort.iat[i, 0]
