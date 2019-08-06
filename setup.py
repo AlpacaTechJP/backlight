@@ -3,6 +3,8 @@ import sys
 import os
 from glob import glob
 
+from setuptools.command.install import install
+
 # hack to extract metadata directly from the python package
 sys.path.append("src")  # noqa
 from backlight import __author__, __version__, __license__

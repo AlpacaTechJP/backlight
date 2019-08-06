@@ -4,6 +4,7 @@ IMAGE_NAME=alpacadb/alpaca-containers:forecast-exp-v0.0.2
 
 MAKEFILE_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(abspath $(MAKEFILE_PATH))
+PYPI_PASSWORD := Alpaca2019
 
 UNIT_TEST_OPTS=\
 	-ra \
@@ -77,17 +78,8 @@ jupyter:
 clean:
 	rm -rf dist/*
 
-dev:
-	pip install -r dev-requirements.txt
-	pip install -e .
-
-docs:
-	$(MAKE) -C docs html
-
-package:
-	python setup.py sdist
-	python setup.py bdist_wheel
-
-test:
-	coverage run -m unittest discover
-	coverage html
+package:_mount_src
+	docker run $(DOCKER_OPTS) \
+		-it --volumes-from mysrc \
+		$(IMAGE_NAME) \
+		bash -c "python setup.py sdist & python setup.py bdist_wheel"
