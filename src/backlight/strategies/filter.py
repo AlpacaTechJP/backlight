@@ -49,11 +49,14 @@ def skip_entry_by_spread(
     assert trades.index.unique().isin(mkt.index).all()
 
     spread = mkt.spread
-
     deleted_ids = []  # type: List[int]
-    for i in trades.ids:
-        entry = trades.get_trade(i).index[0]
+
+    sorted_by_ids = (
+        trades.reset_index().sort_values(by=["_id", "index"]).set_index("index")
+    )
+    for i in range(0, sorted_by_ids.index.size, 2):
+        entry = sorted_by_ids.index[i]
         if spread.at[entry] > max_spread:
-            deleted_ids.append(i)
+            deleted_ids.append(int(i / 2))
 
     return trades[~trades["_id"].isin(deleted_ids)]
