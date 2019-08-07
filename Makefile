@@ -83,3 +83,9 @@ package:_mount_src
 		-it --volumes-from mysrc \
 		$(IMAGE_NAME) \
 		bash -c "python setup.py sdist & python setup.py bdist_wheel"
+
+update:_mount_src
+	docker run $(DOCKER_OPTS) \
+		-it --volumes-from mysrc \
+		$(IMAGE_NAME) \
+		bash -c "python setup.py sdist bdist_wheel && pip install twine && twine upload dist/*"
