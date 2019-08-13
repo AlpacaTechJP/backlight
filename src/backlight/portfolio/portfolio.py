@@ -157,10 +157,8 @@ def _bfill_principal(position: Positions, index: pd.DatetimeIndex) -> Positions:
         index=index,
         columns=position.columns,
     )
-    filled_positions.principal.iloc[:] = position.principal[
-        position.principal.first_valid_index()
-    ]
     filled_positions.loc[position.index] = position
+    filled_positions.principal = filled_positions.principal.replace(to_replace=0, method='bfill')
     return backlight.positions.positions.from_dataframe(
         filled_positions, position.symbol, position.currency_unit
     )

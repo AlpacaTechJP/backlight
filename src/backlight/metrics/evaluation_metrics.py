@@ -43,7 +43,9 @@ def calculate_sharpe(
     """
     value = positions_or_portfolio.value.resample(freq).first().dropna()
     previous_value = value.shift(periods=1)
-    log_return = np.log((value.values / previous_value.values)[1:])
+    pl = (value.values / previous_value.values)[1:]
+    pl = pl[pl > 0]
+    log_return = np.log(pl)
 
     days_in_year = pd.Timedelta("252D")
     annual_factor = math.sqrt(days_in_year / freq)
