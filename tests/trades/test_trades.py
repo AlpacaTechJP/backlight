@@ -49,7 +49,8 @@ def test_trades_get_any(trades):
         pd.Timestamp("2018-06-06 00:05:00"),
     ]
     expected = pd.Series(data=data, index=index, name="amount")
-    result = trades.get_any(container_set=[0, 4, 5], gap="minute")
+    # result = trades.get_any(container_set=[0, 4, 5], gap="minute")
+    result = trades.get_any(trades.index.minute.isin([0, 4, 5]))
     pd.testing.assert_series_equal(result.amount, expected)
 
 

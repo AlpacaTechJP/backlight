@@ -54,73 +54,20 @@ class Trades(pd.DataFrame):
         """
         return self.loc[self._id == trade_id, "amount"]
 
-    def get_any(
-        self, key: Any = None, container_set: tuple = (), gap: str = "hour"
-    ) -> Type["Trades"]:
+    def get_any(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions at least one element. Using container_set and gap
         makes function way faster than using key. 
 
         Args:
             key: Same arguments with pd.DataFrame.__getitem__
-            container_set: The results will only contain elements of time in this set
-            time: Can be 'hour', 'minute'... The results.time will be in the set
-                -> e.g. for container_set = [1,2] and time = 'hour' Trades of hour 1 or 2 
-                will be return.
 
         Returns:
             Trades.
         """
-
-        assert container_set or key
-
-        if container_set:
-            return self.get_in_set(gap, container_set)
 
         filterd_ids = self[key].ids
         trades = [self.get_trade(i) for i in filterd_ids]
         return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
-
-    def get_in_set(self, gap: str, container_set: tuple = ()) -> Type["Trades"]:
-        """Filter trade which match conditions at least one element. 
-            -> e.g. for container_set = [1,2] and time = 'hour' Trades of hour 1 or 2 
-                will be return.
-        Args:
-            container_set: The results will only contain elements of time in this set
-            time: Can be 'hour', 'minute'... The results.time will be in the set
-
-        Returns:
-            Trades.
-        """
-
-        sort = self.sort_values("_id")
-
-        df = pd.DataFrame(
-            data=np.zeros((sort.shape[0], 3)), columns=["amount", "_id", "index"]
-        )
-
-        j = 0
-
-        for i in range(0, sort.index.size, 2):
-            entry_index = sort.index[i]
-            exit_index = sort.index[i + 1]
-            if (
-                getattr(entry_index, gap) in container_set
-                or getattr(exit_index, gap) in container_set
-            ):
-                # This code is faster than a iloc.
-                df.at[j, "amount"] = sort.iat[i, 0]
-                df.at[j + 1, "amount"] = sort.iat[i + 1, 0]
-                df.at[j, "_id"] = sort.iat[i, 1]
-                df.at[j + 1, "_id"] = sort.iat[i + 1, 1]
-                df.at[j, "index"] = entry_index
-                df.at[j + 1, "index"] = exit_index
-
-                j += 2
-
-        df = df.iloc[0:j, :].sort_values("index").set_index("index")
-        df.index.name = None
-
-        return from_dataframe(df, self.symbol, self.currency_unit)
 
     def get_all(self, key: Any) -> Type["Trades"]:
         """Filter trade which match conditions for all elements.

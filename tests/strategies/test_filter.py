@@ -81,36 +81,6 @@ def askbid(symbol, currency_unit):
 def trades(market, signal):
     max_holding_time = pd.Timedelta("3min")
     trades = simple_entry_and_exit(market, signal, max_holding_time)
-    """
-    expected = pd.DataFrame(
-        index=market.index,
-        data=[
-            [True, 1.0],  # 1.0
-            [True, -1.0],  # 0.0
-            [False, 0.0],  # 0.0
-            [True, 0.0],  # 0.0
-            [True, 2.0],  # 2.0
-            [True, -1.0],  # 1.0
-            [True, -2.0],  # -1.0
-            [True, -1.0],  # -2.0
-            [True, 1.0],  # -1.0
-            [True, 2.0],  # 1.0
-            [True, 1.0],  # 2.0
-            [True, 1.0],  # 3.0
-            [True, -2.0],  # 1.0
-            [True, -2.0],  # -1.0
-            [True, -2.0],  # -3.0
-            [True, 1.0],  # -2.0
-            [True, 1.0],  # -1.0
-            [True, 1.0],  # 0.0
-            [True, 1.0],  # 1.0
-            [True, 1.0],  # 2.0
-            [True, 1.0],  # 3.0
-            [True, -3.0],  # 0.0
-        ],
-        columns=["exist", "amount"],
-    )
-    """
     return trades
 
 
@@ -179,5 +149,46 @@ def test_skip_entry_by_spread(trades, askbid):
         ],
         columns=["exist", "amount"],
     )
-    print(limited.amount)
+
     assert (limited.amount == expected.amount[expected.exist]).all()
+
+
+def test_get_in_set(trades, symbol, currency_unit):
+    result = module.get_in_set(trades, "minute", [1, 3, 8, 12])
+    df = pd.DataFrame(
+        data=[
+            [1.0, 0.0],
+            [-1.0, 1.0],
+            [-1.0, 0.0],
+            [1.0, 2.0],
+            [1.0, 1.0],
+            [-1.0, 4.0],
+            [-1.0, 2.0],
+            [1.0, 4.0],
+            [1.0, 6.0],
+            [-1.0, 6.0],
+            [-1.0, 9.0],
+            [1.0, 9.0],
+        ],
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("2018-06-06 00:00:00"),
+                pd.Timestamp("2018-06-06 00:01:00"),
+                pd.Timestamp("2018-06-06 00:03:00"),
+                pd.Timestamp("2018-06-06 00:03:00"),
+                pd.Timestamp("2018-06-06 00:04:00"),
+                pd.Timestamp("2018-06-06 00:05:00"),
+                pd.Timestamp("2018-06-06 00:06:00"),
+                pd.Timestamp("2018-06-06 00:08:00"),
+                pd.Timestamp("2018-06-06 00:09:00"),
+                pd.Timestamp("2018-06-06 00:12:00"),
+                pd.Timestamp("2018-06-06 00:12:00"),
+                pd.Timestamp("2018-06-06 00:15:00"),
+            ]
+        ),
+        columns=["amount", "_id"],
+    )
+
+    expected = backlight.trades.trades.from_dataframe(df, symbol, currency_unit)
+
+    assert (result.all() == expected.all()).all()

@@ -1,7 +1,9 @@
 import pandas as pd
-from typing import List
+import numpy as np
+from typing import List, Type
 
-from backlight.trades.trades import Trades
+
+from backlight.trades.trades import Trades, from_dataframe
 from backlight.datasource.marketdata import AskBidMarketData
 
 
@@ -57,3 +59,46 @@ def skip_entry_by_spread(
             deleted_ids.append(i)
 
     return trades[~trades["_id"].isin(deleted_ids)]
+
+
+def get_in_set(trades: Trades, unit: str, container_set: tuple) -> Type["Trades"]:
+    """Filter trade which match conditions at least one element. 
+        -> e.g. for container_set = [1,2] and unit = 'hour' Trades of hour 1 or 2 
+            will be return.
+    Args:
+        container_set: The results will only contain elements of time in this set
+        unit: Can be 'hour', 'minute'... The results.time will be in the set
+
+    Returns:
+        Trades.
+    """
+
+    sort = trades.sort_values("_id")
+
+    df = pd.DataFrame(
+        data=np.zeros((sort.shape[0], 3)), columns=["amount", "_id", "index"]
+    )
+
+    j = 0
+
+    for i in range(0, sort.index.size, 2):
+        entry_index = sort.index[i]
+        exit_index = sort.index[i + 1]
+        if (
+            getattr(entry_index, unit) in container_set
+            or getattr(exit_index, unit) in container_set
+        ):
+            # This code is faster than an iloc.
+            df.at[j, "amount"] = sort.iat[i, 0]
+            df.at[j + 1, "amount"] = sort.iat[i + 1, 0]
+            df.at[j, "_id"] = sort.iat[i, 1]
+            df.at[j + 1, "_id"] = sort.iat[i + 1, 1]
+            df.at[j, "index"] = entry_index
+            df.at[j + 1, "index"] = exit_index
+
+            j += 2
+
+    df = df.iloc[0:j, :].sort_values("index").set_index("index")
+    df.index.name = None
+
+    return from_dataframe(df, trades.symbol, trades.currency_unit)
