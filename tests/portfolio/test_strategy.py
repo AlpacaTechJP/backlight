@@ -1,14 +1,10 @@
-from backlight.portfolio.strategy import create_simple_trades as module
 import pytest
 import pandas as pd
 import numpy as np
 
 import backlight
 from backlight.asset.currency import Currency
-from backlight.portfolio.strategy import (
-    equally_weighted_portfolio,
-    _calculate_principals_lot_sizes,
-)
+from backlight.portfolio import strategy as module
 from backlight.trades.trades import make_trades
 
 
@@ -97,7 +93,9 @@ def markets():
 
 
 def test_create_simple_trades(markets, signals, strategy_name, strategy_params):
-    created_trades = module(markets, signals, strategy_name, strategy_params)
+    created_trades = module.create_simple_trades(
+        markets, signals, strategy_name, strategy_params
+    )
 
     expected = pd.DataFrame(
         index=markets[0].index,
@@ -121,9 +119,7 @@ def markets2():
             index=pd.date_range(
                 start="2018-06-05 23:58:00", freq="1min", periods=periods
             ),
-            data=np.repeat(price, periods)[:, None]
-            # + np.array(np.arange(periods) * price / (5 * periods))[:, None]
-            ,
+            data=np.repeat(price, periods)[:, None],
             columns=["mid"],
         )
         markets.append(
@@ -159,7 +155,7 @@ def test__calculate_principals_lot_sizes(trades, markets2):
     max_amount = 50
     currency_unit = Currency.USD
 
-    principals, lot_sizes = _calculate_principals_lot_sizes(
+    principals, lot_sizes = module._calculate_principals_lot_sizes(
         trades, markets2, principal, max_amount, currency_unit
     )
 
@@ -171,7 +167,9 @@ def test__calculate_principals_lot_sizes(trades, markets2):
 
 
 def test_equally_weighted_portfolio(markets2, trades):
-    portfolio = equally_weighted_portfolio(trades, markets2, 150, 50, Currency.USD)
+    portfolio = module.equally_weighted_portfolio(
+        trades, markets2, 150, 50, Currency.USD
+    )
 
     index = pd.date_range(start="2018-06-05 23:59:00", freq="1min", periods=11)
 
