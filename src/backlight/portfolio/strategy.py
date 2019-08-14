@@ -87,14 +87,14 @@ def _calculate_principals_lot_sizes(
         trade_currency = trade.currency_unit
 
         ratio = get_forex_ratio(trade.index[0], mkt, trade_currency, currency_unit)
-        #         if currency_unit == Currency[symbol[:3]]:
-        #             ratio2 = pd.Series(data=np.ones(trade.index.size), index=trade.index)
-        #         else:
-        #             ratio2 = get_forex_ratios(mkt, currency_unit,
-        #                     Currency[symbol[:3]]).loc[trade.index]
+        if currency_unit == Currency[symbol[:3]]:
+            lot_sizes[symbol] = principal / (nb_trades * max_amount)
+        else:
+            ratio2 = get_forex_ratio(
+                trade.index[0], mkt, currency_unit, Currency[symbol[:3]]
+            )
+            lot_sizes[symbol] = principal * ratio2 / (nb_trades * max_amount)
 
         principals[symbol] = principal / (nb_trades * ratio)
-        lot_sizes[symbol] = principal / (nb_trades * max_amount)
-    #         lot_sizes[symbol] = principal * ratio2 / (nb_trades * max_amount)
 
     return principals, lot_sizes

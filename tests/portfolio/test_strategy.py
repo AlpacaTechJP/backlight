@@ -164,7 +164,7 @@ def test__calculate_principals_lot_sizes(trades, markets2):
     )
 
     expected_principals = {"USDJPY": 5000.0, "EURJPY": 5000.0, "EURUSD": 50.0}
-    expected_lot_sizes = {"USDJPY": 1.0, "EURJPY": 1.0, "EURUSD": 1.0}
+    expected_lot_sizes = {"USDJPY": 1.0, "EURJPY": 0.5, "EURUSD": 0.5}
 
     assert expected_principals == principals
     assert expected_lot_sizes == lot_sizes
@@ -191,33 +191,36 @@ def test_equally_weighted_portfolio(markets2, trades):
 
     data2 = [
         [0.0, 0.0, 50.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
-        [1.0, 2.0, 48.0],
+        [0.5, 2.0, 49.0],
         [0.0, 2.0, 50.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
-        [1.0, 2.0, 48.0],
+        [0.5, 2.0, 49.0],
         [0.0, 2.0, 50.0],
     ]
 
     data3 = [
         [0.0, 0.0, 50.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
-        [1.0, 2.0, 48.0],
+        [0.5, 2.0, 49.0],
         [0.0, 2.0, 50.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
+        [0.5, 2.0, 49.0],
         [1.0, 2.0, 48.0],
-        [2.0, 2.0, 46.0],
-        [1.0, 2.0, 48.0],
+        [0.5, 2.0, 49.0],
         [0.0, 2.0, 50.0],
     ]
 
     data = [data1, data2, data3]
+
+    for p in portfolio._positions:
+        print(p)
 
     for position, d in zip(portfolio._positions, data):
 
