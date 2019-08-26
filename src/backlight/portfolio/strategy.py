@@ -65,7 +65,7 @@ def equally_weighted_portfolio(
         - currency_unit : the unit type of the future Portfolio
     """
     principals, lot_sizes = _calculate_principals_lot_sizes(
-        trades, mkts, principal, max_amount, currency_unit=Currency.USD
+        trades, mkts, principal, max_amount, currency_unit=currency_unit
     )
 
     return create_portfolio(trades, mkts, principals, lot_sizes, currency_unit)
