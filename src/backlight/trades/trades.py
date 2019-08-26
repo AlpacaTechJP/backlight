@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from collections import namedtuple
 from functools import lru_cache
 from typing import Any, Type, List, Iterable, Optional  # noqa
@@ -54,14 +55,16 @@ class Trades(pd.DataFrame):
         return self.loc[self._id == trade_id, "amount"]
 
     def get_any(self, key: Any) -> Type["Trades"]:
-        """Filter trade which match conditions at least one element.
+        """Filter trade which match conditions at least one element. Using container_set and gap
+        makes function way faster than using key. 
 
         Args:
-            key: Same arguments with pd.DataFrame.__getitem__.
+            key: Same arguments with pd.DataFrame.__getitem__
 
         Returns:
             Trades.
         """
+
         filterd_ids = self[key].ids
         trades = [self.get_trade(i) for i in filterd_ids]
         return make_trades(self.symbol, trades, self.currency_unit, filterd_ids)
