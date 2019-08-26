@@ -153,8 +153,8 @@ def test_skip_entry_by_spread(trades, askbid):
     assert (limited.amount == expected.amount[expected.exist]).all()
 
 
-def test_get_in_set(trades, symbol, currency_unit):
-    result = module.get_in_set(trades, "minute", [1, 3, 8, 12])
+def test_filter_entry_by_time(trades, symbol, currency_unit):
+    result = module.filter_entry_by_time(trades, "minute", [1, 3, 8, 12])
     df = pd.DataFrame(
         data=[
             [1.0, 0.0],

@@ -61,7 +61,9 @@ def skip_entry_by_spread(
     return trades[~trades["_id"].isin(deleted_ids)]
 
 
-def get_in_set(trades: Trades, unit: str, container_set: tuple) -> Type["Trades"]:
+def filter_entry_by_time(
+    trades: Trades, unit: str, container_set: tuple
+) -> Type["Trades"]:
     """Filter trade which match conditions at least one element. 
         -> e.g. for container_set = [1,2] and unit = 'hour' Trades of hour 1 or 2 
             will be return.
