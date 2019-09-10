@@ -104,3 +104,21 @@ def filter_entry_by_time(
     df.index.name = None
 
     return from_dataframe(df, trades.symbol, trades.currency_unit)
+
+
+def skip_entry_by_hours(trades: Trades, hours: List[int]):
+    """Skip entry by hours.
+
+    Args:
+        trades: Trades
+        hours: Hours which will be filtered out from entry.
+    Result:
+        Trades
+    """
+    deleted_ids = []
+    for i in trades.ids:
+        entry = trades.get_trade(i).index[0]
+        if entry.hour in hours:
+            deleted_ids.append(i)
+
+    return trades[~trades["_id"].isin(deleted_ids)]

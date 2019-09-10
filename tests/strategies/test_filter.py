@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 import backlight
+import backlight.trades
 from backlight.strategies.amount_based import simple_entry_and_exit
 from backlight.asset.currency import Currency
 
@@ -149,7 +150,6 @@ def test_skip_entry_by_spread(trades, askbid):
         ],
         columns=["exist", "amount"],
     )
-
     assert (limited.amount == expected.amount[expected.exist]).all()
 
 
@@ -190,5 +190,41 @@ def test_filter_entry_by_time(trades, symbol, currency_unit):
     )
 
     expected = backlight.trades.trades.from_dataframe(df, symbol, currency_unit)
-
     assert (result.all() == expected.all()).all()
+
+
+@pytest.fixture
+def hourly_trades(symbol, currency_unit):
+    data = [
+        1.0,  # entry at UTC 0
+        -2.0,
+        1.0,  # entry at UTC 2
+        2.0,
+        -4.0,  # entry at UTC 4
+        2.0,
+        1.0,  # entry at UTC 6
+        0.0,
+        1.0,  # entry at UTC 8
+        0.0,
+    ]
+    index = pd.date_range(start="2018-06-06", freq="1H", periods=len(data))
+    trades = []
+    for i in range(0, len(data), 2):
+        trade = pd.Series(index=index[i : i + 2], data=data[i : i + 2], name="amount")
+        trades.append(trade)
+    trades = backlight.trades.make_trades(symbol, trades, currency_unit)
+    return trades
+
+
+def test_skip_entry_by_hours(hourly_trades):
+    hours = [2, 5, 6, 7]
+    limited = module.skip_entry_by_hours(hourly_trades, hours)
+    expected = pd.concat(
+        [
+            hourly_trades.get_trade(0),
+            hourly_trades.get_trade(2),
+            hourly_trades.get_trade(4),
+        ],
+        axis=0,
+    )
+    assert (limited.amount == expected).all()
