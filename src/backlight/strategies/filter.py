@@ -106,7 +106,7 @@ def filter_entry_by_time(
     return from_dataframe(df, trades.symbol, trades.currency_unit)
 
 
-def skip_entry_by_hours(trades: Trades, hours: List[int]):
+def skip_entry_by_hours(trades: Trades, hours: List[int]) -> Type["Trades"]:
     """Skip entry by hours.
 
     Args:
