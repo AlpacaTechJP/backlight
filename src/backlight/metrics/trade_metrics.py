@@ -21,7 +21,12 @@ def _sum(a: pd.Series) -> float:
 
 
 def _calculate_pl(trade: pd.Series, mkt: MarketData) -> float:
-    mkt = mkt.loc[trade.index, :]
+    if len(trade.index.unique()) == 1:
+        # to avoid reindex error in later process
+        mkt = mkt.loc[trade.index[0] : trade.index[-1], :]
+    else:
+        mkt = mkt.loc[trade.index, :]
+
     trades = make_trades(mkt.symbol, [trade], mkt.currency_unit)
     positions = backlight.positions.calculate_positions(trades, mkt)
     pl = calculate_pl(positions)
