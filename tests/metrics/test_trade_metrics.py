@@ -1,9 +1,11 @@
 from backlight.metrics import trade_metrics as module
+import math
 import pandas as pd
 import pytest
 
 import backlight.datasource
 from backlight.trades import trades as tr
+from backlight.trades.trades import make_trades
 from backlight.asset.currency import Currency
 
 
@@ -167,3 +169,61 @@ def test_count_trades(a_trades, total_count, win_count, lose_count, market):
     assert (total_count, win_count, lose_count) == module.count_trades(
         a_trades(symbol(), currency_unit()), market
     )
+
+
+def test_calculate_trade_performance_for_sametime_trade_case():
+    symbol = "USDJPY"
+    data = [[1.0], [2.0], [3.0]]
+    df = pd.DataFrame(
+        index=pd.date_range(start="2019-06-06", freq="3S", periods=len(data)),
+        data=data,
+        columns=["mid"],
+    )
+    mid = backlight.datasource.from_dataframe(df, symbol, Currency.USD)
+
+    data = [-1.0, 1.0]
+    sr = pd.Series(
+        index=[
+            pd.Timestamp("2019-06-06 00:00:03"),
+            pd.Timestamp("2019-06-06 00:00:03"),
+        ],
+        data=data,
+        name="amount",
+    )
+    trade = sr
+
+    trades = make_trades(symbol, [trade], Currency.USD)
+
+    metrics = module.calculate_trade_performance(trades, mid)
+
+    expected_cnt_trade = 1
+    expected_cnt_win = 0
+    expected_cnt_lose = 0
+    expected_total_pl = 0
+    expected_win_pl = 0
+    expected_lose_pl = 0
+    expected_trade_amount = 0
+    # expected_sharpe = nan
+    expected_avg_pl = 0  # expected_total_pl / expected_trade_amount
+    expected_max_drawdown = 0
+    expected_avg_win_pl = 0  # expected_win_pl / expected_cnt_win
+    expected_avg_lose_pl = 0  # expected_lose_pl / expected_cnt_lose
+    expected_avg_pl_per_trade = expected_total_pl / expected_cnt_trade
+    expected_win_ratio = expected_cnt_win / expected_cnt_trade
+    expected_lose_ratio = expected_cnt_lose / expected_cnt_trade
+    assert metrics.loc["metrics", "cnt_trade"] == expected_cnt_trade
+    assert metrics.loc["metrics", "cnt_win"] == expected_cnt_win
+    assert metrics.loc["metrics", "cnt_lose"] == expected_cnt_lose
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
+    assert metrics.loc["metrics", "total_win_pl"] == expected_win_pl
+    assert metrics.loc["metrics", "total_lose_pl"] == expected_lose_pl
+    assert metrics.loc["metrics", "cnt_amount"] == expected_trade_amount
+    assert metrics.loc["metrics", "avg_pl_per_amount"] == expected_avg_pl
+    assert math.isnan(metrics.loc["metrics", "sharpe"])
+    assert metrics.loc["metrics", "max_drawdown"] == expected_max_drawdown
+    assert metrics.loc["metrics", "avg_win_pl"] == expected_avg_win_pl
+    assert metrics.loc["metrics", "avg_lose_pl"] == expected_avg_lose_pl
+    assert metrics.loc["metrics", "avg_pl_per_trade"] == expected_avg_pl_per_trade
+    assert metrics.loc["metrics", "win_ratio"] == expected_win_ratio
+    assert metrics.loc["metrics", "lose_ratio"] == expected_lose_ratio
