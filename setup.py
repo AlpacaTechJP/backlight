@@ -31,7 +31,7 @@ setuptools.setup(
         os.path.splitext(os.path.basename(path))[0] for path in glob("src/*.py")
     ],
     install_requires=[
-        "pandas==0.21.0",
+        "pandas>=0.21.0",
         "numpy>=1.15.0",
         "matplotlib>=2.2.2",
         "boto3>=1.9.36",
