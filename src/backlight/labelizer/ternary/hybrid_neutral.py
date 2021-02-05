@@ -20,7 +20,7 @@ class HybridNeutralLabelizer(
         super(HybridNeutralLabelizer, self).validate_params()
         super(MarketCloseAwareDynamicNeutralLabelizer, self).validate_params()
         assert "alpha" in self._params
-        assert 0 <= self._params["alpha"] <= 1
+        assert 0 <= float(self._params["alpha"]) <= 1
 
     def _calculate_hybrid_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
         snr = self._calculate_static_neutral_range(diff_abs)
@@ -45,4 +45,4 @@ class HybridNeutralLabelizer(
 
     @property
     def alpha(self) -> float:
-        return self._params["alpha"]
+        return float(self._params["alpha"])

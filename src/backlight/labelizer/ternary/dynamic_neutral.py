@@ -70,7 +70,7 @@ class MarketCloseAwareDynamicNeutralLabelizer(DynamicNeutralLabelizer):
             .rolling(freq)
             .quantile(self.neutral_ratio)
             .reindex(diff_abs.index)
-            .fillna(100)
+            .ffill()
         )
 
         dnr[dnr < self.neutral_hard_limit] = self.neutral_hard_limit
