@@ -53,7 +53,10 @@ class StaticNeutralLabelizer(Labelizer):
                 self.neutral_ratio
             )
 
-        return df.res
+        snr = df.res
+        snr[snr < self.neutral_hard_limit] = self.neutral_hard_limit
+
+        return snr
 
     def create(self, mkt: MarketData) -> pd.DataFrame:
         mid = mkt.mid.copy()
