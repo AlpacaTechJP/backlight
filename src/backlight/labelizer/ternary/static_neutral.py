@@ -28,7 +28,7 @@ class StaticNeutralLabelizer(Labelizer):
         assert "neutral_hard_limit" in self._params
 
     def _calculate_static_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
-        df = pd.DataFrame(diff_abs, columns=["diff"])
+        df = pd.DataFrame(diff_abs.values, index=diff_abs.index, columns=["diff"])
         df.loc[:, "est"] = df.index.tz_convert("America/New_York")
         df.loc[:, "res"] = np.nan
 
@@ -49,14 +49,13 @@ class StaticNeutralLabelizer(Labelizer):
                 scope = (df.est.dt.time >= s) | (df.est.dt.time < t)
             else:
                 scope = (df.est.dt.time >= s) & (df.est.dt.time < t)
-            df.loc[scope, "res"] = df.loc[scope & mask, "diff"].quantile(
+            df.loc[scope, "res"] = df.loc[(scope & mask), "diff"].quantile(
                 self.neutral_ratio
             )
 
-        snr = df.res
-        snr[snr < self.neutral_hard_limit] = self.neutral_hard_limit
+        df.loc[(df.res < self.neutral_hard_limit), "res"] = self.neutral_hard_limit
 
-        return snr
+        return df.res
 
     def create(self, mkt: MarketData) -> pd.DataFrame:
         mid = mkt.mid.copy()

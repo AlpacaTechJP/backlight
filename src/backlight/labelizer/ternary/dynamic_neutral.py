@@ -51,7 +51,7 @@ class DynamicNeutralLabelizer(Labelizer):
 class MarketCloseAwareDynamicNeutralLabelizer(DynamicNeutralLabelizer):
     def _calculate_dynamic_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
 
-        df = pd.DataFrame(diff_abs, columns=["res"])
+        df = pd.DataFrame(diff_abs.values, index=diff_abs.index, columns=["res"])
         df.loc[:, "est"] = df.index.tz_convert("America/New_York")
         freq = int(
             pd.Timedelta(self._params["neutral_window"])
