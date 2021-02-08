@@ -46,3 +46,33 @@ class DynamicNeutralLabelizer(Labelizer):
     @property
     def neutral_hard_limit(self) -> str:
         return self._params["neutral_hard_limit"]
+
+
+class MarketCloseAwareDynamicNeutralLabelizer(DynamicNeutralLabelizer):
+    def _calculate_dynamic_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
+
+        df = pd.DataFrame(diff_abs.values, index=diff_abs.index, columns=["res"])
+        df.loc[:, "nyk_time"] = df.index.tz_convert("America/New_York")
+        freq = int(
+            pd.Timedelta(self._params["neutral_window"])
+            / pd.Timedelta(diff_abs.index.freq)
+        )
+
+        mask = (
+            ~((df.nyk_time.dt.hour <= 17) & (df.nyk_time.dt.dayofweek == 6))
+            & ((df.nyk_time.dt.hour < 16) | (df.nyk_time.dt.hour > 17))
+            & ~((df.nyk_time.dt.hour >= 16) & (df.nyk_time.dt.dayofweek == 4))
+            & (df.nyk_time.dt.dayofweek != 5)
+        )
+
+        dnr = (
+            df.loc[mask, "res"]
+            .rolling(freq)
+            .quantile(self.neutral_ratio)
+            .reindex(diff_abs.index)
+            .ffill()
+        )
+
+        dnr[dnr < self.neutral_hard_limit] = self.neutral_hard_limit
+
+        return dnr
