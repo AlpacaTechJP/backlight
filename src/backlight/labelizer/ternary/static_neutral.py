@@ -29,16 +29,16 @@ class StaticNeutralLabelizer(Labelizer):
 
     def _calculate_static_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
         df = pd.DataFrame(diff_abs.values, index=diff_abs.index, columns=["diff"])
-        df.loc[:, "est"] = df.index.tz_convert("America/New_York")
+        df.loc[:, "nyk_time"] = df.index.tz_convert("America/New_York")
         df.loc[:, "res"] = np.nan
 
         mask = (
             (df.index >= self._params["window_start"])
             & (df.index < self._params["window_end"])
-            & ~((df.est.dt.hour <= 17) & (df.est.dt.dayofweek == 6))
-            & ((df.est.dt.hour < 16) | (df.est.dt.hour > 17))
-            & ~((df.est.dt.hour >= 16) & (df.est.dt.dayofweek == 4))
-            & (df.est.dt.dayofweek != 5)
+            & ~((df.nyk_time.dt.hour <= 17) & (df.nyk_time.dt.dayofweek == 6))
+            & ((df.nyk_time.dt.hour < 16) | (df.nyk_time.dt.hour > 17))
+            & ~((df.nyk_time.dt.hour >= 16) & (df.nyk_time.dt.dayofweek == 4))
+            & (df.nyk_time.dt.dayofweek != 5)
         )
 
         splits = sorted(self._params["session_splits"])
@@ -46,9 +46,9 @@ class StaticNeutralLabelizer(Labelizer):
 
         for s, t in list(zip(splits, shifted_splits)):
             if s >= t:
-                scope = (df.est.dt.time >= s) | (df.est.dt.time < t)
+                scope = (df.nyk_time.dt.time >= s) | (df.nyk_time.dt.time < t)
             else:
-                scope = (df.est.dt.time >= s) & (df.est.dt.time < t)
+                scope = (df.nyk_time.dt.time >= s) & (df.nyk_time.dt.time < t)
             df.loc[scope, "res"] = df.loc[(scope & mask), "diff"].quantile(
                 self.neutral_ratio
             )

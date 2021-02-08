@@ -51,7 +51,7 @@ def test_create(sample_df):
         "lookahead": "1H",
         "neutral_ratio": 0.5,
         "session_splits": [datetime.time(9), datetime.time(18)],
-        "neutral_window": "3H",  # noqa Simple approach: lookahead = lookback
+        "neutral_window": "3H",
         "neutral_hard_limit": 0.00,
         "window_start": "20170904 12:00:00+0000",
         "window_end": "20170905 06:00:00+0000",

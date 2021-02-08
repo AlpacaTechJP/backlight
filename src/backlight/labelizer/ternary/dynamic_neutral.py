@@ -52,17 +52,17 @@ class MarketCloseAwareDynamicNeutralLabelizer(DynamicNeutralLabelizer):
     def _calculate_dynamic_neutral_range(self, diff_abs: pd.Series) -> pd.Series:
 
         df = pd.DataFrame(diff_abs.values, index=diff_abs.index, columns=["res"])
-        df.loc[:, "est"] = df.index.tz_convert("America/New_York")
+        df.loc[:, "nyk_time"] = df.index.tz_convert("America/New_York")
         freq = int(
             pd.Timedelta(self._params["neutral_window"])
             / pd.Timedelta(diff_abs.index.freq)
         )
 
         mask = (
-            ~((df.est.dt.hour <= 17) & (df.est.dt.dayofweek == 6))
-            & ((df.est.dt.hour < 16) | (df.est.dt.hour > 17))
-            & ~((df.est.dt.hour >= 16) & (df.est.dt.dayofweek == 4))
-            & (df.est.dt.dayofweek != 5)
+            ~((df.nyk_time.dt.hour <= 17) & (df.nyk_time.dt.dayofweek == 6))
+            & ((df.nyk_time.dt.hour < 16) | (df.nyk_time.dt.hour > 17))
+            & ~((df.nyk_time.dt.hour >= 16) & (df.nyk_time.dt.dayofweek == 4))
+            & (df.nyk_time.dt.dayofweek != 5)
         )
 
         dnr = (
